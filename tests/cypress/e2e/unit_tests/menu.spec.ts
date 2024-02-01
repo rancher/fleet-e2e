@@ -35,4 +35,42 @@ describe('Menu testing', () => {
       cypressLib.accesMenu('Git Repos');
     })
   );
+
+  qase(62,
+    it('Deploy application to local cluster', () => {
+      const cluster = "cluster-local-fleet-62"
+      const repo = "https://github.com/rancher/fleet-examples"
+
+      cypressLib.checkNavIcon('cluster-management').should('exist');
+
+      // Click on the Continuous Delivery's icon
+      cypressLib.accesMenu('Continuous Delivery');
+      cypressLib.accesMenu('Git Repos');
+
+      // Change namespace to fleet-local
+      cy.contains('fleet-').click();
+      cy.contains('fleet-local').should('be.visible').click();
+
+      // Add Fleet repository
+      cy.clickButton('Add Repository');
+      cy.typeValue('Name', cluster);
+      cy.typeValue('Repository URL', repo);
+      cy.typeValue('Branch Name', 'master');
+      cy.clickButton('Add Path');
+
+      // Custom adding of path given there is no label on input
+      cy.addPathOnGitRepoCreate('simple');
+  
+      // Create Git repo
+      cy.clickButton('Next');
+      cy.clickButton('Create');
+
+      cy.get('table > tbody > tr').eq(0).children().contains('1/1', { timeout: 120000 }).should('be.visible')
+
+      // Assert cluster does not exists
+      cy.contains("already exists").should('not.exist');
+    })
+  );
+  
+
 });

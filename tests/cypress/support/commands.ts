@@ -40,3 +40,34 @@ for (const command of ['visit', 'click', 'trigger', 'type', 'clear', 'reload', '
   });
 }; 
 
+// Fleet commands
+
+// Add path on "Git Repo:Create"
+Cypress.Commands.add('addPathOnGitRepoCreate', (path) => {
+  cy.get("input[data-testid='input-0'][placeholder='e.g. /directory/in/your/repo']").
+    type(path);
+})
+
+// WIP To be improved
+// It should return value given a coluname and another row parameter.
+// It should be possible find multiple columnames and rowvalues.
+// Cypress.Commands.add('searchInTable', (columnName, textToMatch) => {
+//   cy.get("table > thead > tr > th")
+//     .each(($e1, index, $) => { //iterating through array of elements
+//       const StoreText = $e1.text().trim(); //storing iterated element in text
+//       if (StoreText.includes(columnName)) {
+//         //If text found, iteration stops and checks textToMatch is present
+//         cy.get('tbody tr td')
+//           .eq(index)
+//           .then(($td) => {
+//             const Assigneetext = $td.text().trim();
+//             // cy.wrap(`Column "${columnName}" value is ` + Assigneetext, { timeout: 25000 }).should('contain', textToMatch);
+//             cy.wrap(`Column "${columnName}" value is ` + Assigneetext, { timeout: 25000 }).should('contain', textToMatch);
+//           });
+//       }
+//     })
+// })
+
+
+
+
