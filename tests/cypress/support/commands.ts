@@ -62,7 +62,7 @@ Cypress.Commands.add('addFleetGitRepo', (repoName, repoUrl, branch, path) => {
   cy.clickButton('Next');
 })
 
-// Verify  texvalues in table giving the row number
+// Verify textvalues in table giving the row number
 // More items can be added with new ".and"
 Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2) => {
   // Ensure table is loaded and visible
@@ -77,7 +77,7 @@ Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2)
 Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   cy.get('.top > .ns-filter').should('be.visible');
   cy.get('.top > .ns-filter').click({ force: true });
-  // Typing in filter for better targetting the namespece
+  // Typing in filter for better targeting the namespece
   cy.get('div.ns-input').should('exist').type(namespaceName);
   cy.get('.ns-dropdown-menu', { timeout: 5000 }).contains(new RegExp("^" + namespaceName + "$", "g"), { matchCase: true }).should('be.visible').click();
   cy.get('.icon.icon-chevron-up').click({ force: true });

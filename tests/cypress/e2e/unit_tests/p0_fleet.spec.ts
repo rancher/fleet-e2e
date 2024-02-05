@@ -50,7 +50,7 @@ describe('Fleet Deployment Test Cases', () => {
       cy.verifyTableRow(0, repoName, '1/1');
       cy.contains("already exists").should('not.exist');
 
-      // Go to Deploymens in Local Cluster
+      // Go to Deployments in local cluster
       cypressLib.burgerMenuToggle();
       cypressLib.accesMenu('local');
       cypressLib.accesMenu('Workloads');
