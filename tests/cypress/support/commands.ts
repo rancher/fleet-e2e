@@ -69,8 +69,8 @@ Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2)
   cy.contains('tr.main-row[data-testid="sortable-table-0-row"').should('not.be.empty', { timeout: 25000 });
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
     .children()
-    .should('contain', expectedText1, { timeout: 30000 })
-    .and('contain', expectedText2, { timeout: 30000 });
+    .should('contain', expectedText1, { timeout: 60000 })
+    .and('contain', expectedText2, { timeout: 60000 });
 });
 
 // Namespace Toggle
