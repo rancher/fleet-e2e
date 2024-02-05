@@ -12,6 +12,12 @@ on:
         description: Rancher Manager channel/version/head_version to use for installation
         default: latest/devel/2.8
         type: string
+        required: true
+      upstream_cluster_version:
+        description: K3s upstream cluster version where to install Rancher
+        default: v1.27.9+k3s1
+        type: string
+        required: true
   schedule:
     - cron: '0 4 * * *'
 
@@ -21,9 +27,10 @@ jobs:
     secrets:
       credentials: ${{ secrets.GCP_CREDENTIALS }}
       pat_token: ${{ secrets.SELF_HOSTED_RUNNER_PAT_TOKEN }}
+      rancher_password: ${{ secrets.RANCHER_PASSWORD }}
     with:
       test_description: "CI/Manual - UI - Deployment test with Standard K3s"
       cluster_name: cluster-k3s
       destroy_runner: ${{ github.event_name == 'schedule' && true || inputs.destroy_runner }}
-      k8s_version_to_provision: v1.27.9+k3s1
-      rancher_version: ${{ inputs.rancher_version || 'latest/devel/2.8' }}
+      upstream_cluster_version: ${{ inputs.upstream_cluster_version }}
+      rancher_version: ${{ inputs.rancher_version }}
