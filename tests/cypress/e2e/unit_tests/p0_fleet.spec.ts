@@ -47,7 +47,9 @@ describe('Fleet Deployment Test Cases', () => {
       cy.clickButton('Create');
 
       // Assert repoName exists and its state is 1/1
-      cy.verifyTableRow(0, repoName, '1/1');
+      cy.verifyTableRow(0, repoName, ' ');
+      cy.open3dotsMenu( repoName, 'Force Update');
+      cy.verifyTableRow(0, '1/1', ' ');
       cy.contains("already exists").should('not.exist');
 
       // Go to Deployments in local cluster
@@ -60,6 +62,15 @@ describe('Fleet Deployment Test Cases', () => {
       cy.verifyTableRow(0, 'frontend', '3/3');
       cy.verifyTableRow(1, 'redis-master', '1/1');
       cy.verifyTableRow(2, 'redis-slave', '2/2');
+
+      // Delete created repo
+      cypressLib.burgerMenuToggle();
+      cypressLib.accesMenu('Continuous Delivery');
+      cypressLib.accesMenu('Dashboard');
+      cy.verifyTableRow(0, repoName, ' ');
+      cy.open3dotsMenu( repoName, 'Delete');
+      cy.contains('Delete').click()
+      cy.contains('Welcome to Fleet Continuous Delivery').should('be.visible')
     })
   );
 

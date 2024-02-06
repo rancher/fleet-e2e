@@ -61,6 +61,18 @@ Cypress.Commands.add('addFleetGitRepo', (repoName, repoUrl, branch, path) => {
   cy.clickButton('Next');
 })
 
+// 3 dots menu selection
+Cypress.Commands.add('open3dotsMenu', (name, selection) => {
+  // Open 3 dots button
+  cy.contains('tr.main-row', name).within(() => {
+    cy.get('.icon.icon-actions', { timeout: 5000 }).click();
+  });
+  if (selection) {
+    // Open edit config and select option
+    cy.get('.list-unstyled.menu > li > span', { timeout: 15000 }).contains(selection).click();
+  }
+});
+
 // Verify textvalues in table giving the row number
 // More items can be added with new ".and"
 Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2) => {
@@ -69,7 +81,7 @@ Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2)
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
     .children({ timeout: 180000 })
     .should('contain', expectedText1 )
-    .and('contain', expectedText2 );
+    .should('contain', expectedText2 ); // TODO: refactor this so it is not mandatory value
 });
 
 // Namespace Toggle
