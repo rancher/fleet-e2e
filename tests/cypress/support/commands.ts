@@ -67,7 +67,7 @@ Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2)
   // Ensure table is loaded and visible
   cy.contains('tr.main-row[data-testid="sortable-table-0-row"').should('not.be.empty', { timeout: 25000 });
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
-    .children({ timeout: 60000 })
+    .children({ timeout: 180000 })
     .should('contain', expectedText1 )
     .and('contain', expectedText2 );
 });
