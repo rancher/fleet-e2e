@@ -69,7 +69,10 @@ Cypress.Commands.add('open3dotsMenu', (name, selection) => {
   });
   if (selection) {
     // Open edit config and select option
-    cy.get('.list-unstyled.menu > li > span', { timeout: 15000 }).contains(selection).click();
+    cy.get('.list-unstyled.menu > li > span', { timeout: 15000 }).contains(selection).should('be.visible');
+    cy.get('.list-unstyled.menu > li > span', { timeout: 15000 }).contains(selection).click({ force: true });
+    // Ensure dropdown is not present
+    cy.contains('Edit Config').should('not.exist')
   }
 });
 
