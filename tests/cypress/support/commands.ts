@@ -97,3 +97,15 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   cy.get('.icon.icon-chevron-up').click({ force: true });
 })
 
+// Command to delete all rows if check box and delete button are present
+// Note: This function may be substituted by 'cypressLib.deleteAllResources' 
+// when hardcoded texts present can be parameterized
+Cypress.Commands.add('deleteAll', () => {
+  cy.get('body').then(($body) => {
+    if ($body.text().includes('Delete')) {
+      cy.get('[width="30"] > .checkbox-outer-container.check').click();
+      cy.get('.btn').contains('Delete').click({ctrlKey: true});
+      cy.get('.btn').contains('Delete').should('not.exist');
+    };
+  });
+});
