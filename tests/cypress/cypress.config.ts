@@ -3,6 +3,8 @@ import { defineConfig } from 'cypress'
 const qaseAPIToken = process.env.QASE_API_TOKEN
 
 export default defineConfig({
+  viewportWidth: 1314,
+  viewportHeight: 954,
   defaultCommandTimeout: 10000,
   reporter: 'cypress-qase-reporter',
   reporterOptions: {
