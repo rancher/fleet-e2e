@@ -30,9 +30,13 @@ describe('Fleet Deployment Test Cases', () => {
   qase(62,
     it('FLEET-62: Deploy application to local cluster', () => {
       const repoName = "local-cluster-fleet-62"
-      const repoUrl = "https://github.com/rancher/fleet-test-data/"
       const branch = "master"
       const path = "simple-chart"
+      const repoUrl = "https://github.com/rancher/fleet-test-data/"
+      
+      // TODO: When this issue is resolved https://github.com/rancher/fleet/issues/2128
+      // use repoUrl = 'https://github.com/rancher/fleet-examples', path = 'simple-chart'
+      // and check in Deployments that resources 'frontend', 'redis-master', 'redis-slave' are ok
 
       // Click on the Continuous Delivery's icon
       cypressLib.accesMenu('Continuous Delivery');
@@ -52,29 +56,15 @@ describe('Fleet Deployment Test Cases', () => {
       cy.verifyTableRow(0, '1/1', ' ');
       cy.contains("already exists").should('not.exist');
 
-      // TODO: Currently blocked by https://github.com/rancher/fleet/issues/2128
-      // When it is resolved, this part should be uncommented and use
-      // repoUrl = 'https://github.com/rancher/fleet-examples', path = 'simple-chart'
-
-      // Go to Deployments in local cluster
-      // cypressLib.burgerMenuToggle();
-      // cypressLib.accesMenu('local');
-      // cypressLib.accesMenu('Workloads');
-      // cypressLib.accesMenu('Deployments');
-
-      // // Verify table rows
-      // cy.verifyTableRow(0, 'frontend', '3/3');
-      // cy.verifyTableRow(1, 'redis-master', '1/1');
-      // cy.verifyTableRow(2, 'redis-slave', '2/2');
-
       // Delete created repo
       cypressLib.burgerMenuToggle();
       cypressLib.accesMenu('Continuous Delivery');
-      cypressLib.accesMenu('Dashboard');
+      cypressLib.accesMenu('Git Repos');
       cy.verifyTableRow(0, repoName, ' ');
-      cy.open3dotsMenu( repoName, 'Delete');
-      cy.contains('Delete').click()
-      cy.contains('Welcome to Fleet Continuous Delivery').should('be.visible')
+
+      // Delete all git repos
+      cy.deleteAll();
+      cy.contains('No repositories have been added').should('be.visible')
     })
   );
 
