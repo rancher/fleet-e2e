@@ -35,13 +35,10 @@ const (
 )
 
 var (
-	arch               string
-	CertManagerVersion string
-	clusterName        string
-	clusterNS          string
+	arch string
+	clusterName string
 	rancherHostname    string
 	k8sUpstreamVersion string
-	k8sVersion         string
 	rancherChannel     string
 	rancherHeadVersion string
 	rancherVersion     string
@@ -70,12 +67,9 @@ func TestE2E(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	arch = os.Getenv("ARCH")
-	CertManagerVersion = os.Getenv("CERT_MANAGER_VERSION")
 	clusterName = os.Getenv("CLUSTER_NAME")
-	clusterNS = os.Getenv("CLUSTER_NS")
 	rancherHostname = os.Getenv("PUBLIC_DNS")
 	k8sUpstreamVersion = os.Getenv("K8S_UPSTREAM_VERSION")
-	k8sVersion = os.Getenv("K8S_VERSION_TO_PROVISION")
 	rancherVersion = os.Getenv("RANCHER_VERSION")
 
 	// Extract Rancher Manager channel/version to install
