@@ -36,7 +36,7 @@ jobs:
     with:
       test_description: "CI/Manual - UI - Deployment test with Standard K3s"
       cluster_name: cluster-k3s
-      # WARNING, BELOW ARE HARDCODED VALUES FOR RUNS SCHEDULED BY CRON
+      # WARNING, VALUES BELOW ARE HARDCODED FOR RUNS SCHEDULED BY CRON
       destroy_runner: ${{ github.event_name == 'schedule' && true || inputs.destroy_runner }}
       upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.26.10+k3s2' }}
       rancher_version: ${{ inputs.rancher_version || 'latest/devel/2.7' }}
