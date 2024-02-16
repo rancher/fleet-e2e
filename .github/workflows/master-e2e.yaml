@@ -156,8 +156,7 @@ jobs:
       - name: Cypress tests - Basics
         env:
           BROWSER: chrome
-          # CYPRESS_DOCKER: 'cypress/included:10.9.0'
-          CYPRESS_DOCKER: 'cypress/included:cypress-13.6.4-node-20.11.0-chrome-121.0.6167.85-1-ff-120.0-edge-121.0.2277.83-1'
+          CYPRESS_DOCKER: 'cypress/included:cypress-13.6.4'
           RANCHER_VERSION: ${{ steps.component.outputs.rm_version }}
           RANCHER_URL: https://${{ needs.create-runner.outputs.public_dns }}/dashboard
           RANCHER_USER: admin
