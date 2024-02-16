@@ -6,6 +6,8 @@ export default defineConfig({
   viewportWidth: 1314,
   viewportHeight: 954,
   defaultCommandTimeout: 10000,
+  video: true,
+  videoCompression: true,
   reporter: 'cypress-qase-reporter',
   reporterOptions: {
     'apiToken': qaseAPIToken,
