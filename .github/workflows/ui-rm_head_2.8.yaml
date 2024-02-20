@@ -13,6 +13,10 @@ on:
       - 'README.md'
   workflow_dispatch:
     inputs:
+      qase_run_id:
+        description: Qase run ID where the results will be reported
+        default: auto
+        type: string
       destroy_runner:
         description: Destroy the auto-generated self-hosted runner
         default: true
@@ -37,6 +41,7 @@ jobs:
       credentials: ${{ secrets.GCP_CREDENTIALS }}
       pat_token: ${{ secrets.SELF_HOSTED_RUNNER_PAT_TOKEN }}
       rancher_password: ${{ secrets.RANCHER_PASSWORD }}
+      qase_api_token: ${{ secrets.QASE_API_TOKEN }}
     with:
       test_description: "CI/Manual - UI - Deployment test with Standard K3s"
       cluster_name: cluster-k3s
@@ -44,3 +49,4 @@ jobs:
       destroy_runner: ${{ contains(fromJSON('["pull_request", "schedule"]'), github.event_name) && true || inputs.destroy_runner }}
       upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.27.10+k3s2' }}
       rancher_version: ${{ inputs.rancher_version || 'devel/2.8' }}
+      qase_run_id: ${{ inputs.qase_run_id || 'auto' }}

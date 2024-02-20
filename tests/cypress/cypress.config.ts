@@ -11,7 +11,7 @@ export default defineConfig({
   reporter: 'cypress-qase-reporter',
   reporterOptions: {
     'apiToken': qaseAPIToken,
-    'projectCode': 'Fleet',
+    'projectCode': 'FLEET',
     'logging': true,
   },
   e2e: {

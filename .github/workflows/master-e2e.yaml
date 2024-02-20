@@ -20,6 +20,9 @@ on:
         # - if the person still has access to the repo
         description: PAT token used to add runner
         required: true
+      qase_api_token:
+        description: Qase API token to use for Qase reporting
+        required: true
     inputs:
       cluster_name:
         description: Name of the provisioned cluster
@@ -28,6 +31,9 @@ on:
         description: Destroy the auto-generated self-hosted runner
         default: true
         type: boolean
+      qase_run_id:
+        description: Case run ID where the results will be reported
+        type: string
       rancher_version:
         description: Rancher Manager channel/version/head_version to use for installation
         default: stable/latest/none
@@ -39,6 +45,7 @@ on:
         type: string
       test_description:
         description: Short description of the test
+        default: unknown
         type: string
       upstream_cluster_version:
         description: K3s upstream cluster version where to install Rancher
@@ -103,8 +110,58 @@ jobs:
             echo "PUBLIC_IP and/or PUBLIC_DNS are empty!" >&2
             false
           fi
-  e2e:
+
+  pre-qase:
     needs: create-runner
+    runs-on: ${{ needs.create-runner.outputs.uuid }}
+    env:
+      QASE_API_TOKEN: ${{ secrets.qase_api_token }}
+      QASE_PROJECT_CODE: FLEET
+    outputs:
+      qase_run_description: ${{ steps.qase.outputs.qase_run_description }}
+      qase_run_id: ${{ steps.qase.outputs.qase_run_id }}
+      qase_run_name: ${{ steps.qase.outputs.qase_run_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          cache-dependency-path: tests/go.sum
+          go-version-file: tests/go.mod
+
+      - name: Create/Export Qase Run
+        id: qase
+        run: |
+          if ${{ inputs.qase_run_id == 'auto' }}; then
+            # Define and export URL of GH test run in Qase run description
+            GH_RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            QASE_DESC="${{ inputs.test_description }} (${GH_RUN_URL})"
+            export QASE_RUN_DESCRIPTION="${QASE_DESC}"
+
+            # Define and export the Qase run name, as it cannot be done
+            # in 'env:' because GITHUB_WORKFLOW is a shell variable
+            # Export them also to be used locally
+            export QASE_RUN_NAME="${GITHUB_WORKFLOW}"
+
+            # Create a Qase run, get its ID
+            ID=$(cd tests && make create-qase-run)
+            
+            # Export outputs for future use
+            echo "qase_run_description=${QASE_DESC}" >> ${GITHUB_OUTPUT}
+            echo "qase_run_id=${ID}" >> ${GITHUB_OUTPUT}
+            echo "qase_run_name=${GITHUB_WORKFLOW}" >> ${GITHUB_OUTPUT}
+
+            # Just an info for debugging purposes
+            echo -e "Exported values:\nQASE_RUN_ID=${ID}\nQASE_RUN_DESCRIPTION=${QASE_DESC}\nQASE_RUN_NAME=${GITHUB_WORKFLOW}"
+          elif ${{ inputs.qase_run_id != '' }}; then
+            # If the run ID has been specified
+            echo "qase_run_id=${{ inputs.qase_run_id }}" >> ${GITHUB_OUTPUT}
+          fi
+
+  e2e:
+    needs: [create-runner, pre-qase]
     runs-on: ${{ needs.create-runner.outputs.uuid }}
     env:
       ARCH: amd64
@@ -113,6 +170,12 @@ jobs:
       # For Rancher Manager
       RANCHER_VERSION: ${{ inputs.rancher_version }}
       TIMEOUT_SCALE: 3
+      # QASE variables
+      QASE_API_TOKEN: ${{ secrets.qase_api_token }}
+      QASE_PROJECT_CODE: FLEET
+      QASE_RUN_ID: ${{ inputs.qase_run_id }}
+      # NOTE: this REPORT var is needed for Cypress!
+      QASE_REPORT: 1
     steps:
       - name: Adding /usr/local/bin into PATH
         run: echo "/usr/local/bin/" >> ${GITHUB_PATH}
@@ -195,10 +258,11 @@ jobs:
           echo "CertManager Image: ${{ steps.component.outputs.cert_manager_version }}" >> ${GITHUB_STEP_SUMMARY}
           echo "### Kubernetes" >> ${GITHUB_STEP_SUMMARY}
           echo "K3s on Rancher Manager: ${{ env.INSTALL_K3S_VERSION }}" >> ${GITHUB_STEP_SUMMARY}
+
   delete-runner:
     if: ${{ always() && inputs.destroy_runner == true }}
     needs: [create-runner, e2e]
-    runs-on: ubuntu-latest
+    runs-on: ${{ needs.create-runner.outputs.uuid }}
     steps:
       # actions/checkout MUST come before auth
       - name: Checkout
@@ -218,3 +282,49 @@ jobs:
           gcloud --quiet compute instances delete ${{ needs.create-runner.outputs.runner }} \
             --delete-disks all \
             --zone ${{ inputs.zone }}
+
+  post-qase:
+    if: ${{ always() && needs.pre-qase.outputs.qase_run_id != '' }}
+    needs: [pre-qase, e2e]
+    runs-on: ${{ needs.create-runner.outputs.uuid }}
+    env:
+      QASE_API_TOKEN: ${{ secrets.qase_api_token }}
+      QASE_PROJECT_CODE: FLEET
+      QASE_REPORT: 1
+      QASE_RUN_COMPLETE: 1
+      QASE_RUN_ID: ${{ needs.pre-qase.outputs.qase_run_id }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          cache-dependency-path: tests/go.sum
+          go-version-file: tests/go.mod
+
+      - name: Finalize Qase Run and publish Results
+        if: ${{ !contains(needs.e2e.outputs.steps_status, 'cancelled') }}
+        run: |
+          REPORT=$(cd tests && make publish-qase-run)
+          echo "${REPORT}"
+
+          # Extract report URL and put it in summary
+          REPORT_URL=$(awk '/available:/ { print $NF }' <<<${REPORT})
+          if [[ -n "${REPORT_URL}" ]]; then
+            echo "## QASE Reporting" >> ${GITHUB_STEP_SUMMARY}
+            echo "Public Qase report: ${REPORT_URL}" >> ${GITHUB_STEP_SUMMARY}
+          fi
+
+      - name: Delete Qase Run if job has been cancelled
+        if: ${{ contains(needs.e2e.outputs.steps_status, 'cancelled') }}
+        run: cd tests && make delete-qase-run
+
+  # Just to signify that something has been cancelled and it's not useful to check the test
+  declare-cancelled:
+    if: ${{ always() && (contains(needs.e2e.outputs.steps_status, 'cancelled') || needs.e2e.result == 'cancelled' || needs.create-runner.result != 'success') }}
+    needs: [create-runner, e2e]
+    runs-on: ${{ needs.create-runner.outputs.uuid }}
+    steps:
+      - name: Specify in summary if something has been cancelled
+        run: echo "# TEST CANCELLED!" >> ${GITHUB_STEP_SUMMARY}
