@@ -262,7 +262,7 @@ jobs:
   delete-runner:
     if: ${{ always() && inputs.destroy_runner == true }}
     needs: [create-runner, e2e]
-    runs-on: ${{ needs.create-runner.outputs.uuid }}
+    runs-on: ubuntu-latest
     steps:
       # actions/checkout MUST come before auth
       - name: Checkout
