@@ -112,8 +112,7 @@ jobs:
           fi
 
   pre-qase:
-    needs: create-runner
-    runs-on: ${{ needs.create-runner.outputs.uuid }}
+    runs-on: ubuntu-latest
     env:
       QASE_API_TOKEN: ${{ secrets.qase_api_token }}
       QASE_PROJECT_CODE: FLEET
@@ -261,7 +260,7 @@ jobs:
 
   delete-runner:
     if: ${{ always() && inputs.destroy_runner == true }}
-    needs: [post-qase]
+    needs: e2e
     runs-on: ubuntu-latest
     steps:
       # actions/checkout MUST come before auth
@@ -285,8 +284,8 @@ jobs:
 
   post-qase:
     if: ${{ always() && needs.pre-qase.outputs.qase_run_id != '' }}
-    needs: [e2e]
-    runs-on: ${{ needs.create-runner.outputs.uuid }}
+    needs: e2e
+    runs-on: ubuntu-latest
     env:
       QASE_API_TOKEN: ${{ secrets.qase_api_token }}
       QASE_PROJECT_CODE: FLEET
@@ -323,7 +322,7 @@ jobs:
   # Just to signify that something has been cancelled and it's not useful to check the test
   declare-cancelled:
     if: ${{ always() && (contains(needs.e2e.outputs.steps_status, 'cancelled') || needs.e2e.result == 'cancelled') }}
-    needs: [e2e]
+    needs: e2e
     runs-on: ubuntu-latest
     steps:
       - name: Specify in summary if something has been cancelled
