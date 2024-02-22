@@ -33,6 +33,7 @@ on:
         type: boolean
       qase_run_id:
         description: Case run ID where the results will be reported
+        default: auto
         type: string
       rancher_version:
         description: Rancher Manager channel/version/head_version to use for installation
