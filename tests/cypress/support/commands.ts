@@ -26,15 +26,36 @@ Cypress.Commands.add('addPathOnGitRepoCreate', (path) => {
   cy.get('input[placeholder="e.g. /directory/in/your/repo"]').type(path);
 })
 
+Cypress.Commands.add('gitRepoAuth', (gitAuthType, userOrPublicKey, pwdOrPrivateKey) => {
+  cy.contains('Git Authentication').click()
+  // Select the Git auth method
+  cy.get('div.option-kind-highlighted', { timeout: 15000 }).contains(gitAuthType, { matchCase: false }).should('be.visible').click();
+
+  if (gitAuthType === 'http') {
+    cy.typeValue('Username', userOrPublicKey);
+    cy.typeValue('Password', pwdOrPrivateKey);
+  }
+  else if (gitAuthType === 'ssh') {
+    // Ugly implementation needed because 'typeValue' does not work here
+    cy.get('textarea.no-resize.no-ease').eq(0).focus().clear().type(userOrPublicKey);
+    cy.get('textarea.no-resize.no-ease').eq(1).focus().clear().type(pwdOrPrivateKey);
+  }
+});
+
+
 // Command add Fleet Git Repository
-Cypress.Commands.add('addFleetGitRepo', (repoName, repoUrl, branch, path) => {
+Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey }) => {
   cy.clickButton('Add Repository');
+  cy.contains('Git Repo:').should('be.visible');
   cy.typeValue('Name', repoName);
   cy.typeValue('Repository URL', repoUrl);
   cy.typeValue('Branch Name', branch);
   // Path is not required wwhen git repo contains 1 application folder only.
   if (path !== null) {
     cy.addPathOnGitRepoCreate(path);
+  }
+  if (gitAuthType !== null) {
+    cy.gitRepoAuth(gitAuthType, userOrPublicKey, pwdOrPrivateKey);
   }
   cy.clickButton('Next');
 })

@@ -68,6 +68,38 @@ describe('Fleet Deployment Test Cases', () => {
     })
   );
 
+  qase(6,
+    it('FLEET-6: Test GITLAB Private Repository to install NGINX app using HTTP auth', () => {
+      const repoName = "local-cluster-fleet-6"
+      const branch = "main"
+      const path = "test-fleet-main/nginx"
+      const repoUrl = "https://gitlab.com/qa1613907/gitlab-test-fleet.git"
+      const gitAuthType = "http"
+      const userOrPublicKey = Cypress.env("gitlab_private_user");
+      const pwdOrPrivateKey = Cypress.env("gitlab_private_pwd");
+  
+      // // Click on the Continuous Delivery's icon
+      cypressLib.accesMenu('Continuous Delivery');
+      cypressLib.accesMenu('Git Repos');
+
+      // Change namespace to fleet-local
+      cy.contains('fleet-').click();
+      cy.contains('fleet-local').should('be.visible').click();
+
+      // // Add Fleet repository and create it
+      cy.addFleetGitRepo( {repoName, repoUrl, branch, path, gitAuthType: gitAuthType, userOrPublicKey: userOrPublicKey, pwdOrPrivateKey: pwdOrPrivateKey} );
+      cy.clickButton('Create');
+
+      // Assert repoName exists and its state is 1/1
+      cy.verifyTableRow(0, repoName, ' ');
+      cy.verifyTableRow(0, '1/1', ' ');
+      cy.contains("already exists").should('not.exist');
+
+      // Delete created repo
+      cy.deleteAll();
+      cy.contains('No repositories have been added').should('be.visible')
+    })
+  );
 
 });
 

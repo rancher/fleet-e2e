@@ -20,6 +20,12 @@ on:
         # - if the person still has access to the repo
         description: PAT token used to add runner
         required: true
+      gitlab_private_user:
+        description: Gitlab username for private repo tests
+        required: false
+      gitlab_private_pwd:
+        description: Gitlab password for private repo tests
+        required: false
     inputs:
       cluster_name:
         description: Name of the provisioned cluster
@@ -161,6 +167,8 @@ jobs:
           RANCHER_URL: https://${{ needs.create-runner.outputs.public_dns }}/dashboard
           RANCHER_USER: admin
           RANCHER_PASSWORD: ${{ secrets.rancher_password }}
+          GITLAB_PRIVATE_USER: ${{ secrets.gitlab_private_user }}
+          GITLAB_PRIVATE_PWD: ${{ secrets.gitlab_private_pwd }}
           SPEC: |
             /workdir/e2e/unit_tests/first_connection.spec.ts
             /workdir/e2e/unit_tests/user.spec.ts
