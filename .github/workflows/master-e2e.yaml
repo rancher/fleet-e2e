@@ -46,7 +46,7 @@ on:
         type: string
       test_description:
         description: Short description of the test
-        default: unknown
+        default: A description
         type: string
       upstream_cluster_version:
         description: K3s upstream cluster version where to install Rancher
