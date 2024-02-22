@@ -72,6 +72,9 @@ Cypress.Commands.add('open3dotsMenu', (name, selection) => {
     cy.get('.list-unstyled.menu > li > span', { timeout: 15000 }).contains(selection).click({ force: true });
     // Ensure dropdown is not present
     cy.contains('Edit Config').should('not.exist')
+    // Temporary wait to ensure the 3 dots menu is closed and status is updated
+    cy.log('###### Wait for 3 seconds ########');
+    cy.wait(3000);
   }
 });
 
