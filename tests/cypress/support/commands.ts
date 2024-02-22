@@ -72,9 +72,6 @@ Cypress.Commands.add('open3dotsMenu', (name, selection) => {
     cy.get('.list-unstyled.menu > li > span', { timeout: 15000 }).contains(selection).click({ force: true });
     // Ensure dropdown is not present
     cy.contains('Edit Config').should('not.exist')
-    // Temporary wait to ensure the 3 dots menu is closed and status is updated
-    cy.log('###### Wait for 3 seconds ########');
-    cy.wait(3000);
   }
 });
 
@@ -107,6 +104,8 @@ Cypress.Commands.add('deleteAll', () => {
     if ($body.text().includes('Delete')) {
       cy.get('[width="30"] > .checkbox-outer-container.check').click();
       cy.get('.btn').contains('Delete').click({ctrlKey: true});
+      // Forcing wait to help Rancher effectively complete deletion
+      cy.wait(2000)
       cy.get('.btn').contains('Delete').should('not.exist');
     };
   });
