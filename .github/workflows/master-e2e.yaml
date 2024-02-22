@@ -53,8 +53,7 @@ on:
         required: true
       zone:
         description: GCP zone to host the runner
-        # TODO: Modify zone for fleet-e2e
-        default: asia-south2-c
+        default: us-east4-a
         type: string
 
 jobs:
