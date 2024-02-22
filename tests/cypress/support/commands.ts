@@ -51,10 +51,10 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitA
   cy.typeValue('Repository URL', repoUrl);
   cy.typeValue('Branch Name', branch);
   // Path is not required wwhen git repo contains 1 application folder only.
-  if (path !== null) {
+  if (path) {
     cy.addPathOnGitRepoCreate(path);
   }
-  if (gitAuthType !== null) {
+  if (gitAuthType) {
     cy.gitRepoAuth(gitAuthType, userOrPublicKey, pwdOrPrivateKey);
   }
   cy.clickButton('Next');

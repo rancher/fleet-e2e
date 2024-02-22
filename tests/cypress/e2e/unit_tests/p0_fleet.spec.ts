@@ -47,7 +47,7 @@ describe('Fleet Deployment Test Cases', () => {
       cy.contains('fleet-local').should('be.visible').click();
 
       // Add Fleet repository and create it
-      cy.addFleetGitRepo(repoName, repoUrl, branch, path);
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
       cy.clickButton('Create');
 
       // Assert repoName exists and its state is 1/1
