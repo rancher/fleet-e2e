@@ -17,7 +17,6 @@ import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 import { qase } from 'cypress-qase-reporter/dist/mocha';
 
 beforeEach(() => {
-  cypressLib.firstLogin();
   cy.login();
   cy.visit('/');
   cypressLib.burgerMenuToggle();

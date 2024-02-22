@@ -225,6 +225,7 @@ jobs:
           RANCHER_PASSWORD: ${{ secrets.rancher_password }}
           # Add /workdir/e2e/unit_tests/user.spec.ts again when implementing RBAC tests.
           SPEC: |
+            /workdir/e2e/unit_tests/first_login_rancher.spec.ts
             /workdir/e2e/unit_tests/p0_fleet.spec.ts
         run: cd tests && make start-cypress-tests
       - name: Upload Cypress screenshots (Basics)
