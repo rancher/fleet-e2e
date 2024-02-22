@@ -90,13 +90,24 @@ describe('Fleet Deployment Test Cases', () => {
       cy.addFleetGitRepo( {repoName, repoUrl, branch, path,  gitAuthType, userOrPublicKey, pwdOrPrivateKey} );
       cy.clickButton('Create');
 
+      // // Assert repoName exists and its state is 1/1
+      // cy.verifyTableRow(0, repoName, ' ');
+      // cy.open3dotsMenu( repoName, 'Force Update');
+      // cy.verifyTableRow(0, '1/1', ' ');
+      // cy.contains("already exists").should('not.exist');
+
       // Assert repoName exists and its state is 1/1
       cy.verifyTableRow(0, repoName, ' ');
-      cy.open3dotsMenu( repoName, 'Force Update');
-      cy.verifyTableRow(0, '1/1', ' ');
-      cy.contains("already exists").should('not.exist');
-
+      cy.contains(repoName).click()
+      cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
+      cy.get('div.fleet-status').eq(0).contains(' 1 / 1 Bundles ready ').should('be.visible')
+      cy.get('div.fleet-status').eq(1).contains(' 1 / 1 Resources ready ').should('be.visible')
+      
       // Delete created repo
+      cypressLib.burgerMenuToggle();
+      cypressLib.accesMenu('Continuous Delivery');
+      cypressLib.accesMenu('Git Repos');
+      cy.verifyTableRow(0, repoName, ' ')
       cy.deleteAll();
       cy.contains('No repositories have been added').should('be.visible')
     })
