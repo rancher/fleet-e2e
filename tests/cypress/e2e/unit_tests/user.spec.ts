@@ -16,7 +16,6 @@ limitations under the License.
 
 import '~/support/commands';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
-import { qase } from 'cypress-qase-reporter/dist/mocha';
 
 Cypress.config();
 describe('User role testing', () => {
@@ -27,11 +26,9 @@ describe('User role testing', () => {
     cy.visit('/');
   });
 
-  qase(15,
     it('Create standard user', () => {
       cy.login();
       cypressLib.burgerMenuToggle();
       cypressLib.createUser(stdUser, uiPassword);
     })
-  );
 });
