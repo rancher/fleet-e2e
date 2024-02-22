@@ -28,6 +28,8 @@ jobs:
       credentials: ${{ secrets.GCP_CREDENTIALS }}
       pat_token: ${{ secrets.SELF_HOSTED_RUNNER_PAT_TOKEN }}
       rancher_password: ${{ secrets.RANCHER_PASSWORD }}
+      gitlab_private_user: ${{ secrets.GITLAB_PRIVATE_USER }}
+      gitlab_private_pwd: ${{ secrets.GITLAB_PRIVATE_PWD }}
     with:
       test_description: "CI/Manual - UI - Deployment test with Standard K3s"
       cluster_name: cluster-k3s
