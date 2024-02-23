@@ -94,8 +94,8 @@ describe('Fleet Deployment Test Cases', () => {
       cy.verifyTableRow(0, 'Active', repoName);
       cy.contains(repoName).click()
       cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
-      cy.get('div.fleet-status', { timeout: 30000 }).eq(0).contains(' 1 / 1 Bundles ready ').should('be.visible')
-      cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(' 1 / 1 Resources ready ').should('be.visible')
+      cy.get('div.fleet-status', { timeout: 30000 }).eq(0).contains(' 1 / 1 Bundles ready ', { timeout: 30000 }).should('be.visible')
+      cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(' 1 / 1 Resources ready ', { timeout: 30000 }).should('be.visible')
       
       // Delete created repo
       cypressLib.burgerMenuToggle();

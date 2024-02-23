@@ -80,7 +80,7 @@ Cypress.Commands.add('open3dotsMenu', (name, selection) => {
 Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2) => {
   // Adding small wait to give time for things to settle a bit
   // Could not find a better way to wait, but can be improved
-  cy.wait(1000)
+  cy.wait(3000)
   // Ensure table is loaded and visible
   cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
