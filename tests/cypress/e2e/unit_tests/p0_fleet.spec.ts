@@ -90,21 +90,12 @@ describe('Fleet Deployment Test Cases', () => {
       cy.addFleetGitRepo( {repoName, repoUrl, branch, path,  gitAuthType, userOrPublicKey, pwdOrPrivateKey} );
       cy.clickButton('Create');
 
-      // // Assert repoName exists and its state is 1/1
-      // cy.verifyTableRow(0, repoName, ' ');
-      // cy.open3dotsMenu( repoName, 'Force Update');
-      // cy.verifyTableRow(0, '1/1', ' ');
-      // cy.contains("already exists").should('not.exist');
-
       // Assert repoName exists and its state is 1/1
       cy.verifyTableRow(0, 'Active', repoName);
-      // Forcing wait because Rancher crashes if clicking too fast
-      // Remove when Rancher works here
-      cy.wait(2000)
       cy.contains(repoName).click()
       cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
-      cy.get('div.fleet-status', { timeout: 600000 }).eq(0).contains(' 1 / 1 Bundles ready ').should('be.visible')
-      cy.get('div.fleet-status', { timeout: 600000 }).eq(1).contains(' 1 / 1 Resources ready ').should('be.visible')
+      cy.get('div.fleet-status', { timeout: 30000 }).eq(0).contains(' 1 / 1 Bundles ready ').should('be.visible')
+      cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(' 1 / 1 Resources ready ').should('be.visible')
       
       // Delete created repo
       cypressLib.burgerMenuToggle();

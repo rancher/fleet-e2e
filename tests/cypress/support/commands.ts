@@ -78,8 +78,11 @@ Cypress.Commands.add('open3dotsMenu', (name, selection) => {
 // Verify textvalues in table giving the row number
 // More items can be added with new ".and"
 Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2) => {
+  // Adding small wait to give time for things to settle a bit
+  // Could not find a better way to wait, but can be improved
+  cy.wait(1000)
   // Ensure table is loaded and visible
-  cy.contains('tr.main-row[data-testid="sortable-table-0-row"').should('not.be.empty', { timeout: 25000 });
+  cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
     .children({ timeout: 300000 })
     .should('contain', expectedText1 )
@@ -104,8 +107,6 @@ Cypress.Commands.add('deleteAll', () => {
     if ($body.text().includes('Delete')) {
       cy.get('[width="30"] > .checkbox-outer-container.check').click();
       cy.get('.btn').contains('Delete').click({ctrlKey: true});
-      // Forcing wait to help Rancher effectively complete deletion
-      cy.wait(2000)
       cy.get('.btn').contains('Delete').should('not.exist');
     };
   });
