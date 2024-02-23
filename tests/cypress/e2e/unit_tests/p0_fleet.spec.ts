@@ -91,6 +91,7 @@ describe('Fleet Deployment Test Cases', () => {
       cy.clickButton('Create');
 
       // Forcing 15 seconds to see if ci responds in rancher 2.8-head
+      cy.open3dotsMenu( repoName, 'Force Update');
       cy.wait(15000)
       
       // Assert repoName exists and its state is 1/1
