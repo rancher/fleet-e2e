@@ -90,6 +90,9 @@ describe('Fleet Deployment Test Cases', () => {
       cy.addFleetGitRepo( {repoName, repoUrl, branch, path,  gitAuthType, userOrPublicKey, pwdOrPrivateKey} );
       cy.clickButton('Create');
 
+      // Forcing 15 seconds to see if ci responds in rancher 2.8-head
+      cy.wait(15000)
+      
       // Assert repoName exists and its state is 1/1
       cy.verifyTableRow(0, 'Active', repoName);
       cy.contains(repoName).click()
