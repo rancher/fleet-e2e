@@ -24,8 +24,10 @@ declare global {
       addPathOnGitRepoCreate(path: string): Chainable<Element>;
       gitRepoAuth(authType: string, userOrPublicKey?: string, pwdOrPrivateKey?: string): Chainable<Element>;
       addFleetGitRepo(repoName: string, repoUrl?: string, branch?: string, path?: string): Chainable<Element>;
+      fleetNamespaceToggle(toggleOption: string): Chainable<Element>;
       verifyTableRow(rowNumber: number, expectedText1?: string, expectedText2?: string): Chainable<Element>;
       nameSpaceMenuToggle(namespaceName: string): Chainable<Element>;
+      accesMenuSelection(firstAccessMenu: string, secondAccessMenu?: string): Chainable<Element>;
       deleteAll(): Chainable<Element>;
     }
   }

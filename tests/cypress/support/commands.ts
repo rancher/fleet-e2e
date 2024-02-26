@@ -15,6 +15,7 @@ limitations under the License.
 // In this file you can write your custom commands and overwrite existing commands.
 
 import 'cypress-file-upload';
+import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 
 // Generic commands
 
@@ -98,6 +99,19 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   cy.get('.ns-dropdown-menu', { timeout: 5000 }).contains(new RegExp("^" + namespaceName + "$", "g"), { matchCase: true }).should('be.visible').click();
   cy.get('.icon.icon-chevron-up').click({ force: true });
 })
+
+// Go to specific Continuous Delivery Sub Menu
+Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery',secondAccessMenu) => {
+     cypressLib.burgerMenuToggle();
+     cypressLib.accesMenu(firstAccessMenu);
+     cypressLib.accesMenu(secondAccessMenu);
+});
+
+// Fleet namespace toggle
+Cypress.Commands.add('fleetNamespaceToggle', (toggleOption='local') => {
+  cy.contains('fleet-').click();
+  cy.contains(toggleOption).should('be.visible').click();
+});
 
 // Command to delete all rows if check box and delete button are present
 // Note: This function may be substituted by 'cypressLib.deleteAllResources' 
