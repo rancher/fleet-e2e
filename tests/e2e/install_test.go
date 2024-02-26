@@ -143,15 +143,32 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			// Wait for all pods to be started
 			checkList := [][]string{
 				{"cattle-system", "app=rancher"},
-				{"cattle-fleet-local-system", "app=fleet-agent"},
 				{"cattle-system", "app=rancher-webhook"},
 			}
 			Eventually(func() error {
 				return rancher.CheckPod(k, checkList)
 			}, tools.SetTimeout(4*time.Minute), 30*time.Second).Should(BeNil())
+		})
 
-			// A bit dirty be better to wait a little here for all to be correctly started
-			time.Sleep(2 * time.Minute)
+		By("Waiting for fleet", func() {
+			// Wait unit the kubectl command return exit code 0
+			count := 1
+			Eventually(func() error {
+				out, err := kubectl.Run("rollout", "status",
+					"--namespace", "cattle-fleet-system",
+					"deployment", "fleet-controller",
+				)
+				GinkgoWriter.Printf("Waiting for fleet-controller deployment, loop %d:\n%s\n", count, out)
+				count++
+				return err
+			}, tools.SetTimeout(2*time.Minute), 5*time.Second).Should(Not(HaveOccurred()))
+
+			checkList := [][]string{
+				{"cattle-fleet-system", "app=fleet-controller"},
+			}
+			Eventually(func() error {
+				return rancher.CheckPod(k, checkList)
+			}, tools.SetTimeout(4*time.Minute), 30*time.Second).Should(BeNil())
 		})
 
 		By("Configuring kubectl to use Rancher admin user", func() {
