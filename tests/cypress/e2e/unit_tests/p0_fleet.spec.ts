@@ -90,14 +90,15 @@ describe('Fleet Deployment Test Cases', () => {
 
       cy.open3dotsMenu( repoName, 'Force Update');
             
+      // Ugly thing. Meanwhile Fleet state is not guaranteed. We will delete repo and recreate it
+      // Delete once this is ok.
+      
       // Delete created repo
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.verifyTableRow(0, repoName, ' ')
       cy.deleteAll();
       cy.contains('No repositories have been added').should('be.visible')
 
-      // Ugly thing. Meanwhile Fleet state is not guaranteed. We will delete repo and recreate it
-      // Delete once this is ok.
 
       // Click on the Continuous Delivery's icon
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');

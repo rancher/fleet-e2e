@@ -51,7 +51,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitA
   cy.typeValue('Name', repoName);
   cy.typeValue('Repository URL', repoUrl);
   cy.typeValue('Branch Name', branch);
-  // Path is not required wwhen git repo contains 1 application folder only.
+  // Path is not required when git repo contains 1 application folder only.
   if (path) {
     cy.addPathOnGitRepoCreate(path);
   }
@@ -100,7 +100,7 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   cy.get('.icon.icon-chevron-up').click({ force: true });
 })
 
-// Go to specific Continuous Delivery Sub Menu
+// Go to specific Sub Menu from Access Menu
 Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery',secondAccessMenu) => {
      cypressLib.burgerMenuToggle();
      cypressLib.accesMenu(firstAccessMenu);
