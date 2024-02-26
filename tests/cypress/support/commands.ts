@@ -125,3 +125,18 @@ Cypress.Commands.add('deleteAll', () => {
     };
   });
 });
+
+// Returns the iframe() body to access further elements inside iframe.
+Cypress.Commands.add('getIframeBody', () => {
+  return cy.get('[data-testid="ember-iframe"]').its('0.contentDocument')
+});
+
+// Update dropdown value under iframe()
+Cypress.Commands.add('selectK8sVersionIframe', (version) => {
+  cy.getIframeBody().find('input#ember42', { timeout: 20000 })
+    .click()
+    .find('.searchable-option')
+    .contains(version)
+    .click();
+  cy.getIframeBody().find('Button').contains('Save').click();
+});
