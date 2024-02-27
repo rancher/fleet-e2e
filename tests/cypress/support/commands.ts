@@ -102,9 +102,9 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
 
 // Go to specific Sub Menu from Access Menu
 Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery',secondAccessMenu) => {
-     cypressLib.burgerMenuToggle();
-     cypressLib.accesMenu(firstAccessMenu);
-     cypressLib.accesMenu(secondAccessMenu);
+      cypressLib.burgerMenuToggle();
+      cypressLib.accesMenu(firstAccessMenu);
+      cypressLib.accesMenu(secondAccessMenu);
 });
 
 // Fleet namespace toggle
@@ -135,7 +135,7 @@ Cypress.Commands.add('getIframeBody', () => {
 Cypress.Commands.add('selectK8sVersionIframe', (version) => {
   cy.getIframeBody().find('input#ember42', { timeout: 20000 })
     .click()
-    .find('.searchable-option')
+  cy.getIframeBody().find('.searchable-option')
     .contains(version)
     .click();
   cy.getIframeBody().find('Button').contains('Save').click();

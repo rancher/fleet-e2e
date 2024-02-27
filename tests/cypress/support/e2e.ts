@@ -29,6 +29,8 @@ declare global {
       nameSpaceMenuToggle(namespaceName: string): Chainable<Element>;
       accesMenuSelection(firstAccessMenu: string, secondAccessMenu?: string): Chainable<Element>;
       deleteAll(): Chainable<Element>;
+      getIframeBody(): Chainable<Element>;
+      selectK8sVersionIframe(version: string): Chainable<Element>;
     }
   }
 }
