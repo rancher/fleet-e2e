@@ -81,7 +81,7 @@ describe('Fleet Deployment Test Cases', () => {
       cypressLib.accesMenu('Continuous Delivery');
       cypressLib.accesMenu('Git Repos');
 
-      // Change namespace to fleet-local
+      // Change namespace to fleet-local  
       cy.fleetNamespaceToggle('fleet-local')
 
       // Add Fleet repository and create it
@@ -115,6 +115,70 @@ describe('Fleet Deployment Test Cases', () => {
             
       // Assert repoName exists and its state is 1/1
       cy.verifyTableRow(0, 'Active', repoName);
+      cy.contains(repoName).click()
+      cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
+      cy.get('div.fleet-status', { timeout: 30000 }).eq(0).contains(' 1 / 1 Bundles ready ', { timeout: 30000 }).should('be.visible')
+      cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(' 1 / 1 Resources ready ', { timeout: 30000 }).should('be.visible')
+
+      // Delete created repo
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.verifyTableRow(0, repoName, ' ')
+      cy.deleteAll();
+      cy.contains('No repositories have been added').should('be.visible')
+
+    })
+  );
+
+  qase(7,
+    it('FLEET-7: Test BITBUCKET Private Repository to install NGINX app using HTTP auth', () => {
+      const repoName = "local-cluster-fleet-7"
+      const branch = "main"
+      const path = "test-fleet-main/nginx"
+      const repoUrl = "https://bitbucket.org/fleet-test-bitbucket/bitbucket-fleet-test"
+      const gitAuthType = "http"
+      const userOrPublicKey = Cypress.env("bitbucket_private_user");
+      const pwdOrPrivateKey = Cypress.env("bitbucket_private_pwd");
+  
+      // // Click on the Continuous Delivery's icon
+      cypressLib.accesMenu('Continuous Delivery');
+      cypressLib.accesMenu('Git Repos');
+      cy.fleetNamespaceToggle('fleet-local')
+
+      // Add Fleet repository and create it
+      cy.addFleetGitRepo( {repoName, repoUrl, branch, path,  gitAuthType, userOrPublicKey, pwdOrPrivateKey} );
+      cy.clickButton('Create');
+      cy.open3dotsMenu( repoName, 'Force Update');
+         
+      ////////////////////////////////////////////////////////////////////////////////
+      // Ugly thing. Meanwhile Fleet state is not guaranteed. We will delete repo and recreate it
+      // Delete once this is ok.
+      
+      // Delete created repo
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.verifyTableRow(0, repoName, ' ')
+      cy.deleteAll();
+      cy.contains('No repositories have been added').should('be.visible')
+
+
+      // Click on the Continuous Delivery's icon
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+
+      // Change namespace to fleet-local
+      cy.fleetNamespaceToggle('fleet-local')
+
+      // // Add Fleet repository and create it
+      cy.addFleetGitRepo( {repoName, repoUrl, branch, path,  gitAuthType, userOrPublicKey, pwdOrPrivateKey} );
+      cy.clickButton('Create');
+
+      // Force update to better ensure it creates
+      cy.open3dotsMenu( repoName, 'Force Update');
+      
+      //////////////////////////////////////////////////////////////////
+
+      // Assert repoName exists and its state is 1/1
+      cy.verifyTableRow(0, 'Active', repoName);
+      cy.verifyTableRow(0, '1/1', ' ');
+      
       cy.contains(repoName).click()
       cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
       cy.get('div.fleet-status', { timeout: 30000 }).eq(0).contains(' 1 / 1 Bundles ready ', { timeout: 30000 }).should('be.visible')

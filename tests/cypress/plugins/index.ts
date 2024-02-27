@@ -37,6 +37,7 @@ module.exports = (on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions)
   config.env.username             = process.env.RANCHER_USER;
   config.env.gitlab_private_user  = process.env.GITLAB_PRIVATE_USER;
   config.env.gitlab_private_pwd   = process.env.GITLAB_PRIVATE_PWD;
-
+  config.env.bitbucket_private_user  = process.env.BITBUCKET_PRIVATE_USER;
+  config.env.bitbucket_private_pwd   = process.env.BITBUCKET_PRIVATE_PWD;
   return config;
 };

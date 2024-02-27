@@ -21,6 +21,8 @@ jobs:
       rancher_password: ${{ secrets.RANCHER_PASSWORD }}
       gitlab_private_user: ${{ secrets.GITLAB_PRIVATE_USER }}
       gitlab_private_pwd: ${{ secrets.GITLAB_PRIVATE_PWD }}
+      bitbucket_private_user: ${{ secrets.BITBUCKET_PRIVATE_USER }}
+      bitbucket_private_pwd: ${{ secrets.BITBUCKET_PRIVATE_PWD }}
       qase_api_token: ${{ secrets.QASE_API_TOKEN }}
     with:
       test_description: "CI test for PR#${{ github.event.pull_request.number }} with K3s"
