@@ -248,6 +248,7 @@ jobs:
           # Add /workdir/e2e/unit_tests/user.spec.ts again when implementing RBAC tests.
           SPEC: |
             /workdir/e2e/unit_tests/first_login_rancher.spec.ts
+            /workdir/e2e/unit_tests/k8s_update_fleet.spec.ts
             /workdir/e2e/unit_tests/p0_fleet.spec.ts
         run: |
           if ${{ inputs.qase_run_id == 'none' }}; then
