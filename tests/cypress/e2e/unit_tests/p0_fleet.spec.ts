@@ -171,8 +171,8 @@ describe('Fleet Deployment Test Cases', () => {
       const path = "nginx"
       const repoUrl = "https://github.com/mmartinsuse/test-fleet"
       const gitAuthType = "http"
-      const userOrPublicKey = Cypress.env("github_private_user");
-      const pwdOrPrivateKey = Cypress.env("github_private_pwd");
+      const userOrPublicKey = Cypress.env("gh_private_user");
+      const pwdOrPrivateKey = Cypress.env("gh_private_pwd");
   
       // // Click on the Continuous Delivery's icon
       cypressLib.accesMenu('Continuous Delivery');
