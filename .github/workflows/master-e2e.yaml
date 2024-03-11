@@ -32,6 +32,12 @@ on:
       bitbucket_private_pwd:
         description: Bitbucket password for private repo tests
         required: false
+      gh_private_user:
+        description: Github username for private repo tests
+        required: false
+      gh_private_pwd:
+        description: Github password for private repo tests
+        required: false
       qase_api_token:
         description: Qase API token to use for Qase reporting
         required: true
@@ -245,6 +251,8 @@ jobs:
           GITLAB_PRIVATE_PWD: ${{ secrets.gitlab_private_pwd }}
           BITBUCKET_PRIVATE_USER: ${{ secrets.bitbucket_private_user }}
           BITBUCKET_PRIVATE_PWD: ${{ secrets.bitbucket_private_pwd }}
+          GH_PRIVATE_USER: ${{ secrets.gh_private_user }}
+          GH_PRIVATE_PWD: ${{ secrets.gh_private_pwd }}
           # Add /workdir/e2e/unit_tests/user.spec.ts again when implementing RBAC tests.
           SPEC: |
             /workdir/e2e/unit_tests/first_login_rancher.spec.ts

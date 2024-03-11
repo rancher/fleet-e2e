@@ -36,6 +36,8 @@ jobs:
       gitlab_private_pwd: ${{ secrets.GITLAB_PRIVATE_PWD }}
       bitbucket_private_user: ${{ secrets.BITBUCKET_PRIVATE_USER }}
       bitbucket_private_pwd: ${{ secrets.BITBUCKET_PRIVATE_PWD }}
+      gh_private_user: ${{ secrets.GH_PRIVATE_USER }}
+      gH_private_pwd: ${{ secrets.GH_PRIVATE_PWD }}
       qase_api_token: ${{ secrets.QASE_API_TOKEN }}
     with:
       test_description: "CI/Manual - UI - Deployment test with Standard K3s"

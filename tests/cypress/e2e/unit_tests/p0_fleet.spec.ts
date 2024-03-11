@@ -164,5 +164,42 @@ describe('Fleet Deployment Test Cases', () => {
     })
   );
 
+  qase(8,
+    it('FLEET-8: Test GITHUB Private Repository to install NGINX app using HTTP auth', () => {
+      const repoName = "local-cluster-fleet-8"
+      const branch = "main"
+      const path = "nginx"
+      const repoUrl = "https://github.com/mmartinsuse/test-fleet"
+      const gitAuthType = "http"
+      const userOrPublicKey = Cypress.env("github_private_user");
+      const pwdOrPrivateKey = Cypress.env("github_private_pwd");
+  
+      // // Click on the Continuous Delivery's icon
+      cypressLib.accesMenu('Continuous Delivery');
+      cypressLib.accesMenu('Git Repos');
+      cy.fleetNamespaceToggle('fleet-local')
+
+      // Add Fleet repository and create it
+      cy.addFleetGitRepo( {repoName, repoUrl, branch, path,  gitAuthType, userOrPublicKey, pwdOrPrivateKey} );
+      cy.clickButton('Create');
+      cy.open3dotsMenu( repoName, 'Force Update');
+
+      // Assert repoName exists and its state is 1/1
+      cy.verifyTableRow(0, 'Active', repoName);     
+      cy.contains(repoName).click()
+      cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
+      cy.get('div.fleet-status', { timeout: 30000 }).eq(0).contains(' 1 / 1 Bundles ready ', { timeout: 30000 }).should('be.visible')
+      cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(' 1 / 1 Resources ready ', { timeout: 30000 }).should('be.visible')
+
+      // Delete created repo
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.verifyTableRow(0, repoName, ' ')
+      cy.deleteAll();
+      cy.contains('No repositories have been added').should('be.visible')
+    })
+  );
+
+
+  
 });
 
