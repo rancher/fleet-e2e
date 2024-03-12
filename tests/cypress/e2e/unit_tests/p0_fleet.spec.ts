@@ -174,7 +174,7 @@ describe('Fleet Deployment Test Cases', () => {
       const userOrPublicKey = Cypress.env("gh_private_user");
       const pwdOrPrivateKey = Cypress.env("gh_private_pwd");
   
-      // // Click on the Continuous Delivery's icon
+      // Click on the Continuous Delivery's icon
       cypressLib.accesMenu('Continuous Delivery');
       cypressLib.accesMenu('Git Repos');
       cy.fleetNamespaceToggle('fleet-local')
