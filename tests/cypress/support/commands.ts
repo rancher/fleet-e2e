@@ -33,13 +33,16 @@ Cypress.Commands.add('gitRepoAuth', (gitAuthType, userOrPublicKey, pwdOrPrivateK
   cy.get('div.option-kind-highlighted', { timeout: 15000 }).contains(gitAuthType, { matchCase: false }).should('be.visible').click();
 
   if (gitAuthType === 'http') {
-    cy.typeValue('Username', userOrPublicKey);
-    cy.typeValue('Password', pwdOrPrivateKey);
+    // Not using cyLib.typeValue because values are visible in runner 
+    // Currently { log: false } not set there, so needed to adapt function here.
+    // cy.get('input[data-testid="auth-secret-basic-public-key"]').focus().clear().type(userOrPublicKey, { log: false });
+    cy.get('input[data-testid="auth-secret-basic-private-key"]').focus().clear().type(pwdOrPrivateKey, { log: false });
+    cy.get('input[data-testid="auth-secret-basic-public-key"]').focus().clear().type(userOrPublicKey, { log: false });
   }
   else if (gitAuthType === 'ssh') {
     // Ugly implementation needed because 'typeValue' does not work here
-    cy.get('textarea.no-resize.no-ease').eq(0).focus().clear().type(userOrPublicKey);
-    cy.get('textarea.no-resize.no-ease').eq(1).focus().clear().type(pwdOrPrivateKey);
+    cy.get('textarea.no-resize.no-ease').eq(0).focus().clear().type(userOrPublicKey, { log: false });
+    cy.get('textarea.no-resize.no-ease').eq(1).focus().clear().type(pwdOrPrivateKey, { log: false });
   }
 });
 
@@ -59,6 +62,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitA
     cy.gitRepoAuth(gitAuthType, userOrPublicKey, pwdOrPrivateKey);
   }
   cy.clickButton('Next');
+  cy.get('button.btn').contains('Previous').should('be.visible');
 })
 
 // 3 dots menu selection
