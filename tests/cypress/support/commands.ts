@@ -33,10 +33,8 @@ Cypress.Commands.add('gitRepoAuth', (gitAuthType, userOrPublicKey, pwdOrPrivateK
   cy.get('div.option-kind-highlighted', { timeout: 15000 }).contains(gitAuthType, { matchCase: false }).should('be.visible').click();
 
   if (gitAuthType === 'http') {
-    // Not using cyLib.typeValue because values are visible in runner 
-    // Currently { log: false } not set there, so needed to adapt function here.
-    cy.get('.labeled-input.create').contains('label', 'Username').siblings().clear().type(userOrPublicKey, { log: false });
-    cy.get('.labeled-input.create').contains('label', 'Password').siblings().clear().type(pwdOrPrivateKey, { log: false });
+    cy.typeValue('Username', userOrPublicKey, false,  false );
+    cy.typeValue('Password', pwdOrPrivateKey, false,  false );
   }
   else if (gitAuthType === 'ssh') {
     // Ugly implementation needed because 'typeValue' does not work here
