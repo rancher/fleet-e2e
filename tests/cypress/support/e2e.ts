@@ -29,6 +29,7 @@ declare global {
       nameSpaceMenuToggle(namespaceName: string): Chainable<Element>;
       accesMenuSelection(firstAccessMenu: string, secondAccessMenu?: string): Chainable<Element>;
       deleteAll(): Chainable<Element>;
+      deleteAllFleetRepos(): Chainable<Element>;
     }
   }
 }

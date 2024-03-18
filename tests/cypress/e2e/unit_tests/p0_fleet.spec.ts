@@ -21,6 +21,7 @@ beforeEach(() => {
   cy.visit('/');
   cypressLib.burgerMenuToggle();
   cypressLib.checkNavIcon('cluster-management').should('exist');
+  cy.deleteAllFleetRepos();
 });
 
 
@@ -37,13 +38,9 @@ describe('Fleet Deployment Test Cases', () => {
       // use repoUrl = 'https://github.com/rancher/fleet-examples', path = 'simple-chart'
       // and check in Deployments that resources 'frontend', 'redis-master', 'redis-slave' are ok
 
-      // Click on the Continuous Delivery's icon
-      cypressLib.accesMenu('Continuous Delivery');
-      cypressLib.accesMenu('Git Repos');
-
       // Change namespace to fleet-local
-      cy.contains('fleet-').click();
-      cy.contains('fleet-local').should('be.visible').click();
+      cy.fleetNamespaceToggle('fleet-local')
+
 
       // Add Fleet repository and create it
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
@@ -63,7 +60,6 @@ describe('Fleet Deployment Test Cases', () => {
 
       // Delete all git repos
       cy.deleteAll();
-      cy.contains('No repositories have been added').should('be.visible')
     })
   );
 
@@ -77,10 +73,6 @@ describe('Fleet Deployment Test Cases', () => {
       const userOrPublicKey = Cypress.env("gitlab_private_user");
       const pwdOrPrivateKey = Cypress.env("gitlab_private_pwd");
   
-      // // Click on the Continuous Delivery's icon
-      cypressLib.accesMenu('Continuous Delivery');
-      cypressLib.accesMenu('Git Repos');
-
       // Change namespace to fleet-local  
       cy.fleetNamespaceToggle('fleet-local')
 
@@ -124,7 +116,6 @@ describe('Fleet Deployment Test Cases', () => {
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.verifyTableRow(0, repoName, ' ')
       cy.deleteAll();
-      cy.contains('No repositories have been added').should('be.visible')
 
     })
   );
@@ -139,9 +130,7 @@ describe('Fleet Deployment Test Cases', () => {
       const userOrPublicKey = Cypress.env("bitbucket_private_user");
       const pwdOrPrivateKey = Cypress.env("bitbucket_private_pwd");
   
-      // // Click on the Continuous Delivery's icon
-      cypressLib.accesMenu('Continuous Delivery');
-      cypressLib.accesMenu('Git Repos');
+      // Click on the Continuous Delivery's icon
       cy.fleetNamespaceToggle('fleet-local')
 
       // Add Fleet repository and create it
@@ -160,7 +149,7 @@ describe('Fleet Deployment Test Cases', () => {
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.verifyTableRow(0, repoName, ' ')
       cy.deleteAll();
-      cy.contains('No repositories have been added').should('be.visible')
+
     })
   );
 
@@ -175,8 +164,6 @@ describe('Fleet Deployment Test Cases', () => {
       const pwdOrPrivateKey = Cypress.env("gh_private_pwd");
   
       // Click on the Continuous Delivery's icon
-      cypressLib.accesMenu('Continuous Delivery');
-      cypressLib.accesMenu('Git Repos');
       cy.fleetNamespaceToggle('fleet-local')
 
       // Add Fleet repository and create it
@@ -195,7 +182,6 @@ describe('Fleet Deployment Test Cases', () => {
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.verifyTableRow(0, repoName, ' ')
       cy.deleteAll();
-      cy.contains('No repositories have been added').should('be.visible')
     })
   );
 

@@ -125,7 +125,18 @@ Cypress.Commands.add('deleteAll', () => {
     if ($body.text().includes('Delete')) {
       cy.get('[width="30"] > .checkbox-outer-container.check').click();
       cy.get('.btn').contains('Delete').click({ctrlKey: true});
-      cy.get('.btn').contains('Delete').should('not.exist');
+      cy.get('.btn', { timeout: 20000 }).contains('Delete').should('not.exist');
+      cy.contains('No repositories have been added', { timeout: 20000 }).should('be.visible')
     };
   });
+});
+
+// Command to delete all repos pressent in Fleet local and default
+Cypress.Commands.add('deleteAllFleetRepos', () => {
+  cypressLib.accesMenu('Continuous Delivery');
+  cypressLib.accesMenu('Git Repos');
+  cy.fleetNamespaceToggle('fleet-local')
+  cy.deleteAll();
+  cy.fleetNamespaceToggle('fleet-default')
+  cy.deleteAll();
 });
