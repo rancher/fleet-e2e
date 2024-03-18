@@ -35,9 +35,8 @@ Cypress.Commands.add('gitRepoAuth', (gitAuthType, userOrPublicKey, pwdOrPrivateK
   if (gitAuthType === 'http') {
     // Not using cyLib.typeValue because values are visible in runner 
     // Currently { log: false } not set there, so needed to adapt function here.
-    // cy.get('input[data-testid="auth-secret-basic-public-key"]').focus().clear().type(userOrPublicKey, { log: false });
-    cy.get('input[data-testid="auth-secret-basic-private-key"]').focus().clear().type(pwdOrPrivateKey, { log: false });
-    cy.get('input[data-testid="auth-secret-basic-public-key"]').focus().clear().type(userOrPublicKey, { log: false });
+    cy.get('.labeled-input.create').contains('label', 'Username').siblings().clear().type(userOrPublicKey, { log: false });
+    cy.get('.labeled-input.create').contains('label', 'Password').siblings().clear().type(pwdOrPrivateKey, { log: false });
   }
   else if (gitAuthType === 'ssh') {
     // Ugly implementation needed because 'typeValue' does not work here
