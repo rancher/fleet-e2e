@@ -13,7 +13,6 @@ limitations under the License.
 */
 
 import '~/support/commands';
-import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 import { qase } from 'cypress-qase-reporter/dist/mocha';
 
 beforeEach(() => {
@@ -31,22 +30,15 @@ describe('Fleet Deployment Test Cases', () => {
       const branch = "master"
       const path = "simple-chart"
       const repoUrl = "https://github.com/rancher/fleet-test-data/"
-      
+
       // TODO: When this issue is resolved https://github.com/rancher/fleet/issues/2128
       // use repoUrl = 'https://github.com/rancher/fleet-examples', path = 'simple-chart'
       // and check in Deployments that resources 'frontend', 'redis-master', 'redis-slave' are ok
 
-      // Change namespace to fleet-local
       cy.fleetNamespaceToggle('fleet-local')
-
-      // Add Fleet repository and create it
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
       cy.clickButton('Create');
-
-      // Assert repoName exists and its state is 1/1
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
-
-      // Delete all git repos
       cy.deleteAllFleetRepos();
     })
   );
@@ -60,35 +52,13 @@ describe('Fleet Deployment Test Cases', () => {
       const gitAuthType = "http"
       const userOrPublicKey = Cypress.env("gitlab_private_user");
       const pwdOrPrivateKey = Cypress.env("gitlab_private_pwd");
-  
-      // Change namespace to fleet-local  
+
       cy.fleetNamespaceToggle('fleet-local')
-
-      // Add Fleet repository and create it
-      cy.addFleetGitRepo( {repoName, repoUrl, branch, path,  gitAuthType, userOrPublicKey, pwdOrPrivateKey} );
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
       cy.clickButton('Create');
-      cy.open3dotsMenu( repoName, 'Force Update');
-            
-      // Ugly thing. Meanwhile Fleet state is not guaranteed. We will delete repo and recreate it
-      // Delete once this is ok.
-      cy.deleteAllFleetRepos();
-
-      // Change namespace to fleet-local
-      cy.fleetNamespaceToggle('fleet-local')
-
-      // // Add Fleet repository and create it
-      cy.addFleetGitRepo( {repoName, repoUrl, branch, path,  gitAuthType, userOrPublicKey, pwdOrPrivateKey} );
-      cy.clickButton('Create');
-
-      // Force update to better ensure it creates
-      cy.open3dotsMenu( repoName, 'Force Update');
-            
-      // Assert repoName exists and its state is 1/1
+      cy.open3dotsMenu(repoName, 'Force Update');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
-
-      // Delete all git repos
       cy.deleteAllFleetRepos();
-
     })
   );
 
@@ -101,20 +71,13 @@ describe('Fleet Deployment Test Cases', () => {
       const gitAuthType = "http"
       const userOrPublicKey = Cypress.env("bitbucket_private_user");
       const pwdOrPrivateKey = Cypress.env("bitbucket_private_pwd");
-  
-      // Click on the Continuous Delivery's icon
+
       cy.fleetNamespaceToggle('fleet-local')
-
-      // Add Fleet repository and create it
-      cy.addFleetGitRepo( {repoName, repoUrl, branch, path,  gitAuthType, userOrPublicKey, pwdOrPrivateKey} );
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
       cy.clickButton('Create');
-      cy.open3dotsMenu( repoName, 'Force Update');
-
-      // Assert repoName exists and its state is 1/1
+      cy.open3dotsMenu(repoName, 'Force Update');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
-      // Delete all git repos
       cy.deleteAllFleetRepos();
-
     })
   );
 
@@ -127,24 +90,16 @@ describe('Fleet Deployment Test Cases', () => {
       const gitAuthType = "http"
       const userOrPublicKey = Cypress.env("gh_private_user");
       const pwdOrPrivateKey = Cypress.env("gh_private_pwd");
-  
-      // Click on the Continuous Delivery's icon
+
       cy.fleetNamespaceToggle('fleet-local')
-
-      // Add Fleet repository and create it
-      cy.addFleetGitRepo( {repoName, repoUrl, branch, path,  gitAuthType, userOrPublicKey, pwdOrPrivateKey} );
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
       cy.clickButton('Create');
-      cy.open3dotsMenu( repoName, 'Force Update');
-
-      // Assert repoName exists and its state is 1/1
+      cy.open3dotsMenu(repoName, 'Force Update');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
-
-      // Delete all git repos
       cy.deleteAllFleetRepos();
     })
   );
 
 
-  
 });
 
