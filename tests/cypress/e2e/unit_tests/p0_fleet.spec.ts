@@ -44,8 +44,8 @@ describe('Fleet Deployment Test Cases', () => {
   );
 
   qase(6,
-    it('FLEET-6: Test GITLAB Private Repository to install NGINX app using HTTP auth', () => {
-      const repoName = "local-cluster-fleet-6"
+    it('FLEET-6: Test GITLAB Private Repository to install NGINX app using HTTP auth', { retries: 1 }, () => {
+      const repoName = "default-cluster-fleet-6"
       const branch = "main"
       const path = "test-fleet-main/nginx"
       const repoUrl = "https://gitlab.com/qa1613907/gitlab-test-fleet.git"
@@ -64,7 +64,7 @@ describe('Fleet Deployment Test Cases', () => {
 
   qase(7,
     it('FLEET-7: Test BITBUCKET Private Repository to install NGINX app using HTTP auth', () => {
-      const repoName = "local-cluster-fleet-7"
+      const repoName = "default-cluster-fleet-7"
       const branch = "main"
       const path = "test-fleet-main/nginx"
       const repoUrl = "https://bitbucket.org/fleet-test-bitbucket/bitbucket-fleet-test"
@@ -83,7 +83,7 @@ describe('Fleet Deployment Test Cases', () => {
 
   qase(8,
     it('FLEET-8: Test GITHUB Private Repository to install NGINX app using HTTP auth', () => {
-      const repoName = "local-cluster-fleet-8"
+      const repoName = "default-cluster-fleet-8"
       const branch = "main"
       const path = "nginx"
       const repoUrl = "https://github.com/mmartinsuse/test-fleet"
