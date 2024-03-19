@@ -322,7 +322,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			GinkgoWriter.Printf("Registration command output (stdout):\n%s\n", out)
 			Expect(err).To(Not(HaveOccurred()))
 		})
-		By("Wait for imported cluster on local cluster (Rancher)", func() {
+		By("Wait for downstream k3d cluster to import in Rancher", func() {
 			count := 1
 			Eventually(func() string {
 				downstreamClusterStatus, _ := kubectl.Run("get", "clusters.provisioning.cattle.io",
