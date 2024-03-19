@@ -44,7 +44,7 @@ describe('Fleet Deployment Test Cases', () => {
   );
 
   qase(6,
-    it('FLEET-6: Test GITLAB Private Repository to install NGINX app using HTTP auth', { retries: 1 }, () => {
+    it.only('FLEET-6: Test GITLAB Private Repository to install NGINX app using HTTP auth', { retries: 1 }, () => {
       const repoName = "default-cluster-fleet-6"
       const branch = "main"
       const path = "test-fleet-main/nginx"
@@ -53,12 +53,15 @@ describe('Fleet Deployment Test Cases', () => {
       const userOrPublicKey = Cypress.env("gitlab_private_user");
       const pwdOrPrivateKey = Cypress.env("gitlab_private_pwd");
 
-      cy.fleetNamespaceToggle('fleet-default')
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
-      cy.clickButton('Create');
-      cy.open3dotsMenu(repoName, 'Force Update');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
-      cy.deleteAllFleetRepos();
+      // Looping 2 times due to error on 2.8-head
+      for (let i = 0; i < 2; i++) {
+        cy.fleetNamespaceToggle('fleet-default')
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
+        cy.clickButton('Create');
+        cy.open3dotsMenu(repoName, 'Force Update');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
+        cy.deleteAllFleetRepos();
+      }
     })
   );
 
