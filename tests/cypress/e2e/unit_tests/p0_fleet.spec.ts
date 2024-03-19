@@ -53,7 +53,7 @@ describe('Fleet Deployment Test Cases', () => {
       const userOrPublicKey = Cypress.env("gitlab_private_user");
       const pwdOrPrivateKey = Cypress.env("gitlab_private_pwd");
 
-      cy.fleetNamespaceToggle('fleet-local')
+      cy.fleetNamespaceToggle('fleet-default')
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
       cy.clickButton('Create');
       cy.open3dotsMenu(repoName, 'Force Update');
@@ -72,7 +72,7 @@ describe('Fleet Deployment Test Cases', () => {
       const userOrPublicKey = Cypress.env("bitbucket_private_user");
       const pwdOrPrivateKey = Cypress.env("bitbucket_private_pwd");
 
-      cy.fleetNamespaceToggle('fleet-local')
+      cy.fleetNamespaceToggle('fleet-default')
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
       cy.clickButton('Create');
       cy.open3dotsMenu(repoName, 'Force Update');
@@ -91,7 +91,7 @@ describe('Fleet Deployment Test Cases', () => {
       const userOrPublicKey = Cypress.env("gh_private_user");
       const pwdOrPrivateKey = Cypress.env("gh_private_pwd");
 
-      cy.fleetNamespaceToggle('fleet-local')
+      cy.fleetNamespaceToggle('fleet-default')
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
       cy.clickButton('Create');
       cy.open3dotsMenu(repoName, 'Force Update');
