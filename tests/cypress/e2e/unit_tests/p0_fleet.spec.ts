@@ -19,8 +19,6 @@ import { qase } from 'cypress-qase-reporter/dist/mocha';
 beforeEach(() => {
   cy.login();
   cy.visit('/');
-  cypressLib.burgerMenuToggle();
-  cypressLib.checkNavIcon('cluster-management').should('exist');
   cy.deleteAllFleetRepos();
 });
 
@@ -41,25 +39,15 @@ describe('Fleet Deployment Test Cases', () => {
       // Change namespace to fleet-local
       cy.fleetNamespaceToggle('fleet-local')
 
-
       // Add Fleet repository and create it
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
       cy.clickButton('Create');
 
       // Assert repoName exists and its state is 1/1
-      cy.verifyTableRow(0, repoName, ' ');
-      cy.open3dotsMenu( repoName, 'Force Update');
-      cy.verifyTableRow(0, '1/1', ' ');
-      cy.contains("already exists").should('not.exist');
-
-      // Delete created repo
-      cypressLib.burgerMenuToggle();
-      cypressLib.accesMenu('Continuous Delivery');
-      cypressLib.accesMenu('Git Repos');
-      cy.verifyTableRow(0, repoName, ' ');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
 
       // Delete all git repos
-      cy.deleteAll();
+      cy.deleteAllFleetRepos();
     })
   );
 
@@ -79,21 +67,11 @@ describe('Fleet Deployment Test Cases', () => {
       // Add Fleet repository and create it
       cy.addFleetGitRepo( {repoName, repoUrl, branch, path,  gitAuthType, userOrPublicKey, pwdOrPrivateKey} );
       cy.clickButton('Create');
-
       cy.open3dotsMenu( repoName, 'Force Update');
             
       // Ugly thing. Meanwhile Fleet state is not guaranteed. We will delete repo and recreate it
       // Delete once this is ok.
-      
-      // Delete created repo
-      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-      cy.verifyTableRow(0, repoName, ' ')
-      cy.deleteAll();
-      cy.contains('No repositories have been added').should('be.visible')
-
-
-      // Click on the Continuous Delivery's icon
-      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.deleteAllFleetRepos();
 
       // Change namespace to fleet-local
       cy.fleetNamespaceToggle('fleet-local')
@@ -106,16 +84,10 @@ describe('Fleet Deployment Test Cases', () => {
       cy.open3dotsMenu( repoName, 'Force Update');
             
       // Assert repoName exists and its state is 1/1
-      cy.verifyTableRow(0, 'Active', repoName);
-      cy.contains(repoName).click()
-      cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
-      cy.get('div.fleet-status', { timeout: 30000 }).eq(0).contains(' 1 / 1 Bundles ready ', { timeout: 30000 }).should('be.visible')
-      cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(' 1 / 1 Resources ready ', { timeout: 30000 }).should('be.visible')
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
 
-      // Delete created repo
-      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-      cy.verifyTableRow(0, repoName, ' ')
-      cy.deleteAll();
+      // Delete all git repos
+      cy.deleteAllFleetRepos();
 
     })
   );
@@ -139,16 +111,9 @@ describe('Fleet Deployment Test Cases', () => {
       cy.open3dotsMenu( repoName, 'Force Update');
 
       // Assert repoName exists and its state is 1/1
-      cy.verifyTableRow(0, 'Active', repoName);     
-      cy.contains(repoName).click()
-      cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
-      cy.get('div.fleet-status', { timeout: 30000 }).eq(0).contains(' 1 / 1 Bundles ready ', { timeout: 30000 }).should('be.visible')
-      cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(' 1 / 1 Resources ready ', { timeout: 30000 }).should('be.visible')
-
-      // Delete created repo
-      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-      cy.verifyTableRow(0, repoName, ' ')
-      cy.deleteAll();
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
+      // Delete all git repos
+      cy.deleteAllFleetRepos();
 
     })
   );
@@ -172,16 +137,10 @@ describe('Fleet Deployment Test Cases', () => {
       cy.open3dotsMenu( repoName, 'Force Update');
 
       // Assert repoName exists and its state is 1/1
-      cy.verifyTableRow(0, 'Active', repoName);     
-      cy.contains(repoName).click()
-      cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
-      cy.get('div.fleet-status', { timeout: 30000 }).eq(0).contains(' 1 / 1 Bundles ready ', { timeout: 30000 }).should('be.visible')
-      cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(' 1 / 1 Resources ready ', { timeout: 30000 }).should('be.visible')
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
 
-      // Delete created repo
-      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-      cy.verifyTableRow(0, repoName, ' ')
-      cy.deleteAll();
+      // Delete all git repos
+      cy.deleteAllFleetRepos();
     })
   );
 

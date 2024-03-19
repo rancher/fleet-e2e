@@ -130,10 +130,23 @@ Cypress.Commands.add('deleteAll', () => {
 
 // Command to delete all repos pressent in Fleet local and default
 Cypress.Commands.add('deleteAllFleetRepos', () => {
-  cypressLib.accesMenu('Continuous Delivery');
-  cypressLib.accesMenu('Git Repos');
+  cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
   cy.fleetNamespaceToggle('fleet-local')
   cy.deleteAll();
   cy.fleetNamespaceToggle('fleet-default')
   cy.deleteAll();
+});
+
+// Check Git repo deployment status
+Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
+  cy.verifyTableRow(0, 'Active', repoName);
+  cy.contains(repoName).click()
+  cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
+  cy.log(`Checking ${bundles} Bundles and ${resources} Resources`)
+  if (bundles) {
+    cy.get('div.fleet-status', { timeout: 30000 }).eq(0).contains(` ${bundles} Bundles ready `, { timeout: 30000 }).should('be.visible')
+  }
+  if (resources) {
+    cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(` ${resources} Resources ready `, { timeout: 30000 }).should('be.visible')
+  }
 });
