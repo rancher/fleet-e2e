@@ -35,13 +35,13 @@ const (
 )
 
 var (
-	arch               string
-	clusterName        string
-	rancherHostname    string
-	k8sUpstreamVersion string
-	rancherChannel     string
-	rancherHeadVersion string
-	rancherVersion     string
+	arch                 string
+	clusterName          string
+	rancherHostname      string
+	k8sDownstreamVersion string
+	rancherChannel       string
+	rancherHeadVersion   string
+	rancherVersion       string
 )
 
 /**
@@ -69,8 +69,12 @@ var _ = BeforeSuite(func() {
 	arch = os.Getenv("ARCH")
 	clusterName = os.Getenv("CLUSTER_NAME")
 	rancherHostname = os.Getenv("PUBLIC_DNS")
-	k8sUpstreamVersion = os.Getenv("K8S_UPSTREAM_VERSION")
+	// We will use the same version for downstream and upstream clusters
+	k8sDownstreamVersion = os.Getenv("INSTALL_K3S_VERSION")
 	rancherVersion = os.Getenv("RANCHER_VERSION")
+
+	// Convert k3s version to a tag usable by k3d
+	k8sDownstreamVersion = strings.Replace(k8sDownstreamVersion, "+", "-", 1)
 
 	// Extract Rancher Manager channel/version to install
 	if rancherVersion != "" {
