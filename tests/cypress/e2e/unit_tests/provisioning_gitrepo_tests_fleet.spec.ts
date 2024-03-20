@@ -24,38 +24,65 @@ beforeEach(() => {
 
 
 Cypress.config();
-describe('Test Fleet GitRepo naming conventions', () => {
-  qase(61,
-    it('FLEET-61: Test GitRepo name is compliant with the Kubernetes object naming convention.', () => {
-      const incorrectRepoName = "Test.1-repo-local-cluster"
-      const correctRepoName = "test-1-repo"
-      const branch = "master"
-      const path = "simple-chart"
-      const repoUrl = "https://github.com/rancher/fleet-test-data/"
+describe('Test GitRepo name (more than or less than) 47 characters and see bundle name trims it.', () => {
+  const branch = "master"
+  const path = "simple-chart"
+  const repoUrl = "https://github.com/rancher/fleet-test-data/"
+  const allRepoNames = new Map([
+    [103, "test-test-test-test-test-test-test-test-test-t"],
+    [104, "test-test-test-test-test-test-test-test-test-test-test-test"],
+    [106, "test-test-test-test-123-456-789-0--test-test-test-test"],
+    [105, "Test.1-repo-local-cluster"],
+    [61, "ryhhskh-123456789+-+abdhg%^/"],
+  ]);
+  allRepoNames.forEach(
+    (repoName, qase_id) => {
+      if ((qase_id === 105 || qase_id === 61)) {
+        qase(qase_id,
+          it(`Fleet-${qase_id}: Test GitRepo min or max supported characters and and not supported names (see QASE test case)`, () => {
+            // Add Fleet repository and create it
+            cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+            cy.clickButton('Create');
 
-      // Change namespace to fleet-local
-      cy.fleetNamespaceToggle('fleet-local')
+            // Assert errorMessage exists
+            cy.get('[data-testid="banner-content"] > span')
+              .should('contain', repoName)
+              .should('contain', 'RFC 1123')
 
-      // Add Fleet repository and create it
-      cy.addFleetGitRepo({ repoName: incorrectRepoName, repoUrl, branch, path });
-      cy.clickButton('Create');
+            // Navigate back to GitRepo page
+            cy.clickButton('Cancel')
+            cy.contains('No repositories have been added').should('be.visible')
+          })
+          )
+      } else {
+        qase(qase_id,
+          it(`Fleet-${qase_id}: Test GitRepo min or max supported characters and and not supported names (see QASE test case)`, () => {
+            // Change namespace to fleet-local
+            cy.fleetNamespaceToggle('fleet-local');
 
-      // Assert errorMessage exists
-      cy.get('[data-testid="banner-content"] > span')
-        .should('contain', incorrectRepoName)
-        .should('contain', 'RFC 1123');
+            // Add Fleet repository and create it
+            cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+            cy.clickButton('Create');
+            cy.verifyTableRow(0, 'Active', repoName);
 
-      // Navigate back to GitRepo page
-      cy.clickButton('Cancel')
-      cy.contains('No repositories have been added').should('be.visible')
+            // Navigate to Bundles
+            cypressLib.accesMenu("Advanced")
+            cypressLib.accesMenu("Bundles")
 
-      // Add/Verify Fleet repository created and has deployed resources
-      cy.addFleetGitRepo({ repoName: correctRepoName, repoUrl, branch, path });
-      cy.clickButton('Create');
-      cy.checkGitRepoStatus(correctRepoName, '1 / 1', '1 / 1')
-
-      // Deletes created all repository
-      cy.deleteAllFleetRepos();
-    })
+            // Check bundle name trimed to less than 53 characters
+            cy.contains('tr.main-row[data-testid="sortable-table-1-row"]').should('not.be.empty', { timeout: 25000 });
+            cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-1-row"]`)
+              .children({ timeout: 300000 })
+              .should('not.have.text', 'fleet-agent-local')
+              .should('not.be.empty')
+              .should('include.text', 'test-')
+              .should(($ele) => {
+                expect($ele).have.length.lessThan(53)
+              })
+            cy.deleteAllFleetRepos();
+          })
+        )
+      }
+    }
   )
 });
