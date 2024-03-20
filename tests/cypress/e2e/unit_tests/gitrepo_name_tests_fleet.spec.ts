@@ -19,8 +19,7 @@ import { qase } from 'cypress-qase-reporter/dist/mocha';
 beforeEach(() => {
   cy.login();
   cy.visit('/');
-  cypressLib.burgerMenuToggle();
-  cypressLib.checkNavIcon('cluster-management').should('exist');
+  cy.deleteAllFleetRepos();
 });
 
 
@@ -39,8 +38,7 @@ describe('Test Fleet GitRepo naming conventions', () => {
       cypressLib.accesMenu('Git Repos');
 
       // Change namespace to fleet-local
-      cy.contains('fleet-').click();
-      cy.contains('fleet-local').should('be.visible').click();
+      cy.fleetNamespaceToggle('fleet-local')
 
       // Add Fleet repository and create it
       cy.addFleetGitRepo({ repoName: incorrectRepoName, repoUrl, branch, path });
@@ -49,29 +47,19 @@ describe('Test Fleet GitRepo naming conventions', () => {
       // Assert errorMessage exists
       cy.get('[data-testid="banner-content"] > span')
         .should('contain', incorrectRepoName)
-        .should('contain', 'RFC 1123')
+        .should('contain', 'RFC 1123');
 
       // Navigate back to GitRepo page
       cy.clickButton('Cancel')
       cy.contains('No repositories have been added').should('be.visible')
 
-      // Add Fleet repository and create it
+      // Add/Verify Fleet repository created and has deployed resources
       cy.addFleetGitRepo({ repoName: correctRepoName, repoUrl, branch, path });
       cy.clickButton('Create');
+      cy.checkGitRepoStatus(correctRepoName, '1 / 1', '1 / 1')
 
-      // Assert repoName exists and its state is 1/1
-      cy.verifyTableRow(0, 'Active', correctRepoName);
-      cy.contains(correctRepoName).click()
-      cy.get('.primaryheader > h1').contains(correctRepoName).should('be.visible')
-      cy.get('div.fleet-status', { timeout: 30000 }).eq(0).contains(' 1 / 1 Bundles ready ', { timeout: 30000 }).should('be.visible')
-      cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(' 1 / 1 Resources ready ', { timeout: 30000 }).should('be.visible')
-
-      // Delete created repo
-      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-      cy.verifyTableRow(0, correctRepoName, ' ')
-      cy.deleteAll();
-      cy.contains('No repositories have been added').should('be.visible')
-
+      // Deletes created all repository
+      cy.deleteAllFleetRepos();
     })
   )
 });
