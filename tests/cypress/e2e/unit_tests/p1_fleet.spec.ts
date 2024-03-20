@@ -24,24 +24,37 @@ beforeEach(() => {
 
 
 Cypress.config();
-describe('Test GitRepo name (more than or less than) 47 characters and see bundle name trims it.', () => {
+describe('Test GitRepo Bundle name validation and max character trimming behavior in bundle', () => {
   const branch = "master"
   const path = "simple-chart"
   const repoUrl = "https://github.com/rancher/fleet-test-data/"
-  const allRepoNames = new Map([
-    [103, "test-test-test-test-test-test-test-test-test-t"],
-    [104, "test-test-test-test-test-test-test-test-test-test-test-test"],
-    [106, "test-test-test-test-123-456-789-0--test-test-test-test"],
-    [105, "Test.1-repo-local-cluster"],
-    [61, "ryhhskh-123456789+-+abdhg%^/"],
-  ]);
-  allRepoNames.forEach(
-    (repoName, qase_id) => {
+
+  const repoTestData: testData[] = [
+    { qase_id: 103,
+      repoName: "test-test-test-test-test-test-test-test-test-t",
+      test_explanation: "47 characters long is NOT TRIMMED but PATH is added with '-' to 53 characters" },
+    { qase_id: 104,
+      repoName: "test-test-test-test-test-test-test-test-test-test-test-test",
+      test_explanation: "59 characters long is TRIMMED to 53 characters max" },
+    { qase_id: 106,
+      repoName: "test-test-test-test-123-456-789-0--test-test-test-test",
+      test_explanation: "54 characters long is TRIMMED to 53 characters max" },
+    { qase_id: 105,
+      repoName: "Test.1-repo-local-cluster",
+      test_explanation: "INVALID and NORMAL characters" },
+    { qase_id: 61,
+      repoName: "ryhhskh-123456789+-+abdhg%^/",
+      test_explanation: "INVALID and SPECIAL characters" },
+  ]
+
+  repoTestData.forEach(
+    ({ qase_id, repoName, test_explanation }) => {
+
       if ((qase_id === 105 || qase_id === 61)) {
         qase(qase_id,
-          it(`Fleet-${qase_id}: Test GitRepo min or max supported characters and and not supported names (see QASE test case)`, () => {
+          it(`Fleet-${qase_id}: Test GitRepo NAME with "${test_explanation}" displays ERROR message and does NOT get created`, () => {
             // Add Fleet repository and create it
-            cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+            cy.addFleetGitRepo({repoName, repoUrl, branch, path});
             cy.clickButton('Create');
 
             // Assert errorMessage exists
@@ -56,12 +69,12 @@ describe('Test GitRepo name (more than or less than) 47 characters and see bundl
           )
       } else {
         qase(qase_id,
-          it(`Fleet-${qase_id}: Test GitRepo min or max supported characters and and not supported names (see QASE test case)`, () => {
+          it(`Fleet-${qase_id}: Test GitRepo bundle name TRIMMING behavior. GitRepo with "${test_explanation}"`, () => {
             // Change namespace to fleet-local
             cy.fleetNamespaceToggle('fleet-local');
 
             // Add Fleet repository and create it
-            cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+            cy.addFleetGitRepo({repoName, repoUrl, branch, path});
             cy.clickButton('Create');
             cy.verifyTableRow(0, 'Active', repoName);
 
