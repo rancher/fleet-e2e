@@ -33,10 +33,6 @@ describe('Test Fleet GitRepo naming conventions', () => {
       const path = "simple-chart"
       const repoUrl = "https://github.com/rancher/fleet-test-data/"
 
-      // Click on the Continuous Delivery's icon
-      cypressLib.accesMenu('Continuous Delivery');
-      cypressLib.accesMenu('Git Repos');
-
       // Change namespace to fleet-local
       cy.fleetNamespaceToggle('fleet-local')
 
