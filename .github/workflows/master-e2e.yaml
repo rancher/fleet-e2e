@@ -257,7 +257,7 @@ jobs:
           SPEC: |
             /workdir/e2e/unit_tests/first_login_rancher.spec.ts
             /workdir/e2e/unit_tests/p0_fleet.spec.ts
-            /workdir/e2e/unit_tests/gitrepo_name_tests_fleet.spec.ts
+            /workdir/e2e/unit_tests/provisioning_gitrepo_tests_fleet.spec.ts
         run: |
           if ${{ inputs.qase_run_id == 'none' }}; then
             # Unset default QASE_* variables when reporting is disabled
