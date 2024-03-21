@@ -23,6 +23,8 @@ docker run -v $PWD:/workdir -w /workdir                     \
     -e BITBUCKET_PRIVATE_PWD=$BITBUCKET_PRIVATE_PWD         \
     -e GH_PRIVATE_USER=$GH_PRIVATE_USER                     \
     -e GH_PRIVATE_PWD=$GH_PRIVATE_PWD                       \
+    -e "GREP=$GREP"                                         \
+    -e "GREPTAGS=$GREPTAGS"                                 \
     --add-host host.docker.internal:host-gateway            \
     --ipc=host                                              \
     $CYPRESS_DOCKER                                         \

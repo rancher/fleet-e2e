@@ -41,5 +41,8 @@ module.exports = (on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions)
   config.env.bitbucket_private_pwd   = process.env.BITBUCKET_PRIVATE_PWD;
   config.env.gh_private_user  = process.env.GH_PRIVATE_USER;
   config.env.gh_private_pwd   = process.env.GH_PRIVATE_PWD;
+  config.env.grep = process.env.GREP;
+  config.env.grepTags = process.env.GREPTAGS;
+  
   return config;
 };

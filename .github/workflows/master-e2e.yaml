@@ -56,6 +56,11 @@ on:
         description: Rancher Manager channel/version/head_version to use for installation
         default: stable/latest/none
         type: string
+      grep_test_by_tag:
+        description: Grep tags. For multiple selection separate with spaces
+        required: false
+        type: string
+        default: '@login @p0 @p1'
       runner_template:
         description: Runner template to use
         # Another template available on GCP: fleet-qa-e2e-ci-runner-spot-leap-15-4-x86-64-template-v1
@@ -253,6 +258,7 @@ jobs:
           BITBUCKET_PRIVATE_PWD: ${{ secrets.bitbucket_private_pwd }}
           GH_PRIVATE_USER: ${{ secrets.gh_private_user }}
           GH_PRIVATE_PWD: ${{ secrets.gh_private_pwd }}
+          GREPTAGS: ${{ inputs.grep_test_by_tag }}
           # Add /workdir/e2e/unit_tests/user.spec.ts again when implementing RBAC tests.
           SPEC: |
             /workdir/e2e/unit_tests/first_login_rancher.spec.ts

@@ -15,7 +15,7 @@ import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 
 
 Cypress.config();
-describe('First login on Rancher', () => {
+describe('First login on Rancher', { tags: '@login'},  () => {
     it('Log in and accept terms and conditions', () => {
     cypressLib.firstLogin();
     })
