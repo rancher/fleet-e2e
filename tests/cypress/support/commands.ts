@@ -45,7 +45,7 @@ Cypress.Commands.add('gitRepoAuth', (gitAuthType, userOrPublicKey, pwdOrPrivateK
 
 
 // Command add Fleet Git Repository
-Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey }) => {
+Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources }) => {
   cy.clickButton('Add Repository');
   cy.contains('Git Repo:').should('be.visible');
   cy.typeValue('Name', repoName);
@@ -57,6 +57,10 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitA
   }
   if (gitAuthType) {
     cy.gitRepoAuth(gitAuthType, userOrPublicKey, pwdOrPrivateKey);
+  }
+  // Check the checkbox of keepResources if option is given
+  if (keepResources === 'true') {
+    cy.get('.checkbox-outer-container.check').contains('Always Keep Resources').click();
   }
   cy.clickButton('Next');
   cy.get('button.btn').contains('Previous').should('be.visible');
@@ -96,16 +100,16 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   cy.get('.top > .ns-filter').should('be.visible');
   cy.get('.top > .ns-filter').click({ force: true });
   // Typing in filter for better targeting the namespece
-  cy.get('div.ns-input').should('exist').type(namespaceName);
+  cy.get('div.ns-input').should('exist').clear().type(namespaceName);
   cy.get('.ns-dropdown-menu', { timeout: 5000 }).contains(new RegExp("^" + namespaceName + "$", "g"), { matchCase: true }).should('be.visible').click();
   cy.get('.icon.icon-chevron-up').click({ force: true });
 })
 
 // Go to specific Sub Menu from Access Menu
 Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery',secondAccessMenu) => {
-     cypressLib.burgerMenuToggle();
-     cypressLib.accesMenu(firstAccessMenu);
-     cypressLib.accesMenu(secondAccessMenu);
+      cypressLib.burgerMenuToggle();
+      cypressLib.accesMenu(firstAccessMenu);
+      cypressLib.accesMenu(secondAccessMenu);
 });
 
 // Fleet namespace toggle
@@ -149,4 +153,32 @@ Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
   if (resources) {
     cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(` ${resources} Resources ready `, { timeout: 30000 }).should('be.visible')
   }
+});
+
+
+// Check deployed application status (present or not)
+Cypress.Commands.add('checkApplicationStatus', (appNamespace, appName, clusterName='local') => {
+  cypressLib.burgerMenuToggle();
+  cypressLib.accesMenu(clusterName);
+  cy.nameSpaceMenuToggle(appNamespace);
+  cy.clickNavMenu(['Workloads', 'Pods']);
+  cy.get('body').then(($body) => {
+    if (!$body.text().includes('There are no rows to show.')) {
+      cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-0-row"]`)
+        .children({ timeout: 300000 })
+        .should('contain.text', appName)
+      } else {
+        cy.contains('There are no rows to show');
+      };
+    });
+});
+
+
+// Delete the leftover applications
+Cypress.Commands.add('deleteApplicationDeployment', (appNamespace, clusterName='local') => {
+  cypressLib.burgerMenuToggle();
+  cypressLib.accesMenu(clusterName);
+  cy.nameSpaceMenuToggle(appNamespace);
+  cy.clickNavMenu(['Workloads', 'Deployments']);
+  cy.deleteAllResources();
 });
