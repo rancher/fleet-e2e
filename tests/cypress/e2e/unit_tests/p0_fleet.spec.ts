@@ -23,9 +23,9 @@ beforeEach(() => {
 
 
 Cypress.config();
-describe('Fleet Deployment Test Cases', () => {
+describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
   qase(62,
-    it('FLEET-62: Deploy application to local cluster', () => {
+    it('FLEET-62: Deploy application to local cluster', { tags: '@fleet-62' }, () => {
       const repoName = "local-cluster-fleet-62"
       const branch = "master"
       const path = "simple-chart"
@@ -44,7 +44,7 @@ describe('Fleet Deployment Test Cases', () => {
   );
 
   qase(6,
-    it('FLEET-6: Test GITLAB Private Repository to install NGINX app using HTTP auth', { retries: 1 }, () => {
+    it('FLEET-6: Test GITLAB Private Repository to install NGINX app using HTTP auth', { retries: 1 },  { tags: '@fleet-6' }, () => {
       const repoName = "default-cluster-fleet-6"
       const branch = "main"
       const path = "test-fleet-main/nginx"
@@ -66,7 +66,7 @@ describe('Fleet Deployment Test Cases', () => {
   );
 
   qase(7,
-    it('FLEET-7: Test BITBUCKET Private Repository to install NGINX app using HTTP auth', () => {
+    it('FLEET-7: Test BITBUCKET Private Repository to install NGINX app using HTTP auth', { tags: '@fleet-7' }, () => {
       const repoName = "default-cluster-fleet-7"
       const branch = "main"
       const path = "test-fleet-main/nginx"
@@ -85,7 +85,7 @@ describe('Fleet Deployment Test Cases', () => {
   );
 
   qase(8,
-    it('FLEET-8: Test GITHUB Private Repository to install NGINX app using HTTP auth', () => {
+    it('FLEET-8: Test GITHUB Private Repository to install NGINX app using HTTP auth', { tags: '@fleet-8' }, () => {
       const repoName = "default-cluster-fleet-8"
       const branch = "main"
       const path = "nginx"

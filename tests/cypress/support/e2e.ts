@@ -55,3 +55,5 @@ require('cypress-dark');
 require('cy-verify-downloads').addCustomCommand();
 require('cypress-plugin-tab');
 require('@rancher-ecp-qa/cypress-library');
+import registerCypressGrep from '@cypress/grep'
+registerCypressGrep()

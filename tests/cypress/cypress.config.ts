@@ -14,12 +14,18 @@ export default defineConfig({
     'projectCode': 'FLEET',
     'logging': true,
   },
+  env: {
+    "grepFilterSpecs": true
+  },
   e2e: {
     // We've imported your old cypress plugins here.
     // You may want to clean this up later by importing these.
     setupNodeEvents(on, config) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      return require('./plugins/index.ts')(on, config)
+      require('./plugins/index.ts')(on, config)
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      require('@cypress/grep/src/plugin')(config);
+      return config;
     },
     supportFile: './support/e2e.ts',
     fixturesFolder: './fixtures',

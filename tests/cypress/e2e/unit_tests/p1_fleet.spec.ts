@@ -24,7 +24,7 @@ beforeEach(() => {
 
 
 Cypress.config();
-describe('Test GitRepo Bundle name validation and max character trimming behavior in bundle', () => {
+describe('Test GitRepo Bundle name validation and max character trimming behavior in bundle', { tags: '@p1'}, () => {
   const branch = "master"
   const path = "simple-chart"
   const repoUrl = "https://github.com/rancher/fleet-test-data/"
@@ -52,7 +52,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
 
       if ((qase_id === 105 || qase_id === 61)) {
         qase(qase_id,
-          it(`Fleet-${qase_id}: Test GitRepo NAME with "${test_explanation}" displays ERROR message and does NOT get created`, () => {
+          it(`Fleet-${qase_id}: Test GitRepo NAME with "${test_explanation}" displays ERROR message and does NOT get created`, { tags: `@fleet-${qase_id}` }, () => {
             // Add Fleet repository and create it
             cy.addFleetGitRepo({repoName, repoUrl, branch, path});
             cy.clickButton('Create');
@@ -69,7 +69,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
           )
       } else {
         qase(qase_id,
-          it(`Fleet-${qase_id}: Test GitRepo bundle name TRIMMING behavior. GitRepo with "${test_explanation}"`, () => {
+          it(`Fleet-${qase_id}: Test GitRepo bundle name TRIMMING behavior. GitRepo with "${test_explanation}"`, { tags: `@fleet-${qase_id}` }, () => {
             // Change namespace to fleet-local
             cy.fleetNamespaceToggle('fleet-local');
 
