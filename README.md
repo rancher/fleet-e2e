@@ -18,3 +18,32 @@ Automation Repository for Fleet i.e. Rancher Continuous Delivery.
 For information read it here: [Fleet Documentation](https://fleet.rancher.io/)
 
 ---
+
+# Test structure
+Currently, we divide our tests by priority (`p0`, `p1`,...). Aside of this we have an initial one, `first_login_rancher.spec.ts`, where we do our first connection into Rancher and some inital checkups. Hence our naming structure is:
+
+- `first_login_rancher.spec.ts` 
+- `p0_fleet.spec.ts`
+- `p1_fleet.spec.ts`
+
+By default, all these spec files will be executed every day in our nightly runs in the different Rancher versions.
+
+# Running tests using Cypress grep
+We have implemented tags for more precise selection of tests using a Cypress pluging called [cypress-grep](https://github.com/cypress-io/cypress/tree/develop/npm/grep)
+
+There are several levels of tags. The main ones are in sync with the priority of tests and are tagged as `@login`, `@p0`, `@p1`. A second level allows the test to be selected by its test id; for example: `@fleet-62`
+
+Note: the title can be either at `describe` or `it` level.
+
+By default, daily runs will run test with the tags`@login`, `@p0`, `@p1`
+
+To use locally use the tag `--env grepTags=tag` along with the npx command
+
+For example:
+```
+npx cypress run -C cypress.config.ts  --env grepTags="@smoke" cypress/e2e/unit_tests/*.spec.ts
+``` 
+
+
+
+
