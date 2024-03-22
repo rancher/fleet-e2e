@@ -38,6 +38,12 @@ on:
       gh_private_pwd:
         description: Github password for private repo tests
         required: false
+      azure_private_user:
+        description: Azure username for private repo tests
+        required: false
+      azure_private_pwd:
+        description: Azure password for private repo tests
+        required: false
       qase_api_token:
         description: Qase API token to use for Qase reporting
         required: true
@@ -258,6 +264,8 @@ jobs:
           BITBUCKET_PRIVATE_PWD: ${{ secrets.bitbucket_private_pwd }}
           GH_PRIVATE_USER: ${{ secrets.gh_private_user }}
           GH_PRIVATE_PWD: ${{ secrets.gh_private_pwd }}
+          AZURE_PRIVATE_USER: ${{ secrets.azure_private_user }}
+          AZURE_PRIVATE_PWD: ${{ secrets.azure_private_pwd }}
           GREPTAGS: ${{ inputs.grep_test_by_tag }}
           # Add /workdir/e2e/unit_tests/user.spec.ts again when implementing RBAC tests.
           SPEC: |

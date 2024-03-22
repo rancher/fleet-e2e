@@ -103,6 +103,24 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
     })
   );
 
+  qase(52,
+    it('FLEET-52: Test AZURE DEVOPS Private Repository to install NGINX app using HTTP auth', { tags: '@fleet-52' }, () => {
+      const repoName = "default-cluster-fleet-52"
+      const branch = "main"
+      const path = "nginx-helm"
+      const repoUrl = "https://dev.azure.com/mamartin0216/_git/mamartin"
+      const gitAuthType = "http"
+      const userOrPublicKey = Cypress.env("azure_private_user");
+      const pwdOrPrivateKey = Cypress.env("azure_private_pwd");
+
+      cy.fleetNamespaceToggle('fleet-default')
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
+      cy.clickButton('Create');
+      cy.open3dotsMenu(repoName, 'Force Update');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
+      cy.deleteAllFleetRepos();
+    })
+  );
 
 });
 
