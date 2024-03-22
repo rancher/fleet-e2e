@@ -126,11 +126,10 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
           cy.clickButton('Create');
           cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
           cy.deleteAllFleetRepos();
-          cy.checkApplicationStatus(appNamespace, appName);
           if (keepResources === 'true') {
+            cy.checkApplicationStatus(appNamespace, appName);
             cy.deleteApplicationDeployment(appNamespace);
           }
-          cy.deleteAllFleetRepos();
         })
       )
     }

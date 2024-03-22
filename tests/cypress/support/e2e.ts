@@ -28,7 +28,7 @@ declare global {
       verifyTableRow(rowNumber: number, expectedText1?: string, expectedText2?: string): Chainable<Element>;
       nameSpaceMenuToggle(namespaceName: string): Chainable<Element>;
       accesMenuSelection(firstAccessMenu: string, secondAccessMenu?: string): Chainable<Element>;
-      deleteAll(): Chainable<Element>;
+      deleteAll(fleetCheck?: boolean): Chainable<Element>;
       deleteAllFleetRepos(): Chainable<Element>;
       checkGitRepoStatus(repoName: string, bundles?: string, resources?: string): Chainable<Element>;
       checkApplicationStatus(appNamespace: string, appName: string, clusterName?: string): Chainable<Element>;
