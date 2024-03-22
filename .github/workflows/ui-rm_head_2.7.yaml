@@ -1,0 +1,49 @@
+# This workflow calls the master E2E workflow with custom variables
+name: UI-RM_head_2.7
+
+on:
+  workflow_dispatch:
+    inputs:
+      qase_run_id:
+        description: Qase run ID where the results will be reported
+        default: auto
+        type: string
+      destroy_runner:
+        description: Destroy the auto-generated self-hosted runner
+        default: true
+        type: boolean
+      rancher_version:
+        description: Rancher version as 'devel/2.7' or '2.8.2[-rc3]'
+        default: devel/2.7
+        type: string
+        required: true
+      upstream_cluster_version:
+        description: K3s upstream cluster version where to install Rancher
+        default: v1.26.10+k3s2
+        type: string
+        required: true
+  schedule:
+    - cron: '0 4 * * *'
+
+jobs:
+  ui:
+    uses: ./.github/workflows/master-e2e.yaml
+    secrets:
+      credentials: ${{ secrets.GCP_CREDENTIALS }}
+      pat_token: ${{ secrets.SELF_HOSTED_RUNNER_PAT_TOKEN }}
+      rancher_password: ${{ secrets.RANCHER_PASSWORD }}
+      gitlab_private_user: ${{ secrets.GITLAB_PRIVATE_USER }}
+      gitlab_private_pwd: ${{ secrets.GITLAB_PRIVATE_PWD }}
+      bitbucket_private_user: ${{ secrets.BITBUCKET_PRIVATE_USER }}
+      bitbucket_private_pwd: ${{ secrets.BITBUCKET_PRIVATE_PWD }}
+      gh_private_user: ${{ secrets.GH_PRIVATE_USER }}
+      gh_private_pwd: ${{ secrets.GH_PRIVATE_PWD }}
+      qase_api_token: ${{ secrets.QASE_API_TOKEN }}
+    with:
+      test_description: "CI/Manual - UI - Deployment test with Standard K3s"
+      cluster_name: cluster-k3s
+      # WARNING, VALUES BELOW ARE HARDCODED FOR RUNS SCHEDULED BY CRON
+      destroy_runner: ${{ github.event_name == 'schedule' && true || inputs.destroy_runner }}
+      upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.26.10+k3s2' }}
+      rancher_version: ${{ inputs.rancher_version || 'devel/2.7' }}
+      qase_run_id: ${{ inputs.qase_run_id || 'auto' }}

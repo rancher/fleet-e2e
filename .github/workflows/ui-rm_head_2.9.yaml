@@ -1,12 +1,11 @@
-# This workflow calls the master E2E workflow with custom variables by using matrix
-# Please refer to https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#example-expanding-configurations
-name: UI-RM_head_matrix
+# This workflow calls the master E2E workflow with custom variables
+name: UI-RM_head_2.9
 
 on:
   workflow_dispatch:
     inputs:
       qase_run_id:
-        description: Qase run ID as 'none', 'auto' or <qaseID>
+        description: Qase run ID where the results will be reported
         default: auto
         type: string
       destroy_runner:
@@ -14,13 +13,13 @@ on:
         default: true
         type: boolean
       rancher_version:
-        description: Provide list of Rancher versions as ["devel/2.8","2.8.2","2.8.2-rc1"]
-        default: '["devel/2.8"]'
+        description: Rancher version as 'devel/2.9' or '2.8.2[-rc3]'
+        default: devel/2.9
         type: string
         required: true
       upstream_cluster_version:
-        description: Provide list of K3s cluster versions as ["v1.27.10+k3s2","v1.26.10+k3s2"]
-        default: '["v1.27.10+k3s2"]'
+        description: K3s upstream cluster version where to install Rancher
+        default: v1.27.10+k3s2
         type: string
         required: true
   schedule:
@@ -28,17 +27,6 @@ on:
 
 jobs:
   ui:
-    strategy:
-      matrix:
-        upstream_cluster_version: ${{ inputs.upstream_cluster_version != '' && fromJSON(inputs.upstream_cluster_version) || fromJSON('["v1.27.10+k3s2", "v1.26.10+k3s2"]') }}
-        rancher_version: ${{ inputs.rancher_version != '' && fromJSON(inputs.rancher_version) || fromJSON('["devel/2.7", "devel/2.8", "devel/2.9"]') }}
-        exclude:
-          - upstream_cluster_version: v1.27.10+k3s2
-            rancher_version: devel/2.7
-          - upstream_cluster_version: v1.26.10+k3s2
-            rancher_version: devel/2.8
-          - upstream_cluster_version: v1.26.10+k3s2
-            rancher_version: devel/2.9
     uses: ./.github/workflows/master-e2e.yaml
     secrets:
       credentials: ${{ secrets.GCP_CREDENTIALS }}
@@ -54,7 +42,8 @@ jobs:
     with:
       test_description: "CI/Manual - UI - Deployment test with Standard K3s"
       cluster_name: cluster-k3s
+      # WARNING, VALUES BELOW ARE HARDCODED FOR RUNS SCHEDULED BY CRON
       destroy_runner: ${{ github.event_name == 'schedule' && true || inputs.destroy_runner }}
-      upstream_cluster_version: ${{ matrix.upstream_cluster_version }}
-      rancher_version: ${{ matrix.rancher_version }}
+      upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.27.10+k3s2' }}
+      rancher_version: ${{ inputs.rancher_version || 'devel/2.9' }}
       qase_run_id: ${{ inputs.qase_run_id || 'auto' }}
