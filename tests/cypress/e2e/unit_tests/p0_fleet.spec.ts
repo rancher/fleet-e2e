@@ -44,7 +44,7 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
   );
 
   qase(6,
-    it('FLEET-6: Test GITLAB Private Repository to install NGINX app using HTTP auth', { retries: 1 },  { tags: '@fleet-6' }, () => {
+    it('FLEET-6: Test GITLAB Private Repository to install NGINX app using HTTP auth', { retries: 1 , tags: '@fleet-6' }, () => {
       const repoName = "default-cluster-fleet-6"
       const branch = "main"
       const path = "test-fleet-main/nginx"
