@@ -8,7 +8,7 @@ pushd cypress
 npm install
 
 # Start Cypress tests with docker
-docker run -v $PWD:/workdir -w /workdir                     \
+docker run --init -v $PWD:/workdir -w /workdir              \
     -e CYPRESS_TAGS=$CYPRESS_TAGS                           \
     -e QASE_API_TOKEN=$QASE_API_TOKEN                       \
     -e QASE_REPORT=$QASE_REPORT                             \
