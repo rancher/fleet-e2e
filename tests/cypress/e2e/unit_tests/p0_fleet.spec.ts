@@ -103,8 +103,8 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
     })
   );
 
-  qase(52,
-    it('FLEET-52: Test AZURE DEVOPS Private Repository to install NGINX app using HTTP auth', { tags: '@fleet-52' }, () => {
+  qase(98,
+    it('FLEET-98: Test AZURE DEVOPS Private Repository to install NGINX app using HTTP auth', { tags: '@fleet-98' }, () => {
       const repoName = "default-cluster-fleet-52"
       const branch = "main"
       const path = "nginx-helm"
