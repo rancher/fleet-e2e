@@ -237,6 +237,8 @@ jobs:
       - name: Extract component versions/informations
         id: component
         run: |
+          # Extract helm version
+          HELM_VERSION=$(helm version --template='{{.Version}}' 2> /dev/null)
           # Extract CertManager version
           CERT_MANAGER_VERSION=$(kubectl get pod \
             --namespace cert-manager \
@@ -247,9 +249,17 @@ jobs:
             --namespace cattle-system \
             -l app=rancher \
             -o jsonpath={.items[*].status.containerStatuses[*].image} 2> /dev/null || true)
+          # Extract Fleet App version and images from local cluster
+          FLEET_APP_VERSION="$(helm list -n cattle-fleet-system -o json 2> /dev/null | jq -r '.[0] | .chart')"
+          for ns in {cattle-fleet-system,cattle-fleet-local-system}; do
+            FLEET_IMAGES+="$(kubectl get pods -n $ns -o jsonpath='{.items[*].spec.containers[*].image}' 2> /dev/null) "
+          done
           # Export values
+          echo "helm_version=${HELM_VERSION}" >> ${GITHUB_OUTPUT}
           echo "cert_manager_version=${CERT_MANAGER_VERSION}" >> ${GITHUB_OUTPUT}
           echo "rm_version=${RM_VERSION}" >> ${GITHUB_OUTPUT}
+          echo "fleet_app_version=${FLEET_APP_VERSION}" >> ${GITHUB_OUTPUT}
+          echo "fleet_images=${FLEET_IMAGES}" >> ${GITHUB_OUTPUT}
       - name: Cypress tests - Basics
         env:
           BROWSER: chrome
@@ -302,10 +312,14 @@ jobs:
           echo "## General information" >> ${GITHUB_STEP_SUMMARY}
           echo -e "***${{ inputs.test_description }}***\n" >> ${GITHUB_STEP_SUMMARY}
           echo "Type of cluster deployed: ${CLUSTER_TYPE:-normal}" >> ${GITHUB_STEP_SUMMARY}
+          echo "Helm version: ${{ steps.component.outputs.helm_version}}" >> ${GITHUB_STEP_SUMMARY}
           echo "### Rancher Manager" >> ${GITHUB_STEP_SUMMARY}
           echo "Rancher Manager Image: ${{ steps.component.outputs.rm_version }}" >> ${GITHUB_STEP_SUMMARY}
           echo "Rancher Manager Version: ${{ inputs.rancher_version }}" >> ${GITHUB_STEP_SUMMARY}
           echo "CertManager Image: ${{ steps.component.outputs.cert_manager_version }}" >> ${GITHUB_STEP_SUMMARY}
+          echo "### Fleet" >> ${GITHUB_STEP_SUMMARY}
+          echo "Fleet App version: ${{ steps.component.outputs.fleet_app_version }}" >> ${GITHUB_STEP_SUMMARY}
+          echo "Fleet images in local cluster: ${{ steps.component.outputs.fleet_images }}" >> ${GITHUB_STEP_SUMMARY}
           echo "### Kubernetes" >> ${GITHUB_STEP_SUMMARY}
           echo "K3s version for Rancher Manager: ${{ env.INSTALL_K3S_VERSION }}" >> ${GITHUB_STEP_SUMMARY}
           echo "K3d version for downstream cluster: ${{ env.INSTALL_K3S_VERSION }}" >> ${GITHUB_STEP_SUMMARY}
