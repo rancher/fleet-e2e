@@ -299,6 +299,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				"--agents", "0",
 				"--servers", "1",
 				"--image", "rancher/k3s:" + k8sDownstreamVersion,
+				"--api-port", "0.0.0.0:64430",
 			}
 
 			createCmd := exec.Command("k3d", "cluster", "create", "downstream"+"1")
