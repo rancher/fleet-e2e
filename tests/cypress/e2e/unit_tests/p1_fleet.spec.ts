@@ -109,12 +109,12 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
   const appName = 'nginx-keep'
   const keepResourceData: testData[] = [
     { qase_id: 69,
-      keepResources: 'true',
-      test_explanation: 'RESOURCES will NOT be DELETED after GitRepo is deleted.',
+      keepResources: 'yes',
+      test_explanation: 'RESOURCES will be KEPT and NOT be DELETED after GitRepo is deleted.',
     },
     { qase_id: 70,
-      keepResources: 'false',
-      test_explanation: 'RESOURCES will be DELETED after GitRepo is deleted.',
+      keepResources: 'no',
+      test_explanation: 'RESOURCES will NOT be KEPT and  will be DELETED after GitRepo is deleted.',
     },
   ]
   keepResourceData.forEach(
@@ -126,7 +126,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
           cy.clickButton('Create');
           cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
           cy.deleteAllFleetRepos();
-          if (keepResources === 'true') {
+          if (keepResources === 'yes') {
             cy.checkApplicationStatus(appNamespace, appName);
             cy.deleteApplicationDeployment(appNamespace);
           }

@@ -58,8 +58,10 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitA
   if (gitAuthType) {
     cy.gitRepoAuth(gitAuthType, userOrPublicKey, pwdOrPrivateKey);
   }
-  // Check the checkbox of keepResources if option is given
-  if (keepResources === 'true') {
+  // Check the checkbox of keepResources if option 'yes' is given.
+  // After checked check-box, `keepResources: true` is set
+  // in the GitRepo YAML.
+  if (keepResources === 'yes') {
     cy.get('.checkbox-outer-container.check').contains('Always Keep Resources').click();
   }
   cy.clickButton('Next');
@@ -127,7 +129,7 @@ Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
       cy.get('[width="30"] > .checkbox-outer-container.check').click();
       cy.get('.btn').contains('Delete').click({ctrlKey: true});
       cy.get('.btn', { timeout: 20000 }).contains('Delete').should('not.exist');
-      if (fleetCheck = true) {
+      if (fleetCheck === true) {
         cy.contains('No repositories have been added', { timeout: 20000 }).should('be.visible')
       } else {
         cy.contains('There are no rows to show.', { timeout: 20000 }).should('be.visible')
@@ -159,8 +161,8 @@ Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
   }
 });
 
-
 // Check deployed application status (present or not)
+// TODO: Expand this command to check application on false state as well
 Cypress.Commands.add('checkApplicationStatus', (appNamespace, appName, clusterName='local') => {
   cypressLib.burgerMenuToggle();
   cypressLib.accesMenu(clusterName);
@@ -171,7 +173,6 @@ Cypress.Commands.add('checkApplicationStatus', (appNamespace, appName, clusterNa
     .children({ timeout: 300000 })
     .should('contain.text', appName);
 });
-
 
 // Delete the leftover applications
 Cypress.Commands.add('deleteApplicationDeployment', (appNamespace, clusterName='local') => {
