@@ -100,7 +100,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
   )
 });
 
-describe('Test resource behavior after deleting GitRepo using keepResources option', () => {
+describe('Test resource behavior after deleting GitRepo using keepResources option', { tags: '@p1'}, () => {
   const repoName = "local-cluster-fleet-71"
   const branch = "master"
   const path = "qa-test-apps/nginx-app"
@@ -110,7 +110,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
   const keepResourceData: testData[] = [
     { qase_id: 69,
       keepResources: 'true',
-      test_description: 'RESOURCES will NOT be DELETED after GitRepo is deleted.',
+      test_explanation: 'RESOURCES will NOT be DELETED after GitRepo is deleted.',
     },
     { qase_id: 70,
       keepResources: 'false',
@@ -120,7 +120,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
   keepResourceData.forEach(
     ({ qase_id, keepResources, test_explanation}) => {
       qase(qase_id,
-        it(`Test ${test_explanation}`, () => {
+        it(`Test ${test_explanation}`, { tags: `@fleet-${qase_id}` }, () => {
           cy.fleetNamespaceToggle('fleet-local')
           cy.addFleetGitRepo({ repoName, repoUrl, branch, path, keepResources });
           cy.clickButton('Create');
