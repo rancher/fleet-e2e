@@ -312,7 +312,16 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 
 			// TODO: Wait for K3d resources instead od delay
 			// Delay few seconds before checking
-			time.Sleep(tools.SetTimeout(20 * time.Second))
+			// time.Sleep(tools.SetTimeout(20 * time.Second))
+
+			count := 1
+			Eventually(func() string {
+				k3dApiCheckCmd := exec.Command("curl", "-v", "-k", "https://127.0.0.1:64430")
+				out, _ := k3dApiCheckCmd.CombinedOutput()
+				GinkgoWriter.Printf("K3d API response %d:\n%s\n", count, out)
+				count++
+				return string(out)
+			}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(ContainSubstring("\"message\": \"Unauthorized\""))
 
 			// Run the registration insecure command on downstream cluster
 			regCmd := exec.Command("bash", "-c", insecureRegistrationCommand)
