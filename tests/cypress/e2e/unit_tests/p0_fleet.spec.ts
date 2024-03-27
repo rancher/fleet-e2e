@@ -28,17 +28,16 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
     it('FLEET-62: Deploy application to local cluster', { tags: '@fleet-62' }, () => {
       const repoName = "local-cluster-fleet-62"
       const branch = "master"
-      const path = "simple-chart"
-      const repoUrl = "https://github.com/rancher/fleet-test-data/"
-
-      // TODO: When this issue is resolved https://github.com/rancher/fleet/issues/2128
-      // use repoUrl = 'https://github.com/rancher/fleet-examples', path = 'simple-chart'
-      // and check in Deployments that resources 'frontend', 'redis-master', 'redis-slave' are ok
+      const path = "simple"
+      const repoUrl = "https://github.com/rancher/fleet-examples"
 
       cy.fleetNamespaceToggle('fleet-local')
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
       cy.clickButton('Create');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
+      cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6')
+      cy.verifyTableRow(1, 'Service', 'frontend');
+      cy.verifyTableRow(3, 'Service', 'redis-master');
+      cy.verifyTableRow(5, 'Service', 'redis-slave');
       cy.deleteAllFleetRepos();
     })
   );
