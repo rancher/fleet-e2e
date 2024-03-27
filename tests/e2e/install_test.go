@@ -289,10 +289,10 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			Expect(err).To(Not(HaveOccurred()))
 		})
 		By("Provision and import downstream K3d cluster", func() {
-			// Define local KUBECONFIG just for k3d operations
-			envVars := []string{
-				"KUBECONFIG=" + os.Getenv("HOME") + "/" + downstreamClusterName + "-kubeconfig.yaml",
-			}
+			// Define and set KUBECONFIG env for k3d operations
+			downstreamKubeconfig := os.Getenv("HOME") + "/" + downstreamClusterName + "-kubeconfig.yaml"
+			err := os.Setenv("KUBECONFIG", downstreamKubeconfig)
+			Expect(err).To(Not(HaveOccurred()))
 
 			// Allows changing k3d flags
 			flags := []string{
@@ -303,29 +303,30 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			}
 
 			createCmd := exec.Command("k3d", "cluster", "create", "downstream"+"1")
-			// K3d uses KUBECONFIG env as a destination for writing its kubeconfig
-			createCmd.Env = append(os.Environ(), envVars...)
 			createCmd.Args = append(createCmd.Args, flags...)
 			out, err := createCmd.CombinedOutput()
 			GinkgoWriter.Printf("Provisioning downstream k3d cluster (stdout):\n%s\n", out)
 			Expect(err).To(Not(HaveOccurred()))
 
-			// TODO: Wait for K3d resources instead od delay
-			// Delay few seconds before checking
-			// time.Sleep(tools.SetTimeout(20 * time.Second))
-
+			// Wait until k8s API endpoint of k3d downstream cluster is reachable
 			count := 1
 			Eventually(func() string {
-				k3dApiCheckCmd := exec.Command("curl", "-v", "-k", "https://127.0.0.1:64430")
+				k3dApiCheckCmd := exec.Command("curl", "-sk", "--max-time", "5", "https://127.0.0.1:64430")
 				out, _ := k3dApiCheckCmd.CombinedOutput()
 				GinkgoWriter.Printf("K3d API response %d:\n%s\n", count, out)
 				count++
 				return string(out)
 			}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(ContainSubstring("\"message\": \"Unauthorized\""))
 
+			// Wait for all nodes and CRDs
+			timeout := "5m"
+			_, err = kubectl.Run("wait", "--for=condition=Ready", "--timeout="+timeout, "node", "--all")
+			Expect(err).To(Not(HaveOccurred()))
+			_, err = kubectl.Run("wait", "--for=condition=Established", "--timeout="+timeout, "crd", "--all")
+			Expect(err).To(Not(HaveOccurred()))
+
 			// Run the registration insecure command on downstream cluster
 			regCmd := exec.Command("bash", "-c", insecureRegistrationCommand)
-			regCmd.Env = append(os.Environ(), envVars...)
 			// Debug only
 			// GinkgoWriter.Printf("Registration command is:\n%s\n", insecureRegistrationCommand)
 			out, err = regCmd.CombinedOutput()
@@ -333,6 +334,10 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			Expect(err).To(Not(HaveOccurred()))
 		})
 		By("Wait for downstream k3d cluster to import in Rancher", func() {
+			// Set KUBECONFIG variable again for local cluster
+			err := os.Setenv("KUBECONFIG", localKubeconfig)
+			Expect(err).To(Not(HaveOccurred()))
+
 			count := 1
 			Eventually(func() string {
 				downstreamClusterStatus, _ := kubectl.Run("get", "clusters.provisioning.cattle.io",
@@ -344,7 +349,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				count++
 
 				return downstreamClusterStatus
-			}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(ContainSubstring("True"))
+			}, tools.SetTimeout(3*time.Minute), 10*time.Second).Should(ContainSubstring("True"))
 		})
 	})
 })
