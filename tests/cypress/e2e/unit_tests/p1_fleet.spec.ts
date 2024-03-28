@@ -132,3 +132,47 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
     }
   )
 });
+
+describe('Test Self-Healing of resource modification when correctDrift option used', { tags: '@p1'}, () => {
+  const repoName = "local-cluster-correct-drift"
+  const branch = "master"
+  const path = "qa-test-apps/nginx-app"
+  const repoUrl = "https://github.com/rancher/fleet-test-data/"
+  const appNamespace = 'nginx-keep'
+  const appName = 'nginx-keep'
+  const correctDriftData: testData[] = [
+    { qase_id: 76,
+      correctDrift: 'yes',
+      test_explanation: 'MODIFICATION to resources will be self-healed when correctDrift is set to true in GitRepo.',
+    },
+    { qase_id: 113,
+      correctDrift: 'no',
+      test_explanation: 'MODIFICATION to resources will not be self-healed when correctDrift is set to false in GitRepo.',
+    },
+  ]
+  correctDriftData.forEach(
+    ({ qase_id, correctDrift, test_explanation}) => {
+      qase(qase_id,
+        it(`Fleet-${qase_id}: Test ${test_explanation}`, { tags: `@fleet-${qase_id}` }, () => {
+          cy.fleetNamespaceToggle('fleet-local')
+          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift });
+          cy.clickButton('Create');
+          cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+          cy.checkApplicationStatus(appNamespace, appName);
+
+          // Modify deployment count of application
+          cy.modifyDeployedApplication(appName);
+
+          if (correctDrift === 'yes') {
+            // Resources will be restored, hence count will not increase
+            cy.verifyTableRow(0, appName, '1/1')
+          } else {
+            // Resource count will get increased as resource will not be restored
+            cy.verifyTableRow(0, appName, '2/2');
+          }
+          cy.deleteAllFleetRepos();
+        })
+      )
+    }
+  )
+});
