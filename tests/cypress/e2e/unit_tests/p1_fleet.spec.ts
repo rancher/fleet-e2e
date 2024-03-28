@@ -26,8 +26,9 @@ beforeEach(() => {
 Cypress.config();
 describe('Test GitRepo Bundle name validation and max character trimming behavior in bundle', { tags: '@p1'}, () => {
   const branch = "master"
-  const path = "simple-chart"
+  const path = "qa-test-apps/nginx-app"
   const repoUrl = "https://github.com/rancher/fleet-test-data/"
+  const appName = 'nginx-keep'
 
   const repoTestData: testData[] = [
     { qase_id: 103,
@@ -92,6 +93,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
               .should(($ele) => {
                 expect($ele).have.length.lessThan(53)
               })
+            cy.checkApplicationStatus(appName);
             cy.deleteAllFleetRepos();
           })
         )
@@ -101,7 +103,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
 });
 
 describe('Test resource behavior after deleting GitRepo using keepResources option', { tags: '@p1'}, () => {
-  const repoName = "local-cluster-fleet-71"
+  const repoName = "local-cluster-fleet-69-70"
   const branch = "master"
   const path = "qa-test-apps/nginx-app"
   const repoUrl = "https://github.com/rancher/fleet-test-data/"
@@ -120,14 +122,15 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
   keepResourceData.forEach(
     ({ qase_id, keepResources, test_explanation}) => {
       qase(qase_id,
-        it(`Test ${test_explanation}`, { tags: `@fleet-${qase_id}` }, () => {
+        it(`Fleet-${qase_id}: Test ${test_explanation}`, { tags: `@fleet-${qase_id}` }, () => {
           cy.fleetNamespaceToggle('fleet-local')
           cy.addFleetGitRepo({ repoName, repoUrl, branch, path, keepResources });
           cy.clickButton('Create');
           cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+          cy.checkApplicationStatus(appName);
           cy.deleteAllFleetRepos();
           if (keepResources === 'yes') {
-            cy.checkApplicationStatus(appNamespace, appName);
+            cy.checkApplicationStatus(appName);
             cy.deleteApplicationDeployment(appNamespace);
           }
         })

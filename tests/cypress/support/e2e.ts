@@ -31,7 +31,7 @@ declare global {
       deleteAll(fleetCheck?: boolean): Chainable<Element>;
       deleteAllFleetRepos(): Chainable<Element>;
       checkGitRepoStatus(repoName: string, bundles?: string, resources?: string): Chainable<Element>;
-      checkApplicationStatus(appNamespace: string, appName: string, clusterName?: string): Chainable<Element>;
+      checkApplicationStatus(appName: string, clusterName?: string): Chainable<Element>;
       deleteApplicationDeployment(appNamespace: string, clusterName?: string): Chainable<Element>;
     }
   }
