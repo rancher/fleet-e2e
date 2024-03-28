@@ -163,10 +163,9 @@ Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
 
 // Check deployed application status (present or not)
 // TODO: Expand this command to check application on false state as well
-Cypress.Commands.add('checkApplicationStatus', (appNamespace, appName, clusterName='local') => {
+Cypress.Commands.add('checkApplicationStatus', (appName, clusterName='local') => {
   cypressLib.burgerMenuToggle();
   cypressLib.accesMenu(clusterName);
-  cy.nameSpaceMenuToggle(appNamespace);
   cy.clickNavMenu(['Workloads', 'Pods']);
   cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-0-row"]`)
