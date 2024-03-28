@@ -45,7 +45,7 @@ Cypress.Commands.add('gitRepoAuth', (gitAuthType, userOrPublicKey, pwdOrPrivateK
 
 
 // Command add Fleet Git Repository
-Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources }) => {
+Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift }) => {
   cy.clickButton('Add Repository');
   cy.contains('Git Repo:').should('be.visible');
   cy.typeValue('Name', repoName);
@@ -63,6 +63,9 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitA
   // in the GitRepo YAML.
   if (keepResources === 'yes') {
     cy.get('.checkbox-outer-container.check').contains('Always Keep Resources').click();
+  }
+  if (correctDrift === 'yes') {
+    cy.get('[data-testid="GitRepo-correctDrift-checkbox"] > .checkbox-container > .checkbox-custom').click();
   }
   cy.clickButton('Next');
   cy.get('button.btn').contains('Previous').should('be.visible');
@@ -181,4 +184,15 @@ Cypress.Commands.add('deleteApplicationDeployment', (appNamespace, clusterName='
   cy.nameSpaceMenuToggle(appNamespace);
   cy.clickNavMenu(['Workloads', 'Deployments']);
   cy.deleteAll({fleetCheck: false});
+});
+
+// Modify given application
+Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local') => {
+  cypressLib.burgerMenuToggle();
+  cypressLib.accesMenu(clusterName);
+  cy.clickNavMenu(['Workloads', 'Deployments']);
+  // Modify deployment of given application
+  cy.get('#trigger').click({ force: true });
+  cy.get('.icon-plus').click();
+  cy.get('.icon.icon-chevron-up').click({ force: true });
 });
