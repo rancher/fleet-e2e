@@ -104,7 +104,7 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   // Typing in filter for better targeting the namespece
   cy.get('div.ns-input').should('exist').clear().type(namespaceName);
   cy.get('.ns-dropdown-menu', { timeout: 5000 }).contains(new RegExp("^" + namespaceName + "$", "g"), { matchCase: true }).should('be.visible').click();
-  cy.get('.icon.icon-chevron-up').click({ force: true });
+  cy.get('div.ns-dropdown.ns-open > i.icon.icon-chevron-up').click({ force: true });
 })
 
 // Go to specific Sub Menu from Access Menu
@@ -126,7 +126,7 @@ Cypress.Commands.add('fleetNamespaceToggle', (toggleOption='local') => {
 Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
   cy.get('body').then(($body) => {
     if ($body.text().includes('Delete')) {
-      cy.get('[width="30"] > .checkbox-outer-container.check').click();
+      cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
       cy.get('.btn').contains('Delete').click({ctrlKey: true});
       cy.get('.btn', { timeout: 20000 }).contains('Delete').should('not.exist');
       if (fleetCheck === true) {
@@ -174,10 +174,9 @@ Cypress.Commands.add('checkApplicationStatus', (appName, clusterName='local') =>
 });
 
 // Delete the leftover applications
-Cypress.Commands.add('deleteApplicationDeployment', (appNamespace, clusterName='local') => {
+Cypress.Commands.add('deleteApplicationDeployment', (clusterName='local') => {
   cypressLib.burgerMenuToggle();
   cypressLib.accesMenu(clusterName);
-  cy.nameSpaceMenuToggle(appNamespace);
   cy.clickNavMenu(['Workloads', 'Deployments']);
   cy.deleteAll({fleetCheck: false});
 });

@@ -103,11 +103,9 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
 });
 
 describe('Test resource behavior after deleting GitRepo using keepResources option', { tags: '@p1'}, () => {
-  const repoName = "local-cluster-fleet-69-70"
   const branch = "master"
   const path = "qa-test-apps/nginx-app"
   const repoUrl = "https://github.com/rancher/fleet-test-data/"
-  const appNamespace = 'nginx-keep'
   const appName = 'nginx-keep'
   const keepResourceData: testData[] = [
     { qase_id: 69,
@@ -123,6 +121,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
     ({ qase_id, keepResources, test_explanation}) => {
       qase(qase_id,
         it(`Fleet-${qase_id}: Test ${test_explanation}`, { tags: `@fleet-${qase_id}` }, () => {
+          const repoName = `local-cluster-fleet-${qase_id}`
           cy.fleetNamespaceToggle('fleet-local')
           cy.addFleetGitRepo({ repoName, repoUrl, branch, path, keepResources });
           cy.clickButton('Create');
@@ -131,7 +130,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
           cy.deleteAllFleetRepos();
           if (keepResources === 'yes') {
             cy.checkApplicationStatus(appName);
-            cy.deleteApplicationDeployment(appNamespace);
+            cy.deleteApplicationDeployment();
           }
         })
       )
