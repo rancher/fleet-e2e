@@ -164,8 +164,12 @@ describe('Test Self-Healing of resource modification when correctDrift option us
           cy.modifyDeployedApplication(appName);
 
           if (correctDrift === 'yes') {
-            // Resources will be restored, hence count will not increase
-            cy.verifyTableRow(0, appName, '1/1')
+            // After modification, resource count will be increased.
+            cy.verifyTableRow(0, appName, '2/2');
+            // Force Update GitRepo to quickly self-heal.
+            cy.forceUpdateGitRepo(repoName);
+            // Resources will be restored, hence count will be 1/1.
+            cy.verifyTableRow(0, appName, '1/1');
           } else {
             // Resource count will get increased as resource will not be restored
             cy.verifyTableRow(0, appName, '2/2');

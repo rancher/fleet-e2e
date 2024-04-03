@@ -164,6 +164,19 @@ Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
   }
 });
 
+// Force Update GitRepo from any page.
+Cypress.Commands.add('forceUpdateGitRepo', (repoName,clusterName='local') => {
+  cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+  cy.fleetNamespaceToggle('fleet-local');
+  cy.open3dotsMenu(repoName, 'Force Update');
+  // TODO: Remove explicit wait
+  cy.wait(5000);
+  cy.verifyTableRow(0, 'Active', repoName);
+  cypressLib.burgerMenuToggle();
+  cypressLib.accesMenu(clusterName);
+  cy.clickNavMenu(['Workloads', 'Deployments']);
+})
+
 // Check deployed application status (present or not)
 Cypress.Commands.add('checkApplicationStatus', (appName, clusterName='local') => {
   cypressLib.burgerMenuToggle();
