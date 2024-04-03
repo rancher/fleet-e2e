@@ -193,5 +193,5 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local')
   // Modify deployment of given application
   cy.get('#trigger').click({ force: true });
   cy.get('.icon-plus').click();
-  cy.get('.icon.icon-chevron-up').click({ force: true });
+  cy.get('#trigger > .icon.icon-chevron-up').click({ force: true });
 });
