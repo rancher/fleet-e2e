@@ -162,7 +162,6 @@ Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
 });
 
 // Check deployed application status (present or not)
-// TODO: Expand this command to check application on false state as well
 Cypress.Commands.add('checkApplicationStatus', (appName, clusterName='local') => {
   cypressLib.burgerMenuToggle();
   cypressLib.accesMenu(clusterName);
