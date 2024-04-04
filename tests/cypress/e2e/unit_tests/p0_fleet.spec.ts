@@ -42,8 +42,6 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
       cy.verifyTableRow(3, 'Service', 'redis-master');
       cy.verifyTableRow(5, 'Service', 'redis-slave');
       cy.deleteAllFleetRepos();
-      // 'redis-slave' pods are not removed on time.
-      cy.deleteApplicationDeployment();
     })
   );
 
