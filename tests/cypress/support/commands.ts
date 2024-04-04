@@ -177,5 +177,7 @@ Cypress.Commands.add('deleteApplicationDeployment', (clusterName='local') => {
   cypressLib.burgerMenuToggle();
   cypressLib.accesMenu(clusterName);
   cy.clickNavMenu(['Workloads', 'Deployments']);
-  cy.deleteAll({fleetCheck: false});
+  // For certain reason deleteAll() is not working
+  // TODO: Investigate and fix it.
+  cy.deleteAllResources();
 });
