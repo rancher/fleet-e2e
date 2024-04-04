@@ -69,9 +69,9 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitA
 })
 
 // 3 dots menu selection
-Cypress.Commands.add('open3dotsMenu', (name, selection) => {
+Cypress.Commands.add('open3dotsMenu', ({repoName, selection}) => {
   // Open 3 dots button
-  cy.contains('tr.main-row', name).within(() => {
+  cy.contains('tr.main-row', repoName).within(() => {
     cy.get('.icon.icon-actions', { timeout: 5000 }).click();
   });
   if (selection) {
@@ -148,9 +148,9 @@ Cypress.Commands.add('deleteAllFleetRepos', () => {
 });
 
 // Check Git repo deployment status
-Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
+Cypress.Commands.add('checkGitRepoStatus', ({repoName, bundles, resources}) => {
   cy.verifyTableRow(0, 'Active', repoName);
-  cy.contains(repoName).click()
+  cy.contains(repoName).click({ force: true });
   cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
   cy.log(`Checking ${bundles} Bundles and ${resources} Resources`)
   if (bundles) {
@@ -181,4 +181,17 @@ Cypress.Commands.add('deleteApplicationDeployment', (appNamespace, clusterName='
   cy.nameSpaceMenuToggle(appNamespace);
   cy.clickNavMenu(['Workloads', 'Deployments']);
   cy.deleteAll({fleetCheck: false});
+});
+
+// Create command
+Cypress.Commands.add('createAndCheckFleetGitRepo', ( repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, bundles, resources, forceUpdate='yes') => {
+  cy.log(repoName)
+  console.log(repoName)
+  cy.addFleetGitRepo( repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey );
+  cy.clickButton('Create');
+  // Force update command
+  if (forceUpdate === 'yes') {
+    cy.open3dotsMenu(repoName, 'Force Update')
+  };
+  cy.checkGitRepoStatus(repoName, bundles, resources); 
 });

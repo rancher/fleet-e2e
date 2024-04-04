@@ -1,4 +1,4 @@
-/*
+0/*
 Copyright © 2023 - 2024 SUSE LLC
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,10 @@ beforeEach(() => {
   cy.deleteAllFleetRepos();
 });
 
+afterEach(() => {
+  cy.deleteAllFleetRepos();
+});
+
 
 Cypress.config();
 describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
@@ -32,13 +36,10 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
       const repoUrl = "https://github.com/rancher/fleet-examples"
 
       cy.fleetNamespaceToggle('fleet-local')
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
-      cy.clickButton('Create');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6')
+      cy.createAndCheckFleetGitRepo({ repoName, branch, path, repoUrl, bundles: '1 / 1', resources: '6 / 6' });      
       cy.verifyTableRow(1, 'Service', 'frontend');
       cy.verifyTableRow(3, 'Service', 'redis-master');
       cy.verifyTableRow(5, 'Service', 'redis-slave');
-      cy.deleteAllFleetRepos();
     })
   );
 
@@ -54,11 +55,8 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
 
       // Looping 2 times due to error on 2.8-head
       for (let i = 0; i < 2; i++) {
-        cy.fleetNamespaceToggle('fleet-default')
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
-        cy.clickButton('Create');
-        cy.open3dotsMenu(repoName, 'Force Update');
-        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
+        cy.fleetNamespaceToggle('fleet-local')
+        cy.createAndCheckFleetGitRepo({ repoName, branch, path, repoUrl, gitAuthType, userOrPublicKey, pwdOrPrivateKey, bundles: '1 / 1', resources: '1 / 1' });
         cy.deleteAllFleetRepos();
       }
     })
@@ -74,12 +72,8 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
       const userOrPublicKey = Cypress.env("bitbucket_private_user");
       const pwdOrPrivateKey = Cypress.env("bitbucket_private_pwd");
 
-      cy.fleetNamespaceToggle('fleet-default')
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
-      cy.clickButton('Create');
-      cy.open3dotsMenu(repoName, 'Force Update');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
-      cy.deleteAllFleetRepos();
+      cy.fleetNamespaceToggle('fleet-local')
+      cy.createAndCheckFleetGitRepo({ repoName, branch, path, repoUrl, gitAuthType, userOrPublicKey, pwdOrPrivateKey, bundles: '1 / 1', resources: '1 / 1' });
     })
   );
 
@@ -93,12 +87,8 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
       const userOrPublicKey = Cypress.env("gh_private_user");
       const pwdOrPrivateKey = Cypress.env("gh_private_pwd");
 
-      cy.fleetNamespaceToggle('fleet-default')
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
-      cy.clickButton('Create');
-      cy.open3dotsMenu(repoName, 'Force Update');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
-      cy.deleteAllFleetRepos();
+      cy.fleetNamespaceToggle('fleet-local')
+      cy.createAndCheckFleetGitRepo({ repoName, branch, path, repoUrl, gitAuthType, userOrPublicKey, pwdOrPrivateKey, bundles: '1 / 1', resources: '1 / 1' });
     })
   );
 
@@ -112,12 +102,8 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
       const userOrPublicKey = Cypress.env("azure_private_user");
       const pwdOrPrivateKey = Cypress.env("azure_private_pwd");
 
-      cy.fleetNamespaceToggle('fleet-default')
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
-      cy.clickButton('Create');
-      cy.open3dotsMenu(repoName, 'Force Update');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
-      cy.deleteAllFleetRepos();
+      cy.fleetNamespaceToggle('fleet-local')
+      cy.createAndCheckFleetGitRepo({ repoName, branch, path, repoUrl, gitAuthType, userOrPublicKey, pwdOrPrivateKey, bundles: '1 / 1', resources: '1 / 1' });
     })
   );
 
