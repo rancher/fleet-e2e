@@ -181,7 +181,7 @@ Cypress.Commands.add('deleteApplicationDeployment', (clusterName='local') => {
   cypressLib.accesMenu(clusterName);
   cy.clickNavMenu(['Workloads', 'Deployments']);
   cy.wait(500);
-  cy.deleteAll({ fleetCheck: false });
+  cy.deleteAll(false);
 });
 
 // Modify given application
@@ -190,7 +190,9 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local')
   cypressLib.accesMenu(clusterName);
   cy.clickNavMenu(['Workloads', 'Deployments']);
   // Modify deployment of given application
+  cy.wait(500);
   cy.get('#trigger').click({ force: true });
+  cy.contains('Scale').should('be.visible');
   cy.get('.icon-plus').click();
   cy.get('#trigger > .icon.icon-chevron-up').click({ force: true });
 });
