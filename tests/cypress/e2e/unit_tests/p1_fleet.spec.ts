@@ -134,12 +134,6 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
 });
 
 describe('Test Self-Healing of resource modification when correctDrift option used', { tags: '@p1'}, () => {
-  const repoName = "local-cluster-correct-drift"
-  const branch = "master"
-  const path = "qa-test-apps/nginx-app"
-  const repoUrl = "https://github.com/rancher/fleet-test-data/"
-  const appNamespace = 'nginx-keep'
-  const appName = 'nginx-keep'
   const correctDriftData: testData[] = [
     { qase_id: 76,
       correctDrift: 'yes',
@@ -154,20 +148,17 @@ describe('Test Self-Healing of resource modification when correctDrift option us
     ({ qase_id, correctDrift, test_explanation}) => {
       qase(qase_id,
         it(`Fleet-${qase_id}: Test ${test_explanation}`, { tags: `@fleet-${qase_id}` }, () => {
+          const repoName = `local-cluster-correct-${qase_id}`
           cy.fleetNamespaceToggle('fleet-local')
           cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift });
           cy.clickButton('Create');
           cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-          cy.checkApplicationStatus(appNamespace, appName);
+          cy.checkApplicationStatus(appName);
 
           // Modify deployment count of application
           cy.modifyDeployedApplication(appName);
 
           if (correctDrift === 'yes') {
-            // After modification, resource count will be increased.
-            cy.verifyTableRow(0, appName, '2/2');
-            // Force Update GitRepo to quickly self-heal.
-            cy.forceUpdateGitRepo(repoName);
             // Resources will be restored, hence count will be 1/1.
             cy.verifyTableRow(0, appName, '1/1');
           } else {

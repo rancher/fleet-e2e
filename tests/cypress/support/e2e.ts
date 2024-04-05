@@ -33,6 +33,7 @@ declare global {
       checkGitRepoStatus(repoName: string, bundles?: string, resources?: string): Chainable<Element>;
       checkApplicationStatus(appName: string, clusterName?: string): Chainable<Element>;
       deleteApplicationDeployment(clusterName?: string): Chainable<Element>;
+      modifyDeployedApplication(appName: string,clusterName?: string): Chainable<Element>;
     }
   }
 }
