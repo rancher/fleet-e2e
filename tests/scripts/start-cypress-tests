@@ -25,8 +25,8 @@ docker run --init -v $PWD:/workdir -w /workdir              \
     -e GH_PRIVATE_PWD=$GH_PRIVATE_PWD                       \
     -e AZURE_PRIVATE_USER=$AZURE_PRIVATE_USER               \
     -e AZURE_PRIVATE_PWD=$AZURE_PRIVATE_PWD                 \
-    -e RSA_PRIVATE_KEY_QA=$RSA_PRIVATE_KEY_QA               \
-    -e RSA_PUBLIC_KEY_QA=$RSA_PUBLIC_KEY_QA                 \
+    -e "RSA_PRIVATE_KEY_QA=$RSA_PRIVATE_KEY_QA"             \
+    -e "RSA_PUBLIC_KEY_QA=$RSA_PUBLIC_KEY_QA"               \
     -e "GREP=$GREP"                                         \
     -e "GREPTAGS=$GREPTAGS"                                 \
     --add-host host.docker.internal:host-gateway            \
