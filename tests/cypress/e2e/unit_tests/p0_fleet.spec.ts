@@ -15,6 +15,9 @@ limitations under the License.
 import '~/support/commands';
 import { qase } from 'cypress-qase-reporter/dist/mocha';
 
+export const appName = "nginx-keep"
+export const clusterName = "k3d-imported"
+
 beforeEach(() => {
   cy.login();
   cy.visit('/');
@@ -59,6 +62,7 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
         cy.clickButton('Create');
         cy.open3dotsMenu(repoName, 'Force Update');
         cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
+        cy.checkApplicationStatus(appName, clusterName);
         cy.deleteAllFleetRepos();
       }
     })
@@ -79,6 +83,7 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
       cy.clickButton('Create');
       cy.open3dotsMenu(repoName, 'Force Update');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
+      cy.checkApplicationStatus(appName, clusterName);
       cy.deleteAllFleetRepos();
     })
   );
@@ -98,6 +103,7 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
       cy.clickButton('Create');
       cy.open3dotsMenu(repoName, 'Force Update');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
+      cy.checkApplicationStatus(appName, clusterName);
       cy.deleteAllFleetRepos();
     })
   );
@@ -117,6 +123,7 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
       cy.clickButton('Create');
       cy.open3dotsMenu(repoName, 'Force Update');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
+      cy.checkApplicationStatus(appName, clusterName);
       cy.deleteAllFleetRepos();
     })
   );
