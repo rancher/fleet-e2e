@@ -13,7 +13,7 @@ on:
         default: true
         type: boolean
       rancher_version:
-        description: Rancher version channel/version/head_version - latest/latest, latest/2.8.3[-rc8], prime/latest/2.8.2
+        description: Rancher version channel/version/head_version latest/latest, latest/2.8.3[-rc8], prime/2.8.2, prime/devel/2.8
         default: latest/devel/2.8
         type: string
         required: true
