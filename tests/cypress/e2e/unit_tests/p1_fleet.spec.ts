@@ -171,3 +171,37 @@ describe('Test Self-Healing of resource modification when correctDrift option us
     }
   )
 });
+
+describe('Test Self-Healing of resource modification when correctDrift option used for exisiting GitRepo', { tags: '@p1'}, () => {
+  qase(77,
+    it("Fleet-77: Test MODIFICATION to resources will be self-healed when correctDrift is set to true in existing GitRepo.", { tags: '@fleet-77' }, () => {
+      const repoName = "local-cluster-correct-77"
+      cy.fleetNamespaceToggle('fleet-local')
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      cy.checkApplicationStatus(appName);
+
+      // Modify deployment count of application
+      cy.modifyDeployedApplication(appName);
+
+      // Resource count will get increased as resource will not be restored
+      cy.verifyTableRow(0, appName, '2/2');
+
+      // Update exising GitRepo by enabling 'correctDrift'
+      cy.addFleetGitRepo({ repoName, correctDrift: 'yes', edit: true });
+      cy.clickButton('Save');
+      cy.open3dotsMenu(repoName, 'Force Update');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      cy.checkApplicationStatus(appName);
+
+      // Modify deployment count of application
+      cy.modifyDeployedApplication(appName);
+
+      // Resources will be restored, hence count will be 1/1.
+      cy.verifyTableRow(0, appName, '1/1');
+
+      cy.deleteAllFleetRepos();
+    })
+  )
+});
