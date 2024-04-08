@@ -121,5 +121,82 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
     })
   );
 
+  qase(2,
+    it('FLEET-2: Test GITLAB Private Repository to install NGINX app using SSH auth', { tags: '@fleet-2' }, () => {
+      const repoName = "default-cluster-fleet-2"
+      const branch = "main"
+      const path = "nginx"
+      const repoUrl = "git@gitlab.com:fleetqa/fleet-qa-examples.git"
+      const gitAuthType = "ssh"
+      const userOrPublicKey = Cypress.env("rsa_private_key_qa")
+      const pwdOrPrivateKey = Cypress.env("rsa_public_key_qa")
+      
+      cy.fleetNamespaceToggle('fleet-default')
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
+      cy.clickButton('Create');
+      cy.open3dotsMenu(repoName, 'Force Update');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
+      cy.deleteAllFleetRepos();
+    })
+  );
+
+  qase(3,
+    it('FLEET-3: Test BITBUCKET Private Repository to install NGINX app using SSH auth', { tags: '@fleet-3' }, () => {
+      const repoName = "default-cluster-fleet-3"
+      const branch = "main"
+      const path = "nginx"
+      const repoUrl = "git@bitbucket.org:fleetqa-bb/fleet-qa-examples.git"
+      const gitAuthType = "ssh"
+      const userOrPublicKey = Cypress.env("rsa_private_key_qa")
+      const pwdOrPrivateKey = Cypress.env("rsa_public_key_qa")
+      
+      cy.fleetNamespaceToggle('fleet-default')
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
+      cy.clickButton('Create');
+      cy.open3dotsMenu(repoName, 'Force Update');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
+      cy.deleteAllFleetRepos();
+    })
+  );
+
+  qase(4,
+    it('FLEET-4: Test GITHUB Private Repository to install NGINX app using SSH auth', { tags: '@fleet-4' }, () => {
+      const repoName = "default-cluster-fleet-4"
+      const branch = "main"
+      const path = "nginx"
+      const repoUrl = "git@github.com:fleetqa/fleet-qa-examples.git"
+      const gitAuthType = "ssh"
+      const userOrPublicKey = Cypress.env("rsa_private_key_qa")
+      const pwdOrPrivateKey = Cypress.env("rsa_public_key_qa")
+      
+      cy.fleetNamespaceToggle('fleet-default')
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
+      cy.clickButton('Create');
+      cy.open3dotsMenu(repoName, 'Force Update');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
+      cy.deleteAllFleetRepos();
+    })
+  );
+
+  qase(97,
+    it('FLEET-97: Test AZURE Private Repository to install NGINX app using SSH auth', { tags: '@fleet-97' }, () => {
+      const repoName = "default-cluster-fleet-97"
+      const branch = "main"
+      const path = "nginx"
+      const repoUrl = "git@ssh.dev.azure.com:v3/fleetqateam/fleet-qa-examples/fleet-qa-examples"
+      const gitAuthType = "ssh"
+      const userOrPublicKey = Cypress.env("rsa_private_key_qa")
+      const pwdOrPrivateKey = Cypress.env("rsa_public_key_qa")
+      
+      cy.fleetNamespaceToggle('fleet-default')
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
+      cy.clickButton('Create');
+      cy.open3dotsMenu(repoName, 'Force Update');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
+      cy.deleteAllFleetRepos();
+    })
+  );
+
+
 });
 

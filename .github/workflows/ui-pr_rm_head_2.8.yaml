@@ -27,6 +27,8 @@ jobs:
       gh_private_pwd: ${{ secrets.GH_PRIVATE_PWD }}
       azure_private_user: ${{ secrets.AZURE_PRIVATE_USER }}
       azure_private_pwd: ${{ secrets.AZURE_PRIVATE_PWD }}
+      rsa_private_key_qa: ${{ secrets.RSA_PRIVATE_KEY_QA }}
+      rsa_public_key_qa: ${{ secrets.RSA_PUBLIC_KEY_QA }}
       qase_api_token: ${{ secrets.QASE_API_TOKEN }}
     with:
       test_description: "CI test for PR#${{ github.event.pull_request.number }} with K3s"
