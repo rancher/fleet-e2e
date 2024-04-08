@@ -78,13 +78,17 @@ var _ = BeforeSuite(func() {
 
 	// Extract Rancher Manager channel/version to install
 	if rancherVersion != "" {
+		// Split rancherVersion and reset it
 		s := strings.Split(rancherVersion, "/")
-		// Always use "rancher-latest" as other values make no sense here
-		rancherChannel = "latest"
-		rancherVersion = s[0]
-		rancherHeadVersion = ""
+		rancherVersion = ""
+
+		// Get needed informations
+		rancherChannel = s[0]
 		if len(s) > 1 {
-			rancherHeadVersion = s[1]
+			rancherVersion = s[1]
+		}
+		if len(s) > 2 {
+			rancherHeadVersion = s[2]
 		}
 	}
 })
