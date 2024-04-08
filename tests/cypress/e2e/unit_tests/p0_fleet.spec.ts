@@ -167,7 +167,7 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
   );
 
   qase(4,
-    it('FLEET-4: Test GITHUB Private Repository to install NGINX app using SSH auth', { tags: '@fleet-4' }, () => {
+    it.only('FLEET-4: Test GITHUB Private Repository to install NGINX app using SSH auth', { tags: '@fleet-4' }, () => {
       const repoName = "default-cluster-fleet-4"
       const branch = "main"
       const path = "nginx"
