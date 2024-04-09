@@ -154,10 +154,10 @@ Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
   cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
   cy.log(`Checking ${bundles} Bundles and ${resources} Resources`)
   if (bundles) {
-    cy.get('div.fleet-status', { timeout: 45000 }).eq(0).contains(` ${bundles} Bundles ready `, { timeout: 45000 }).should('be.visible')
+    cy.get('div.fleet-status', { timeout: 30000 }).eq(0).contains(` ${bundles} Bundles ready `, { timeout: 30000 }).should('be.visible')
   }
   if (resources) {
-    cy.get('div.fleet-status', { timeout: 45000 }).eq(1).contains(` ${resources} Resources ready `, { timeout: 45000 }).should('be.visible')
+    cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(` ${resources} Resources ready `, { timeout: 30000 }).should('be.visible')
   }
 });
 
