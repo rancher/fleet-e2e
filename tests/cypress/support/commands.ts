@@ -92,7 +92,7 @@ Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2)
   // Ensure table is loaded and visible
   cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
-    .children({ timeout: 300000 })
+    .children({ timeout: 60000 })
     .should('contain', expectedText1 )
     .should('contain', expectedText2 ); // TODO: refactor this so it is not mandatory value
 });
@@ -168,7 +168,7 @@ Cypress.Commands.add('checkApplicationStatus', (appName, clusterName='local') =>
   cy.clickNavMenu(['Workloads', 'Pods']);
   cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-0-row"]`)
-    .children({ timeout: 300000 })
+    .children({ timeout: 60000 })
     .should('contain.text', appName);
 });
 
