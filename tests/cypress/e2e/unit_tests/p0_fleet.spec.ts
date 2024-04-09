@@ -55,8 +55,6 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
       const userOrPublicKey = Cypress.env("gitlab_private_user");
       const pwdOrPrivateKey = Cypress.env("gitlab_private_pwd");
 
-      // Looping 2 times due to error on 2.8-head
-      for (let i = 0; i < 2; i++) {
         cy.fleetNamespaceToggle('fleet-default')
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
         cy.clickButton('Create');
@@ -64,7 +62,7 @@ describe('Fleet Deployment Test Cases',  { tags: '@p0' }, () => {
         cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
         cy.checkApplicationStatus(appName, clusterName);
         cy.deleteAllFleetRepos();
-      }
+
     })
   );
 
