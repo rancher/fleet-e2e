@@ -44,13 +44,26 @@ Cypress.Commands.add('gitRepoAuth', (gitAuthType, userOrPublicKey, pwdOrPrivateK
 });
 
 
-// Command add Fleet Git Repository
-Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources }) => {
-  cy.clickButton('Add Repository');
-  cy.contains('Git Repo:').should('be.visible');
-  cy.typeValue('Name', repoName);
-  cy.typeValue('Repository URL', repoUrl);
-  cy.typeValue('Branch Name', branch);
+// Command add and edit Fleet Git Repository
+// TODO: Rename this command name to 'addEditFleetGitRepo'
+Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift, fleetNamespace='fleet-local',editConfig=false }) => {
+  cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+  if (editConfig === true) {
+    cy.fleetNamespaceToggle(fleetNamespace);
+    // After deployment modification, GitRepo is in 'modified' state.
+    // Force update is required to make it active before editing.
+    cy.open3dotsMenu(repoName, 'Force Update');
+    cy.verifyTableRow(0, 'Active', repoName);
+    cy.open3dotsMenu(repoName, 'Edit Config');
+    cy.contains('Git Repo:').should('be.visible');
+  } 
+  else {
+    cy.clickButton('Add Repository');
+    cy.contains('Git Repo:').should('be.visible');
+    cy.typeValue('Name', repoName);
+    cy.typeValue('Repository URL', repoUrl);
+    cy.typeValue('Branch Name', branch);
+  }
   // Path is not required when git repo contains 1 application folder only.
   if (path) {
     cy.addPathOnGitRepoCreate(path);
@@ -64,9 +77,12 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitA
   if (keepResources === 'yes') {
     cy.get('.checkbox-outer-container.check').contains('Always Keep Resources').click();
   }
+  if (correctDrift === 'yes') {
+    cy.get('[data-testid="GitRepo-correctDrift-checkbox"] > .checkbox-container > .checkbox-custom').click();
+  }
   cy.clickButton('Next');
   cy.get('button.btn').contains('Previous').should('be.visible');
-})
+});
 
 // 3 dots menu selection
 Cypress.Commands.add('open3dotsMenu', (name, selection) => {
@@ -177,7 +193,20 @@ Cypress.Commands.add('deleteApplicationDeployment', (clusterName='local') => {
   cypressLib.burgerMenuToggle();
   cypressLib.accesMenu(clusterName);
   cy.clickNavMenu(['Workloads', 'Deployments']);
-  // For certain reason deleteAll() is not working
-  // TODO: Investigate and fix it.
-  cy.deleteAllResources();
+  cy.wait(500);
+  cy.deleteAll(false);
+});
+
+// Modify given application
+Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local') => {
+  cypressLib.burgerMenuToggle();
+  cypressLib.accesMenu(clusterName);
+  cy.clickNavMenu(['Workloads', 'Deployments']);
+  // Modify deployment of given application
+  cy.wait(500);
+  cy.get('#trigger').click({ force: true });
+  cy.contains('Scale').should('be.visible');
+  // TODO: Add logic to increase resource count to given no.
+  cy.get('.icon-plus').click();
+  cy.get('#trigger > .icon.icon-chevron-up').click({ force: true });
 });
