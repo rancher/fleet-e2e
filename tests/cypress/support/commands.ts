@@ -46,18 +46,18 @@ Cypress.Commands.add('gitRepoAuth', (gitAuthType, userOrPublicKey, pwdOrPrivateK
 
 // Command add and edit Fleet Git Repository
 // TODO: Rename this command name to 'addEditFleetGitRepo'
-Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift, edit=false }) => {
+Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift, fleetNamespace='fleet-local',editConfig=false }) => {
   cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-  if (edit === true) {
-    // Change Namespace from local to default when interacting with another namespace.
-    cy.fleetNamespaceToggle('fleet-local');
+  if (editConfig === true) {
+    cy.fleetNamespaceToggle(fleetNamespace);
     // After deployment modification, GitRepo is in 'modified' state.
     // Force update is required to make it active before editing.
     cy.open3dotsMenu(repoName, 'Force Update');
     cy.verifyTableRow(0, 'Active', repoName);
     cy.open3dotsMenu(repoName, 'Edit Config');
     cy.contains('Git Repo:').should('be.visible');
-  } else {
+  } 
+  else {
     cy.clickButton('Add Repository');
     cy.contains('Git Repo:').should('be.visible');
     cy.typeValue('Name', repoName);
@@ -82,7 +82,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitA
   }
   cy.clickButton('Next');
   cy.get('button.btn').contains('Previous').should('be.visible');
-})
+});
 
 // 3 dots menu selection
 Cypress.Commands.add('open3dotsMenu', (name, selection) => {
@@ -206,6 +206,7 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local')
   cy.wait(500);
   cy.get('#trigger').click({ force: true });
   cy.contains('Scale').should('be.visible');
+  // TODO: Add logic to increase resource count to given no.
   cy.get('.icon-plus').click();
   cy.get('#trigger > .icon.icon-chevron-up').click({ force: true });
 });

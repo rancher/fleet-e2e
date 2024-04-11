@@ -189,7 +189,7 @@ describe('Test Self-Healing of resource modification when correctDrift option us
       cy.verifyTableRow(0, appName, '2/2');
 
       // Update exising GitRepo by enabling 'correctDrift'
-      cy.addFleetGitRepo({ repoName, correctDrift: 'yes', edit: true });
+      cy.addFleetGitRepo({ repoName, correctDrift: 'yes', editConfig: true });
       cy.clickButton('Save');
       cy.open3dotsMenu(repoName, 'Force Update');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');

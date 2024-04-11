@@ -23,7 +23,7 @@ declare global {
       open3dotsMenu(name: string, selection?: string): Chainable<Element>;
       addPathOnGitRepoCreate(path: string): Chainable<Element>;
       gitRepoAuth(authType: string, userOrPublicKey?: string, pwdOrPrivateKey?: string): Chainable<Element>;
-      addFleetGitRepo(repoName: string, repoUrl?: string, branch?: string, path?: string): Chainable<Element>;
+      addFleetGitRepo(repoName: string, repoUrl?: string, branch?: string, path?: string, fleetNamespace?: string): Chainable<Element>;
       fleetNamespaceToggle(toggleOption: string): Chainable<Element>;
       verifyTableRow(rowNumber: number, expectedText1?: string, expectedText2?: string): Chainable<Element>;
       nameSpaceMenuToggle(namespaceName: string): Chainable<Element>;
@@ -33,7 +33,7 @@ declare global {
       checkGitRepoStatus(repoName: string, bundles?: string, resources?: string): Chainable<Element>;
       checkApplicationStatus(appName: string, clusterName?: string): Chainable<Element>;
       deleteApplicationDeployment(clusterName?: string): Chainable<Element>;
-      modifyDeployedApplication(appName: string,clusterName?: string): Chainable<Element>;
+      modifyDeployedApplication(appName: string, clusterName?: string): Chainable<Element>;
     }
   }
 }
