@@ -39,7 +39,7 @@ Cypress.Commands.add('gitRepoAuth', (gitAuthType, userOrPublicKey, pwdOrPrivateK
   else if (gitAuthType === 'ssh') {
     // Ugly implementation needed because 'typeValue' does not work here
     cy.get('textarea.no-resize.no-ease').eq(0).focus().clear().type(userOrPublicKey, {log: false}).blur();
-    cy.get('textarea.no-resize.no-ease').eq(1).focus().clear().type(userOrPublicKey, {log: false}).blur();
+    cy.get('textarea.no-resize.no-ease').eq(1).focus().clear().type(pwdOrPrivateKey, {log: false}).blur();
   }
 });
 

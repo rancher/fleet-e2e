@@ -46,7 +46,7 @@ module.exports = (on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions)
   config.env.grep = process.env.GREP;
   config.env.grepTags = process.env.GREPTAGS;
   config.env.rsa_private_key_qa  = process.env.RSA_PRIVATE_KEY_QA;
-  config.env.rsa_public_key_qa   = process.env.RSA_PUBLIC_kEY_QA;
+  config.env.rsa_public_key_qa   = process.env.RSA_PUBLIC_KEY_QA;
   
   return config;
 };
