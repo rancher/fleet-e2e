@@ -78,7 +78,7 @@ describe('Test Fleet deployment on PRIVATE repos with HTTP auth', { tags: '@p0' 
   })
 })
 
-describe.only('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }, () => {
+describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }, () => {
   
   const gitAuthType = "ssh"
   const userOrPublicKey = Cypress.env("rsa_public_key_qa")
