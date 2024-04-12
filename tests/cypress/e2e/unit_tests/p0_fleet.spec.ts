@@ -12,7 +12,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import '~/support/commands';
+import 'cypress/support/commands';
 import { qase } from 'cypress-qase-reporter/dist/mocha';
 
 export const appName = "nginx-keep";

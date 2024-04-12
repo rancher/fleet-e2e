@@ -14,7 +14,7 @@ limitations under the License.
 
 // Rename 'user.spec.ts' to RBAC: 'rbac.spec.ts' when implementing RBAC tests.
 
-import '~/support/commands';
+import 'cypress/support/commands';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 
 Cypress.config();

@@ -2,8 +2,6 @@
 
 set -evx
 
-pushd cypress
-
 # Needed to install Cypress plugins
 npm install
 

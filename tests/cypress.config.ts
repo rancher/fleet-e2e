@@ -8,11 +8,22 @@ export default defineConfig({
   defaultCommandTimeout: 10000,
   video: true,
   videoCompression: true,
-  reporter: 'cypress-qase-reporter',
+  reporter: 'cypress-multi-reporters',
   reporterOptions: {
-    'apiToken': qaseAPIToken,
-    'projectCode': 'FLEET',
-    'logging': true,
+    reporterEnabled: 'cypress-mochawesome-reporter, cypress-qase-reporter',
+    cypressMochawesomeReporterReporterOptions: {
+      charts: true,
+    },
+    cypressQaseReporterReporterOptions: {
+      apiToken: qaseAPIToken,
+      projectCode: 'FLEET',
+      logging: true,
+      basePath: 'https://api.qase.io/v1',
+      // Screenshots are not supported in cypress-qase-reporter@1.4.1 and broken in @1.4.3
+      // screenshotFolder: 'screenshots',
+      // sendScreenshot: true,
+      runComplete: true,
+    },
   },
   env: {
     "grepFilterSpecs": true
@@ -22,16 +33,11 @@ export default defineConfig({
     // You may want to clean this up later by importing these.
     setupNodeEvents(on, config) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      require('./plugins/index.ts')(on, config)
+      require('cypress/plugins/index.ts')(on, config)
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       require('@cypress/grep/src/plugin')(config);
       return config;
     },
-    supportFile: './support/e2e.ts',
-    fixturesFolder: './fixtures',
-    screenshotsFolder: './screenshots',
-    videosFolder: './videos',
-    downloadsFolder: './downloads',
-    specPattern: 'e2e/unit_tests/*.spec.ts',
+    specPattern: 'cypress/e2e/unit_tests/*.spec.ts',
   },
 })
