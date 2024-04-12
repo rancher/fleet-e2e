@@ -37,17 +37,17 @@ describe('Test Fleet deployment on PUBLIC repos',  { tags: '@p0' }, () => {
       const path = "simple"
       const repoUrl = "https://github.com/rancher/fleet-examples"
 
-      cy.fleetNamespaceToggle('fleet-local')
+      cy.fleetNamespaceToggle('fleet-local');
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
       cy.clickButton('Create');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6')
+      cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
       cy.verifyTableRow(1, 'Service', 'frontend');
       cy.verifyTableRow(3, 'Service', 'redis-master');
       cy.verifyTableRow(5, 'Service', 'redis-slave');
       cy.deleteAllFleetRepos();
     })
   );
-})
+});
 
 describe('Test Fleet deployment on PRIVATE repos with HTTP auth', { tags: '@p0' }, () => {
 
@@ -59,7 +59,7 @@ describe('Test Fleet deployment on PRIVATE repos with HTTP auth', { tags: '@p0' 
     {qase_id: 98, provider: 'Azure',  repoUrl: 'https://fleetqateam@dev.azure.com/fleetqateam/fleet-qa-examples/_git/fleet-qa-examples'}
   ]
 
-  repoTestData.forEach(({ qase_id, provider,  repoUrl, userOrPublicKey, pwdOrPrivateKey }) => {
+  repoTestData.forEach(({ qase_id, provider, repoUrl }) => {
     qase(qase_id,
       it(`FLEET-${qase_id}: Test to install "NGINX" app using "HTTP" auth on "${provider}" PRIVATE repository`, { retries: 0, tags: `@fleet-${qase_id}` }, () => {
 
@@ -71,12 +71,13 @@ describe('Test Fleet deployment on PRIVATE repos with HTTP auth', { tags: '@p0' 
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
         cy.clickButton('Create');
         cy.open3dotsMenu(`default-cluster-fleet-${qase_id}`, 'Force Update');
-        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+        cy.checkApplicationStatus(appName, clusterName);
         cy.deleteAllFleetRepos();
       })
     );
-  })
-})
+  });
+});
 
 describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }, () => {
   
@@ -90,7 +91,7 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }
     {qase_id: 97, provider: 'Azure', repoUrl: 'git@ssh.dev.azure.com:v3/fleetqateam/fleet-qa-examples/fleet-qa-examples'}
   ]
   
-  repoTestData.forEach(({ qase_id, provider, repoUrl, }) => {
+  repoTestData.forEach(({ qase_id, provider, repoUrl }) => {
     qase(qase_id,
       it(`FLEET-${qase_id}: Test to install "NGINX" app using "SSH" auth on "${provider}" PRIVATE repository`, { retries: 0, tags: `@fleet-${qase_id}` }, () => {
         
@@ -100,11 +101,12 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
         cy.clickButton('Create');
         cy.open3dotsMenu(`default-cluster-fleet-${qase_id}`, 'Force Update');
-        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1')
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+        cy.checkApplicationStatus(appName, clusterName);
         cy.deleteAllFleetRepos();
       })
     );
-  })
-})
+  });
+});
 
 
