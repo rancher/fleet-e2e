@@ -206,10 +206,10 @@ describe('Test Self-Healing of resource modification when correctDrift option us
   )
 });
 
-describe.only('Test resource behavior after deleting GitRepo using keepResources option for exisiting GitRepo', { tags: '@p1'}, () => {
+describe('Test resource behavior after deleting GitRepo using keepResources option for exisiting GitRepo', { tags: '@p1'}, () => {
   qase(71,
     it("Fleet-71: Test RESOURCES will be KEPT and NOT be DELETED after GitRepo is deleted when keepResources is set to true in existing GitRepo.", { tags: '@fleet-71' }, () => {
-      const repoName = "local-cluster-correct-71"
+      const repoName = "local-cluster-keep-71"
       cy.fleetNamespaceToggle('fleet-local')
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
       cy.clickButton('Create');
