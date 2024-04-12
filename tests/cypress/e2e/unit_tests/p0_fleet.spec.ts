@@ -61,7 +61,7 @@ describe('Test Fleet deployment on PRIVATE repos with HTTP auth', { tags: '@p0' 
 
   repoTestData.forEach(({ qase_id, provider, repoUrl }) => {
     qase(qase_id,
-      it(`FLEET-${qase_id}: Test to install "NGINX" app using "HTTP" auth on "${provider}" PRIVATE repository`, { retries: 0, tags: `@fleet-${qase_id}` }, () => {
+      it(`FLEET-${qase_id}: Test to install "NGINX" app using "HTTP" auth on "${provider}" PRIVATE repository`, { tags: `@fleet-${qase_id}` }, () => {
 
         const repoName = `default-cluster-fleet-${qase_id}`
         const userOrPublicKey = Cypress.env(`${provider.toLowerCase()}_private_user`)
@@ -70,7 +70,7 @@ describe('Test Fleet deployment on PRIVATE repos with HTTP auth', { tags: '@p0' 
         cy.fleetNamespaceToggle('fleet-default')
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
         cy.clickButton('Create');
-        cy.open3dotsMenu(`default-cluster-fleet-${qase_id}`, 'Force Update');
+        cy.open3dotsMenu(repoName, 'Force Update');
         cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
         cy.checkApplicationStatus(appName, clusterName);
         cy.deleteAllFleetRepos();
@@ -93,14 +93,14 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }
   
   repoTestData.forEach(({ qase_id, provider, repoUrl }) => {
     qase(qase_id,
-      it(`FLEET-${qase_id}: Test to install "NGINX" app using "SSH" auth on "${provider}" PRIVATE repository`, { retries: 0, tags: `@fleet-${qase_id}` }, () => {
+      it(`FLEET-${qase_id}: Test to install "NGINX" app using "SSH" auth on "${provider}" PRIVATE repository`, { tags: `@fleet-${qase_id}` }, () => {
         
         const repoName = `default-cluster-fleet-${qase_id}`
 
         cy.fleetNamespaceToggle('fleet-default')
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
         cy.clickButton('Create');
-        cy.open3dotsMenu(`default-cluster-fleet-${qase_id}`, 'Force Update');
+        cy.open3dotsMenu(repoName, 'Force Update');
         cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
         cy.checkApplicationStatus(appName, clusterName);
         cy.deleteAllFleetRepos();
