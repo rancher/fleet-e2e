@@ -17,12 +17,11 @@ export default defineConfig({
     cypressQaseReporterReporterOptions: {
       apiToken: qaseAPIToken,
       projectCode: 'FLEET',
-      logging: true,
+      logging: false,
       basePath: 'https://api.qase.io/v1',
       // Screenshots are not supported in cypress-qase-reporter@1.4.1 and broken in @1.4.3
       // screenshotFolder: 'screenshots',
       // sendScreenshot: true,
-      runComplete: true,
     },
   },
   env: {
