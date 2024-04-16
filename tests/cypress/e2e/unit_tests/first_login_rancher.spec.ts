@@ -15,20 +15,24 @@ import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 
 
 Cypress.config();
-describe('First login on Rancher', { tags: '@login'},  () => {
-    it('Log in and accept terms and conditions', () => {
-    cypressLib.firstLogin();
+describe('First login on Rancher', { tags: '@login' }, () => {
+  qase(120,
+    it('Log in and accept terms and conditions', { tags: '@fleet-120' },  () => {
+      cypressLib.firstLogin();
     })
+  );
 
-    it('Check ready state of local cluster after Rancher login', () => {
-        cy.login();
-        cy.visit('/');
-        cypressLib.burgerMenuToggle();
-        cypressLib.accesMenu('Continuous Delivery');
-        cy.contains('Dashboard').should('be.visible')
-        cypressLib.accesMenu('Clusters');
-        cy.fleetNamespaceToggle('fleet-local')
-        cy.verifyTableRow(0, 'Active', ' ')
-        cy.get("td[data-testid='sortable-cell-0-2']", { timeout: 300000 }).should('not.contain', '0')
+  qase(114,
+    it('Check ready state of local cluster after Rancher login', { tags: '@fleet-114' }, () => {
+      cy.login();
+      cy.visit('/');
+      cypressLib.burgerMenuToggle();
+      cypressLib.accesMenu('Continuous Delivery');
+      cy.contains('Dashboard').should('be.visible');
+      cypressLib.accesMenu('Clusters');
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.verifyTableRow(0, 'Active', ' ' );
+      cy.get("td[data-testid='sortable-cell-0-2']", { timeout: 300000 }).should("not.contain", '0');
     })
-})
+  );
+});
