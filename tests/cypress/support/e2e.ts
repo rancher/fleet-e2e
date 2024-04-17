@@ -20,7 +20,7 @@ declare global {
   namespace Cypress {
     interface Chainable {
       // Functions declared in commands.ts
-      open3dotsMenu(name: string, selection?: string, checkMenu?: boolean): Chainable<Element>;
+      open3dotsMenu(name: string, selection?: string, checkNotInMenu?: boolean): Chainable<Element>;
       addPathOnGitRepoCreate(path: string): Chainable<Element>;
       gitRepoAuth(authType: string, userOrPublicKey?: string, pwdOrPrivateKey?: string): Chainable<Element>;
       addFleetGitRepo(repoName: string, repoUrl?: string, branch?: string, path?: string, fleetNamespace?: string): Chainable<Element>;

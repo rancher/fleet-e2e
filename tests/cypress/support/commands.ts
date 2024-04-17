@@ -85,18 +85,21 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitA
 });
 
 // 3 dots menu selection
-Cypress.Commands.add('open3dotsMenu', (name, selection, checkMenu=false) => {
+Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) => {
   // Open 3 dots button
   cy.contains('tr.main-row', name).within(() => {
     cy.get('.icon.icon-actions', { timeout: 5000 }).click();
   });
-  if (checkMenu === true) {
-    cy.get('.list-unstyled.menu > li').each(($el, index, $list) => {
-      if ($el.text() != selection) {
-        cy.log(`Cannot move cluster to the another workspace because "${selection}" is not present. Current Menu: ${$el.text()}`);
-      }
-    })
+
+  if (checkNotInMenu === true) {
+    cy.get('.list-unstyled.menu > li').each(($el) => {
+        if ($el.text() != selection) {
+        cy.log(`Cannot do action with specified value "${selection}" since it is not present. Current Menu value is: "${$el.text()}"`);
+        cy.get('ul.list-unstyled.menu').contains(selection).should('not.exist')
+      }        
+    });
   }
+  
   else if (selection) {
     // Open edit config and select option
     cy.get('.list-unstyled.menu > li > span', { timeout: 15000 }).contains(selection).should('be.visible');
