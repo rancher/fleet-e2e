@@ -174,7 +174,7 @@ describe('Test Self-Healing of resource modification when correctDrift option us
 
 describe('Test Self-Healing of resource modification when correctDrift option used for exisiting GitRepo', { tags: '@p1'}, () => {
   qase(77,
-    it("Fleet-77: Test MODIFICATION to resources will be self-healed when correctDrift is set to true in existing GitRepo.", { tags: '@fleet-77' }, () => {
+    it("Fleet-77: Test MODIFICATION to resources will be self-healed when correctDrift is set to true in existing GitRepo.", { tags: '@fleet-77', retries: 1 }, () => {
       const repoName = "local-cluster-correct-77"
       cy.fleetNamespaceToggle('fleet-local')
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });

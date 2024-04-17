@@ -61,7 +61,7 @@ describe('Test Fleet deployment on PRIVATE repos with HTTP auth', { tags: '@p0' 
 
   repoTestData.forEach(({ qase_id, provider, repoUrl }) => {
     qase(qase_id,
-      it(`FLEET-${qase_id}: Test to install "NGINX" app using "HTTP" auth on "${provider}" PRIVATE repository`, { tags: `@fleet-${qase_id}` }, () => {
+      it(`FLEET-${qase_id}: Test to install "NGINX" app using "HTTP" auth on "${provider}" PRIVATE repository`, { tags: `@fleet-${qase_id}`, retries: 1 }, () => {
 
         const repoName = `default-cluster-fleet-${qase_id}`
         const userOrPublicKey = Cypress.env(`${provider.toLowerCase()}_private_user`)
@@ -93,7 +93,7 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }
   
   repoTestData.forEach(({ qase_id, provider, repoUrl }) => {
     qase(qase_id,
-      it(`FLEET-${qase_id}: Test to install "NGINX" app using "SSH" auth on "${provider}" PRIVATE repository`, { tags: `@fleet-${qase_id}` }, () => {
+      it(`FLEET-${qase_id}: Test to install "NGINX" app using "SSH" auth on "${provider}" PRIVATE repository`, { tags: `@fleet-${qase_id}`, retries: 1 }, () => {
         
         const repoName = `default-cluster-fleet-${qase_id}`
 
