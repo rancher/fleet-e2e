@@ -23,7 +23,7 @@ export const path  = "nginx"
 beforeEach(() => {
   cy.login();
   cy.visit('/');
-  cy.deleteAllFleetRepos();
+  // cy.deleteAllFleetRepos();
 });
 
 
@@ -49,21 +49,24 @@ describe('Test Fleet deployment on PUBLIC repos',  { tags: '@p0' }, () => {
   );
 
   qase(115,
-    it('FLEET-115: Deploy "Traefik" application on "kube-system" namespace to local cluster', { tags: '@fleet-115' }, () => {
+    it.only('FLEET-115: Deploy "Traefik" application on "kube-system" namespace to local cluster', { tags: '@fleet-115' }, () => {
 
       const repoName = "local-cluster-fleet-115"
       const branch = "main"
-      const path = "traefik"
-      const repoUrl = "https://github.com/fleetqa/fleet-qa-examples"
+      let appName, path
+      appName = path = "traefik"
+      const repoUrl = "https://github.com/sbulage/test-fleet"
+      const namespace = "kube-system"
 
       cy.fleetNamespaceToggle('fleet-local');
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, keepResources: 'yes' });
       cy.clickButton('Create');
       cy.checkGitRepoStatus(repoName, '1 / 1', '7 / 7');
       cy.verifyTableRow(1, 'Service', 'traefik');
       cy.verifyTableRow(3, 'IngressRoute', 'traefik-dashboard');
       cy.verifyTableRow(5, 'ClusterRole', 'traefik-kube-system');
       cy.deleteAllFleetRepos();
+      cy.checkApplicationStatus(appName, namespace);
     })
   );
 
