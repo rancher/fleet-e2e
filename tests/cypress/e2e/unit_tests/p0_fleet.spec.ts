@@ -56,7 +56,7 @@ describe('Test Fleet deployment on PRIVATE repos with HTTP auth', { tags: '@p0' 
     {qase_id: 6, provider: 'GitLab',  repoUrl: 'https://gitlab.com/fleetqa/fleet-qa-examples.git'},
     {qase_id: 7, provider: 'Gh',  repoUrl: 'https://github.com/fleetqa/fleet-qa-examples.git'},
     {qase_id: 8, provider: 'Bitbucket', repoUrl: 'https://bitbucket.org/fleetqa-bb/fleet-qa-examples.git'},
-    {qase_id: 98, provider: 'Azure',  repoUrl: 'https://fleetqateam@dev.azure.com/fleetqateam/fleet-qa-examples/_git/fleet-qa-examples'}
+    {qase_id: 98, provider: 'Azure',  repoUrl: 'https://dev.azure.com/fleetqateam/fleet-qa-examples/_git/fleet-qa-examples'}
   ]
 
   repoTestData.forEach(({ qase_id, provider, repoUrl }) => {
