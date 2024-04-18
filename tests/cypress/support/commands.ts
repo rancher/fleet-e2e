@@ -182,7 +182,12 @@ Cypress.Commands.add('checkApplicationStatus', (appName, namespace, clusterName=
   cypressLib.burgerMenuToggle();
   cypressLib.accesMenu(clusterName);
   cy.clickNavMenu(['Workloads', 'Pods']);
-  cy.nameSpaceMenuToggle(namespace);
+  if (namespace) {
+    cy.nameSpaceMenuToggle(namespace);
+  }
+  // Type application name in filter
+  let newAppName = new RegExp(appName + "(?=.*[a-zA-Z])(?=.*[0-9])[A-Za-z0-9]+")
+  cy.get('.search.row').should('exist').type(newAppName);
   cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-0-row"]`)
     .children({ timeout: 60000 })
