@@ -94,7 +94,7 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
   if (checkNotInMenu === true) {
     cy.get('.list-unstyled.menu > li').each(($el) => {
         if ($el.text() != selection) {
-        cy.log(`Cannot do action with specified value "${selection}" since it is not present. Current Menu value is: "${$el.text()}"`);
+        cy.log(`Cannot perform action with specified value "${selection}" since it is not present. Current Menu is: "${$el.text()}"`);
         cy.get('ul.list-unstyled.menu').contains(selection).should('not.exist')
       }        
     });
