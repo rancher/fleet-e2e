@@ -233,14 +233,15 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
   )
 });
 
-if (Cypress.env('rancher_version') != '2.7') {
-describe('Test local cluster behavior with New workspace', { tags: '@p1'}, () => {
-  qase(107,
-    it("Fleet-107: Test LOCAL CLUSTER cannot be moved to another workspace as no 'Change workspace' option available..", { tags: '@fleet-107' }, () => {
-      cy.accesMenuSelection('Continuous Deliver', 'Clusters');
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.open3dotsMenu('local', 'Change workspace', true);
-    })
-  )
-});
+// Perform this test only if rancher_version does not contain "/2.7"
+if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
+  describe('Test local cluster behavior with New workspace', { tags: '@p1'}, () => {
+    qase(107,
+      it("Fleet-107: Test LOCAL CLUSTER cannot be moved to another workspace as no 'Change workspace' option available..", { tags: '@fleet-107' }, () => {
+        cy.accesMenuSelection('Continuous Deliver', 'Clusters');
+        cy.fleetNamespaceToggle('fleet-local');
+        cy.open3dotsMenu('local', 'Change workspace', true);
+      })
+    )
+  });
 }

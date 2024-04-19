@@ -270,7 +270,6 @@ jobs:
         env:
           BROWSER: chrome
           CYPRESS_DOCKER: 'cypress/included:13.6.4'
-          RANCHER_VERSION: ${{ steps.component.outputs.rm_version }}
           RANCHER_URL: https://${{ needs.create-runner.outputs.public_dns }}/dashboard
           RANCHER_USER: admin
           RANCHER_PASSWORD: ${{ secrets.rancher_password }}
