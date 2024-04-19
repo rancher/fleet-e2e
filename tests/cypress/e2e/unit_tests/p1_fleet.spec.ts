@@ -233,6 +233,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
   )
 });
 
+if (Cypress.env('rancher_version') != '2.7') {
 describe('Test local cluster behavior with New workspace', { tags: '@p1'}, () => {
   qase(107,
     it("Fleet-107: Test LOCAL CLUSTER cannot be moved to another workspace as no 'Change workspace' option available..", { tags: '@fleet-107' }, () => {
@@ -242,3 +243,4 @@ describe('Test local cluster behavior with New workspace', { tags: '@p1'}, () =>
     })
   )
 });
+}
