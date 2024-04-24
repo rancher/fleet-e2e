@@ -133,11 +133,19 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   cy.get('div.ns-dropdown.ns-open > i.icon.icon-chevron-up').click({ force: true });
 })
 
+// Command to filter text in searchbox
+Cypress.Commands.add('filterInSearchBox', (filterText) => {
+  cy.get('input[type="search"]').should('be.visible').clear().type(filterText)
+});
+
 // Go to specific Sub Menu from Access Menu
-Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery',secondAccessMenu) => {
+Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery',secondAccessMenu, clickOption) => {
       cypressLib.burgerMenuToggle();
       cypressLib.accesMenu(firstAccessMenu);
       cypressLib.accesMenu(secondAccessMenu);
+      if (clickOption) {
+        cy.get('nav.side-nav.default-side-nav').contains(clickOption).should('be.visible').click();
+      };
 });
 
 // Fleet namespace toggle
