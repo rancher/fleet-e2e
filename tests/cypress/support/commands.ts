@@ -127,9 +127,8 @@ Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2)
 Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   cy.get('.top > .ns-filter').should('be.visible');
   cy.get('.top > .ns-filter').click({ force: true });
-  // Typing in filter for better targeting the namespece
-  cy.get('div.ns-input').should('exist').clear().type(namespaceName);
-  cy.get('.ns-dropdown-menu', { timeout: 5000 }).contains(new RegExp("^" + namespaceName + "$", "g"), { matchCase: true }).should('be.visible').click();
+  cy.get('div.ns-item').contains(namespaceName).scrollIntoView()
+  cy.get('div.ns-item').contains(namespaceName).click()
   cy.get('div.ns-dropdown.ns-open > i.icon.icon-chevron-up').click({ force: true });
 })
 
