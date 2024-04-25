@@ -259,8 +259,8 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         cy.clickButton('Create');
         cy.verifyTableRow(0, 'Error', '1/1');
-        cy.accesMenuSelection('local', 'Workloads', 'Pods');
-        cy.filterInSearchBox('cattle-fleet-system');
+        cy.accesMenuSelection('local', 'Workloads');
+        cy.filterInSearchBox('fleet-controller');
         cy.verifyTableRow(0, 'Running', 'fleet-controller')
       })
     )
