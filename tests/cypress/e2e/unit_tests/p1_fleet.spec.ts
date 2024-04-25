@@ -251,8 +251,8 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
     qase(112,
       it("Fleet-112: Test imagescan app without expected semver range does not break fleet controller", { tags: '@fleet-112' }, () => {;
         const repoName = 'local-cluster-imagescan-112'
-        const repoUrl = 'https://github.com/0xavi0/fleet-examples/'
-        const branch = 'test-imagescans'
+        const repoUrl = 'https://github.com/rancher/fleet-test-data'
+        const branch = 'master'
         const path = 'imagescans'
 
         cy.fleetNamespaceToggle('fleet-local');
