@@ -268,3 +268,29 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
     )
   });
 }
+
+
+if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
+  describe('OCI', { tags: '@p1'}, () => {
+    qase(60,
+      it("Fleet-60: Test OCI helm chart support on Github Container Registry", { tags: '@fleet-60' }, () => {;
+        const repoName = 'default-oci-60'
+        const repoUrl = 'https://github.com/rancher/fleet-test-data'
+        const branch = 'master'
+        const path = 'helm-oci'
+
+        cy.fleetNamespaceToggle('fleet-default');
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+        cy.clickButton('Create');
+        cy.verifyTableRow(0, 'Active', '1/1');
+        cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
+        cy.nameSpaceMenuToggle('All Namespaces');
+        cy.filterInSearchBox('fleet-test-configmap');
+        cy.get('.col-link-detail').contains('fleet-test-configmap').should('be.visible').click({ force: true });
+        cy.get('section#data').should('contain', 'default-name').and('contain', 'value');
+        cy.deleteAllFleetRepos();
+      })
+    )
+  });
+}
+
