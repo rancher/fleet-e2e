@@ -143,7 +143,7 @@ Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery
       cypressLib.accesMenu(firstAccessMenu);
       cypressLib.accesMenu(secondAccessMenu);
       if (clickOption) {
-        cy.get('nav.side-nav.default-side-nav').contains(clickOption).should('be.visible').click();
+        cy.get('nav.side-nav').contains(clickOption).should('be.visible').click();
       };
 });
 
