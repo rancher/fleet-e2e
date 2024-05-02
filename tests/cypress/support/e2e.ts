@@ -22,7 +22,7 @@ declare global {
       // Functions declared in commands.ts
       open3dotsMenu(name: string, selection?: string, checkNotInMenu?: boolean): Chainable<Element>;
       addPathOnGitRepoCreate(path: string): Chainable<Element>;
-      gitRepoAuth(authType: string, userOrPublicKey?: string, pwdOrPrivateKey?: string): Chainable<Element>;
+      gitRepoAuth(AuthType: string, userOrPublicKey?: string, pwdOrPrivateKey?: string, gitOrHelmAuth?: string): Chainable<Element>;
       addFleetGitRepo(repoName: string, repoUrl?: string, branch?: string, path?: string, fleetNamespace?: string): Chainable<Element>;
       fleetNamespaceToggle(toggleOption: string): Chainable<Element>;
       verifyTableRow(rowNumber: number, expectedText1?: string, expectedText2?: string): Chainable<Element>;

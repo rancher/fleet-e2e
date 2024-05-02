@@ -291,6 +291,31 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
         cy.deleteAllFleetRepos();
       })
     )
+  
+    qase(127,
+      it("Fleet-: Test PRIVATE OCI helm chart support on Github Container Registry", { tags: '@fleet-127' }, () => {;
+        const repoName = 'default-oci-127'
+        const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public'
+        const branch = 'main'
+        const path = 'helm-oci-auth'
+        const gitOrHelmAuth = 'Helm'
+        const gitAuthType = "http"
+        const userOrPublicKey = Cypress.env("gh_private_user")
+        const pwdOrPrivateKey = Cypress.env("gh_private_pwd")
+    
+        cy.fleetNamespaceToggle('fleet-default');
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey});
+        cy.clickButton('Create');
+        cy.verifyTableRow(0, 'Active', '1/1');
+        cy.accesMenuSelection('k3d-imported', 'Storage', 'ConfigMaps');
+        cy.nameSpaceMenuToggle('All Namespaces');
+        cy.filterInSearchBox('fleet-test-configmap');
+        cy.get('.col-link-detail').contains('fleet-test-configmap').should('be.visible').click({ force: true });
+        cy.get('section#data').should('contain', 'default-name').and('contain', 'value');
+        cy.deleteAllFleetRepos();
+      })
+    )
+  
+  
   });
 }
-
