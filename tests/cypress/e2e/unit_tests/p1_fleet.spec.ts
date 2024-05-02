@@ -271,7 +271,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
 
 
 if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
-  describe('OCI', { tags: '@p1'}, () => {
+  describe('Test OCI support', { tags: '@p1'}, () => {
     qase(60,
       it("Fleet-60: Test OCI helm chart support on Github Container Registry", { tags: '@fleet-60' }, () => {;
         const repoName = 'default-oci-60'
@@ -283,7 +283,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         cy.clickButton('Create');
         cy.verifyTableRow(0, 'Active', '1/1');
-        cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
+        cy.accesMenuSelection('k3d-imported', 'Storage', 'ConfigMaps');
         cy.nameSpaceMenuToggle('All Namespaces');
         cy.filterInSearchBox('fleet-test-configmap');
         cy.get('.col-link-detail').contains('fleet-test-configmap').should('be.visible').click({ force: true });
