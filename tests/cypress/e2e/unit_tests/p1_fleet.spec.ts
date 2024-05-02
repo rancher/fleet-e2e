@@ -270,7 +270,6 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
 }
 
 
-if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
   describe('Test OCI support', { tags: '@p1'}, () => {
     qase(60,
       it("Fleet-60: Test OCI helm chart support on Github Container Registry", { tags: '@fleet-60' }, () => {;
@@ -316,4 +315,4 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
       })
     )  
   });
-}
+
