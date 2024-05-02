@@ -293,7 +293,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
     )
   
     qase(127,
-      it("Fleet-: Test PRIVATE OCI helm chart support on Github Container Registry", { tags: '@fleet-127' }, () => {;
+      it("Fleet-127: Test PRIVATE OCI helm chart support on Github Container Registry", { tags: '@fleet-127' }, () => {;
         const repoName = 'default-oci-127'
         const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public'
         const branch = 'main'
@@ -314,8 +314,6 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
         cy.get('section#data').should('contain', 'default-name').and('contain', 'value');
         cy.deleteAllFleetRepos();
       })
-    )
-  
-  
+    )  
   });
 }
