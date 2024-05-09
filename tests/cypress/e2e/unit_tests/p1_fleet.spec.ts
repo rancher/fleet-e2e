@@ -316,3 +316,59 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
     )  
   });
 
+  describe.only('Test Self-Healing of IMMUTABLE resources modification when correctDrift option used for exisiting GitRepo', { tags: '@p1'}, () => {
+    const correctDriftTestData: testData[] = [
+      { qase_id: 80,
+        repoName: "local-cluster-correct-80",
+        resourceType: "ConfigMaps",
+        resourceName: "mp-app-config",
+        resourceNamespace: "test-fleet-mp-config",
+      },
+    ]
+
+    correctDriftTestData.forEach(
+      ({qase_id, repoName, resourceType, resourceName, resourceNamespace}) => {
+        qase(qase_id,
+          it(`Fleet-${qase_id}: Test MODIFICATION to IMMUTABLE resource ${resourceType} will not be self-healed when correctDrift is set to true in existing GitRepo.`, { tags: `@fleet-${qase_id}` }, () => {
+            const path = "multiple-paths"
+            // Add GitRepo
+            cy.fleetNamespaceToggle('fleet-local')
+            cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+            cy.clickButton('Create');
+            cy.checkGitRepoStatus(repoName, '2 / 2', '2 / 2');
+    
+            // Update exising GitRepo by enabling 'correctDrift'
+            cy.addFleetGitRepo({ repoName, correctDrift: 'yes', editConfig: true });
+            cy.clickButton('Save');
+            cy.open3dotsMenu(repoName, 'Force Update');
+            cy.checkGitRepoStatus(repoName, '2 / 2', '2 / 2');
+    
+            // Modify ConfigMap by adding new key-value pair
+            cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
+            cy.nameSpaceMenuToggle(resourceNamespace);
+            cy.filterInSearchBox(resourceName);
+    
+            cy.get('.col-link-detail').contains(resourceName).should('be.visible');
+            cy.open3dotsMenu(resourceName, 'Edit Config');
+    
+            cy.clickButton('Add');
+            cy.get('#data > .key-value > .kv-container > :nth-child(7) > [data-testid="input-kv-item-key-1"]').focus().type('test_key');
+    
+            cy.get('div.code-mirror.as-text-area').eq(1).click().type("test_data_value");
+            cy.clickButton('Add');
+            cy.wait(500);
+            cy.clickButton('Save');
+    
+            // Any mutable resource will reconcile to it's original state immediately
+            // But with ConfigMaps and Services it is not because they are immutable i.e.
+            // They didn't reconciled when `correctDrift` is used.
+    
+            cy.filterInSearchBox(resourceName);
+            cy.verifyTableRow(0, resourceName, 'test, test_key');
+    
+            cy.deleteAllFleetRepos();
+          })
+        )
+      }
+    )
+  });
