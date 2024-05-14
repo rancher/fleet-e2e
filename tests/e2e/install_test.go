@@ -15,8 +15,10 @@ limitations under the License.
 package e2e_test
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -51,7 +53,6 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 		PollTimeout:  tools.SetTimeout(300 * time.Second),
 		PollInterval: 500 * time.Millisecond,
 	}
-
 	// Define local Kubeconfig file
 	localKubeconfig := os.Getenv("HOME") + "/.kube/config"
 
@@ -65,9 +66,16 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 		} `yaml:"metadata"`
 	}
 
-	// Global variables
-	var downstreamClusterName string
-	var insecureRegistrationCommand string
+	type downstreamCluster struct {
+		downstreamClusterName   string
+		InternalClusterName     string
+		InsecureRegistrationCmd string
+		kubeconfigPath          string
+		apiPort                 int
+	}
+
+	// Global variables stored in struct
+	var downstreamClusters []downstreamCluster
 
 	It("Install Rancher Manager", func() {
 		By("Installing K3s", func() {
@@ -229,54 +237,72 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			// Also don't check the returned error, as it will always not equal 0
 			_ = exec.Command("bash", "-c", "sudo mv -f /etc/rancher/{k3s,rke2}/{k3s,rke2}.yaml ~/").Run()
 		})
-		By("Create downstream cluster resource for import into rancher", func() {
-			// TODO: Add support for multiple downstream clusters
-			downstreamClusterName = "k3d-imported"
-
-			clusterDefinitionYaml := genericYAMLStruct{
-				APIVersion: "provisioning.cattle.io/v1",
-				Kind:       "Cluster",
-				Metadata: struct {
-					Name      string `yaml:"name"`
-					Namespace string `yaml:"namespace"`
-				}{
-					Name:      downstreamClusterName,
-					Namespace: "fleet-default",
-				},
+		By("Create downstream cluster(s) resource for import into rancher", func() {
+			dsClusterCount := 1
+			if dsClusterCountStr != "" {
+				count, err := strconv.Atoi(dsClusterCountStr)
+				if err == nil {
+					dsClusterCount = count
+				}
 			}
 
-			err := k.ApplyYAML("fleet-default", downstreamClusterName, clusterDefinitionYaml)
-			Expect(err).To(Not(HaveOccurred()))
+			for i := 0; i < dsClusterCount; i++ {
+				downstreamClusterName := fmt.Sprintf("imported-%d", i)
+				internalClusterName := ""
+				insecureRegistrationCommand := ""
 
-			// Get and store internal cluster name
-			// INTERNAL_CLUSTER_NAME=$(kubectl get clusters.provisioning.cattle.io -n fleet-default $CLUSTER_NAME -o jsonpath='{..status.clusterName}')
-			var internalClusterName string
-			Eventually(func() string {
-				internalClusterName, _ = kubectl.Run("get", "clusters.provisioning.cattle.io",
-					"--namespace", "fleet-default",
-					downstreamClusterName,
-					"-o", "jsonpath={..status.clusterName}",
-				)
-				return internalClusterName
-			}, tools.SetTimeout(2*time.Minute), 10*time.Second).ShouldNot(BeEmpty())
+				clusterDefinitionYaml := genericYAMLStruct{
+					APIVersion: "provisioning.cattle.io/v1",
+					Kind:       "Cluster",
+					Metadata: struct {
+						Name      string `yaml:"name"`
+						Namespace string `yaml:"namespace"`
+					}{
+						Name:      downstreamClusterName,
+						Namespace: "fleet-default",
+					},
+				}
 
-			// Debug only
-			// GinkgoWriter.Printf("Internal cluster name for cluster %s is: %s\n", downstreamClusterName, internalClusterName)
+				err := k.ApplyYAML("fleet-default", downstreamClusterName, clusterDefinitionYaml)
+				Expect(err).To(Not(HaveOccurred()))
 
-			// Get insecureCommand for importing cluster
-			// INSECURE_COMMAND=$(kubectl get ClusterRegistrationToken.management.cattle.io -n $INTERNAL_CLUSTER_NAME -o jsonpath='{.items[0].status.insecureCommand}')
-			insecureRegistrationCommand, err = kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
-				"--namespace", internalClusterName,
-				"-o", "jsonpath={.items[0].status.insecureCommand}",
-			)
-			Expect(err).To(Not(HaveOccurred()))
-			// Debug only
-			// GinkgoWriter.Printf("InsecureCommand for cluster %s is: %s\n", downstreamClusterName, insecureRegistrationCommand)
+				// Get and store internal cluster name
+				// INTERNAL_CLUSTER_NAME=$(kubectl get clusters.provisioning.cattle.io -n fleet-default $CLUSTER_NAME -o jsonpath='{..status.clusterName}')
+				Eventually(func() string {
+					internalClusterName, _ = kubectl.Run("get", "clusters.provisioning.cattle.io",
+						"--namespace", "fleet-default",
+						downstreamClusterName,
+						"-o", "jsonpath={..status.clusterName}",
+					)
+					return internalClusterName
+				}, tools.SetTimeout(2*time.Minute), 10*time.Second).ShouldNot(BeEmpty())
+
+				// Get insecureCommand for importing cluster
+				// INSECURE_COMMAND=$(kubectl get ClusterRegistrationToken.management.cattle.io -n $INTERNAL_CLUSTER_NAME -o jsonpath='{.items[0].status.insecureCommand}')
+				Eventually(func() string {
+					insecureRegistrationCommand, _ = kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
+						"--namespace", internalClusterName,
+						"-o", "jsonpath={.items[0].status.insecureCommand}",
+					)
+					return insecureRegistrationCommand
+				}, tools.SetTimeout(2*time.Minute), 10*time.Second).ShouldNot(BeEmpty())
+
+				// Fill the struct with the values
+				downstreamClusters = append(downstreamClusters, downstreamCluster{
+					downstreamClusterName:   downstreamClusterName,
+					InternalClusterName:     internalClusterName,
+					InsecureRegistrationCmd: insecureRegistrationCommand,
+					kubeconfigPath:          os.Getenv("HOME") + "/" + downstreamClusterName + "-kubeconfig.yaml",
+					apiPort:                 64430 + i,
+				})
+			}
+			// DEBUG uncomment to see content of the struct
+			// fmt.Printf("%#v\n", downstreamClusters)
 		})
 	})
 
-	It("Provision K3d cluster", func() {
-		By("Install k3d binary for provisioning downstream cluster", func() {
+	It("Provision K3d cluster(s)", func() {
+		By("Install k3d binary for downstream cluster provisioning", func() {
 			fileName := "k3d-install.sh"
 			Eventually(func() error {
 				return tools.GetFileFromURL("https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh", fileName, true)
@@ -288,68 +314,74 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			GinkgoWriter.Printf("K3d binary installation (stdout):\n%s\n", out)
 			Expect(err).To(Not(HaveOccurred()))
 		})
-		By("Provision and import downstream K3d cluster", func() {
-			// Define and set KUBECONFIG env for k3d operations
-			downstreamKubeconfig := os.Getenv("HOME") + "/" + downstreamClusterName + "-kubeconfig.yaml"
-			err := os.Setenv("KUBECONFIG", downstreamKubeconfig)
-			Expect(err).To(Not(HaveOccurred()))
+		By("Provision downstream K3d cluster(s)", func() {
+			for _, cluster := range downstreamClusters {
+				// Set KUBECONFIG env for k3d operations
+				err := os.Setenv("KUBECONFIG", cluster.kubeconfigPath)
+				Expect(err).To(Not(HaveOccurred()))
 
-			// Allows changing k3d flags
-			flags := []string{
-				"--agents", "0",
-				"--servers", "1",
-				"--image", "rancher/k3s:" + k8sDownstreamVersion,
-				"--api-port", "0.0.0.0:64430",
+				// Allows changing k3d flags
+				flags := []string{
+					"--agents", "0",
+					"--servers", "1",
+					"--image", "rancher/k3s:" + k8sDownstreamVersion,
+					"--api-port", "0.0.0.0:" + strconv.Itoa(cluster.apiPort),
+				}
+				GinkgoWriter.Printf("downstreamClusterName: %s\n", cluster.downstreamClusterName)
+				createCmd := exec.Command("k3d", "cluster", "create", cluster.downstreamClusterName)
+				createCmd.Args = append(createCmd.Args, flags...)
+				out, err := createCmd.CombinedOutput()
+				GinkgoWriter.Printf("Provisioning downstream k3d cluster(s):\n%s\n", out)
+				Expect(err).To(Not(HaveOccurred()))
 			}
-
-			createCmd := exec.Command("k3d", "cluster", "create", "downstream"+"1")
-			createCmd.Args = append(createCmd.Args, flags...)
-			out, err := createCmd.CombinedOutput()
-			GinkgoWriter.Printf("Provisioning downstream k3d cluster (stdout):\n%s\n", out)
-			Expect(err).To(Not(HaveOccurred()))
-
-			// Wait until k8s API endpoint of k3d downstream cluster is reachable
-			count := 1
-			Eventually(func() string {
-				k3dApiCheckCmd := exec.Command("curl", "-sk", "--max-time", "5", "https://127.0.0.1:64430")
-				out, _ := k3dApiCheckCmd.CombinedOutput()
-				GinkgoWriter.Printf("K3d API response %d:\n%s\n", count, out)
-				count++
-				return string(out)
-			}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(ContainSubstring("\"message\": \"Unauthorized\""))
-
-			// Wait for all nodes and CRDs
-			timeout := "5m"
-			_, err = kubectl.Run("wait", "--for=condition=Ready", "--timeout="+timeout, "node", "--all")
-			Expect(err).To(Not(HaveOccurred()))
-			_, err = kubectl.Run("wait", "--for=condition=Established", "--timeout="+timeout, "crd", "--all")
-			Expect(err).To(Not(HaveOccurred()))
-
-			// Run the registration insecure command on downstream cluster
-			regCmd := exec.Command("bash", "-c", insecureRegistrationCommand)
-			// Debug only
-			// GinkgoWriter.Printf("Registration command is:\n%s\n", insecureRegistrationCommand)
-			out, err = regCmd.CombinedOutput()
-			GinkgoWriter.Printf("Registration command output (stdout):\n%s\n", out)
-			Expect(err).To(Not(HaveOccurred()))
 		})
-		By("Wait for downstream k3d cluster to import in Rancher", func() {
-			// Set KUBECONFIG variable again for local cluster
+		By("Wait for k3d cluster(s) resources and perform import", func() {
+			for _, cluster := range downstreamClusters {
+				// Set KUBECONFIG env for k3d operations
+				err := os.Setenv("KUBECONFIG", cluster.kubeconfigPath)
+				Expect(err).To(Not(HaveOccurred()))
+
+				// Wait until k8s API endpoint of k3d downstream cluster is reachable
+				count := 1
+				Eventually(func() string {
+					k3dApiCheckCmd := exec.Command("curl", "-sk", "--max-time", "5", fmt.Sprintf("https://127.0.0.1:%d", cluster.apiPort))
+					out, _ := k3dApiCheckCmd.CombinedOutput()
+					GinkgoWriter.Printf("K3d API response for cluster %s, loop %d:\n%s\n", cluster.downstreamClusterName, count, out)
+					count++
+					return string(out)
+				}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(ContainSubstring("\"message\": \"Unauthorized\""))
+
+				// Wait for all nodes and CRDs
+				timeout := "5m"
+				_, err = kubectl.Run("wait", "--for=condition=Ready", "--timeout="+timeout, "node", "--all")
+				Expect(err).To(Not(HaveOccurred()))
+				_, err = kubectl.Run("wait", "--for=condition=Established", "--timeout="+timeout, "crd", "--all")
+				Expect(err).To(Not(HaveOccurred()))
+				// Run the registration insecure command on downstream cluster
+				regCmd := exec.Command("bash", "-c", cluster.InsecureRegistrationCmd)
+				out, err := regCmd.CombinedOutput()
+				GinkgoWriter.Printf("Registration command output for cluster %s:\n%s\n", cluster.downstreamClusterName, out)
+				Expect(err).To(Not(HaveOccurred()))
+			}
+		})
+		By("Wait for downstream k3d cluster(s) to import in Rancher", func() {
+			// Set KUBECONFIG variable back to local cluster
 			err := os.Setenv("KUBECONFIG", localKubeconfig)
 			Expect(err).To(Not(HaveOccurred()))
 
-			count := 1
-			Eventually(func() string {
-				downstreamClusterStatus, _ := kubectl.Run("get", "clusters.provisioning.cattle.io",
-					"--namespace", "fleet-default",
-					downstreamClusterName,
-					"-o", "jsonpath={.status.conditions[?(@.type==\"Ready\")].status}",
-				)
-				GinkgoWriter.Printf("Waiting for Active state of downstream cluster, loop %d\n", count)
-				count++
-
-				return downstreamClusterStatus
-			}, tools.SetTimeout(3*time.Minute), 10*time.Second).Should(ContainSubstring("True"))
+			for _, cluster := range downstreamClusters {
+				count := 1
+				Eventually(func() string {
+					downstreamClusterStatus, _ := kubectl.Run("get", "clusters.provisioning.cattle.io",
+						"--namespace", "fleet-default",
+						cluster.downstreamClusterName,
+						"-o", "jsonpath={.status.conditions[?(@.type==\"Ready\")].status}",
+					)
+					GinkgoWriter.Printf("Waiting for Active state of %s, loop %d\n", cluster.downstreamClusterName, count)
+					count++
+					return downstreamClusterStatus
+				}, tools.SetTimeout(3*time.Minute), 10*time.Second).Should(ContainSubstring("True"))
+			}
 		})
 	})
 })

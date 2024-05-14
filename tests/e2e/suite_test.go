@@ -42,6 +42,7 @@ var (
 	rancherChannel       string
 	rancherHeadVersion   string
 	rancherVersion       string
+	dsClusterCountStr    string
 )
 
 /**
@@ -72,6 +73,7 @@ var _ = BeforeSuite(func() {
 	// We will use the same version for downstream and upstream clusters
 	k8sDownstreamVersion = os.Getenv("INSTALL_K3S_VERSION")
 	rancherVersion = os.Getenv("RANCHER_VERSION")
+	dsClusterCountStr = os.Getenv("DS_CLUSTER_COUNT")
 
 	// Convert k3s version to a tag usable by k3d
 	k8sDownstreamVersion = strings.Replace(k8sDownstreamVersion, "+", "-", 1)

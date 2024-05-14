@@ -204,6 +204,7 @@ jobs:
     needs: [create-runner, pre-qase]
     runs-on: ${{ needs.create-runner.outputs.uuid }}
     env:
+      DS_CLUSTER_COUNT: 2
       ARCH: amd64
       INSTALL_K3S_VERSION: ${{ inputs.upstream_cluster_version }}
       K3S_KUBECONFIG_MODE: 0644
