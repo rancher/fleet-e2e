@@ -281,8 +281,8 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
         cy.fleetNamespaceToggle('fleet-default');
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         cy.clickButton('Create');
-        cy.verifyTableRow(0, 'Active', '1/1');
-        cy.accesMenuSelection('k3d-imported', 'Storage', 'ConfigMaps');
+        cy.verifyTableRow(0, 'Active', /([1-9]\d*)\/\1/);
+        cy.accesMenuSelection('imported-0', 'Storage', 'ConfigMaps');
         cy.nameSpaceMenuToggle('All Namespaces');
         cy.filterInSearchBox('fleet-test-configmap');
         cy.get('.col-link-detail').contains('fleet-test-configmap').should('be.visible').click({ force: true });
@@ -305,8 +305,8 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
         cy.fleetNamespaceToggle('fleet-default');
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey});
         cy.clickButton('Create');
-        cy.verifyTableRow(0, 'Active', '1/1');
-        cy.accesMenuSelection('k3d-imported', 'Storage', 'ConfigMaps');
+        cy.verifyTableRow(0, 'Active', /([1-9]\d*)\/\1/);
+        cy.accesMenuSelection('imported-0', 'Storage', 'ConfigMaps');
         cy.nameSpaceMenuToggle('All Namespaces');
         cy.filterInSearchBox('fleet-test-configmap');
         cy.get('.col-link-detail').contains('fleet-test-configmap').should('be.visible').click({ force: true });

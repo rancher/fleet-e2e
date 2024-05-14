@@ -16,7 +16,7 @@ import 'cypress/support/commands';
 import { qase } from 'cypress-qase-reporter/dist/mocha';
 
 export const appName = "nginx-keep";
-export const clusterName = "k3d-imported";
+export const clusterName = "imported-0";
 export const branch = "main";
 export const path  = "nginx"
 

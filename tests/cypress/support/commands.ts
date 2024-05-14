@@ -122,7 +122,19 @@ Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2)
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
     .children({ timeout: 60000 })
     .should('contain', expectedText1 )
-    .should('contain', expectedText2 ); // TODO: refactor this so it is not mandatory value
+    // Check if expectedText2 is a RegExp or a string
+    .then(() => {
+      if (expectedText2 instanceof RegExp) {
+        cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
+          .children({ timeout: 60000 })
+          .invoke('text')
+          .should('match', expectedText2);
+      } else {
+        cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
+          .children({ timeout: 60000 })
+          .should('contain', expectedText2);
+      }
+    });
 });
 
 // Namespace Toggle
