@@ -148,7 +148,7 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
 
 // Command to filter text in searchbox
 Cypress.Commands.add('filterInSearchBox', (filterText) => {
-  cy.get('input[type="search"]').should('be.visible').clear().type(filterText)
+  cy.get('input.input-sm.search-box').should('be.visible').clear().type(filterText)
 });
 
 // Go to specific Sub Menu from Access Menu
