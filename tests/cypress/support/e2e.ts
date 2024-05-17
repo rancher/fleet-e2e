@@ -22,7 +22,7 @@ declare global {
       // Functions declared in commands.ts
       open3dotsMenu(name: string, selection?: string, checkNotInMenu?: boolean): Chainable<Element>;
       addPathOnGitRepoCreate(path: string): Chainable<Element>;
-      gitRepoAuth(AuthType: string, userOrPublicKey?: string, pwdOrPrivateKey?: string, gitOrHelmAuth?: string): Chainable<Element>;
+      gitRepoAuth(AuthType: string, userOrPublicKey?: string, pwdOrPrivateKey?: string, gitOrHelmAuth?: string, helmUrlRegex?: string): Chainable<Element>;
       addFleetGitRepo(repoName: string, repoUrl?: string, branch?: string, path?: string, fleetNamespace?: string): Chainable<Element>;
       fleetNamespaceToggle(toggleOption: string): Chainable<Element>;
       verifyTableRow(rowNumber: number, expectedText1?: string, expectedText2?: string|RegExp): Chainable<Element>;
@@ -37,6 +37,7 @@ declare global {
       modifyDeployedApplication(appName: string, clusterName?: string): Chainable<Element>;
       createRoleTemplate(roleType: string, roleName: string, newUserDefault?: string['yes'|'no'], rules?: string[]): Chainable<Element>;
       assignRoleToUser(userName: string, roleName: string): Chainable<Element>;
+      importYaml(clusterName: string, yamlFilePath: string): Chainable<Element>;
     }
   }
 }

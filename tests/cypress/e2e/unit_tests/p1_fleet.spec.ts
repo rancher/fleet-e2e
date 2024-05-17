@@ -270,6 +270,47 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
   });
 }
 
+describe.only('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () => {
+  const repoName = 'local-cluster-helmrepo-63'
+  const repoUrl = 'https://github.com/thehejik/fleet-examples.git'
+  const branch = 'main'
+  const path = 'local-chart'
+  const userOrPublicKey = 'user'
+  const pwdOrPrivateKey = 'password'
+  const gitOrHelmAuth = 'Helm'
+  const gitAuthType = "http"
+  var helmUrlRegex = 'http.*'
+
+  it("Prepare the private helm registry", () => {
+    cy.importYaml({ clusterName: 'local', yamlFilePath: 'assets/helm-server-with-auth-and-data.yaml' });
+    cy.nameSpaceMenuToggle('default');
+    cy.checkApplicationStatus('nginx-helm-repo');
+  });
+
+  qase(63,
+    it("Fleet-63: Test private helm registries with \"helmRepoURLRegex and helmSecretName\" parameters", { tags: '@fleet-63' }, () => {;
+      // Positive test using matching regex http.*
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex });
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active', /([1-9]\d*)\/\1/);
+      cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
+      cy.nameSpaceMenuToggle('All Namespaces');
+      cy.filterInSearchBox('local-chart-configmap');
+      cy.wait(2000);
+      cy.get('.col-link-detail').contains('local-chart-configmap').should('be.visible').click({ force: true });
+      cy.get('section#data').should('contain', 'sample-cm').and('contain', 'sample-data-inside');
+      cy.deleteAllFleetRepos();
+      // Negative test using non-matching regex 1234.*
+      helmUrlRegex = '1234.*'
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex });
+      cy.clickButton('Create');
+      cy.get('.text-error', { timeout: 120000 }).should('contain', 'error code: 401');
+      cy.deleteAllFleetRepos();
+    })
+  )
+});
 
   describe('Test OCI support', { tags: '@p1'}, () => {
     qase(60,
