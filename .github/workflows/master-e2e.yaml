@@ -177,8 +177,7 @@ jobs:
               export QASE_RUN_DESCRIPTION="${QASE_DESC}"
 
               # Use full rancher version
-              QASE_RUN_NAME=$(echo $QASE_RUN_NAME | awk -F'/' '{print $NF}' | \
-                grep -P -o '[0-9]+\.[0-9]+\.[0-9]+(-[a-z]+[0-9]+)?' || true)
+              QASE_RUN_NAME=$(echo $QASE_RUN_NAME | grep -P '[0-9]+\.[0-9]+\.[0-9]+(-[a-z]+[0-9]+)?' || true)
               # Or workflow name if the full rancher version is not found
               if [ -z "$QASE_RUN_NAME" ]; then
                 QASE_RUN_NAME="${{ github.workflow }}"
