@@ -166,6 +166,8 @@ jobs:
 
       - name: Create/Export Qase Run
         id: qase
+        env:
+          QASE_RUN_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.rancher_version || github.workflow }}
         run: |
           case ${{ inputs.qase_run_id }} in
             'auto')
@@ -174,14 +176,17 @@ jobs:
               QASE_DESC="${{ inputs.test_description }} (${GH_RUN_URL})"
               export QASE_RUN_DESCRIPTION="${QASE_DESC}"
 
-              # Define and export the Qase run name, as it cannot be done
-              # in 'env:' because GITHUB_WORKFLOW is a shell variable
-              # Export them also to be used locally
-              export QASE_RUN_NAME="${GITHUB_WORKFLOW}"
+              # Use full rancher version
+              QASE_RUN_NAME=$(echo $QASE_RUN_NAME | awk -F'/' '{print $NF}' | \
+                grep -P -o '[0-9]+\.[0-9]+\.[0-9]+(-[a-z]+[0-9]+)?' || true)
+              # Or workflow name if the full rancher version is not found
+              if [ -z "$QASE_RUN_NAME" ]; then
+                QASE_RUN_NAME="${{ github.workflow }}"
+              fi
 
               # Create a Qase run, get its ID
               ID=$(cd tests && make create-qase-run)
-            
+
               # Export outputs for future use
               echo "qase_run_description=${QASE_DESC}" >> ${GITHUB_OUTPUT}
               echo "qase_run_id=${ID}" >> ${GITHUB_OUTPUT}
