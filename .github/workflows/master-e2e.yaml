@@ -72,7 +72,7 @@ on:
         description: Grep tags. For multiple selection separate with spaces
         required: false
         type: string
-        default: '@login @p0 @p1'
+        default: '@login @p0 @p1 @rbac'
       runner_template:
         description: Runner template to use
         # Another template available on GCP: fleet-qa-e2e-ci-runner-spot-leap-15-4-x86-64-template-v1
@@ -294,6 +294,7 @@ jobs:
             cypress/e2e/unit_tests/first_login_rancher.spec.ts
             cypress/e2e/unit_tests/p0_fleet.spec.ts
             cypress/e2e/unit_tests/p1_fleet.spec.ts
+            cypress/e2e/unit_tests/rbac_fleet.spec.ts
         run: |
           if ${{ inputs.qase_run_id == 'none' }}; then
             # Unset default QASE_* variables when reporting is disabled
