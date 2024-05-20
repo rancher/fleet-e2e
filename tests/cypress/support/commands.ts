@@ -155,7 +155,9 @@ Cypress.Commands.add('filterInSearchBox', (filterText) => {
 Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery',secondAccessMenu, clickOption) => {
       cypressLib.burgerMenuToggle();
       cypressLib.accesMenu(firstAccessMenu);
-      cypressLib.accesMenu(secondAccessMenu);
+      if (secondAccessMenu) {
+        cypressLib.accesMenu(secondAccessMenu);
+      };
       if (clickOption) {
         cy.get('nav.side-nav').contains(clickOption).should('be.visible').click();
       };
@@ -241,3 +243,53 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local')
   cy.get('.icon-plus').click();
   cy.get('#trigger > .icon.icon-chevron-up').click({ force: true });
 });
+
+// Create Role Template (User & Authentication)S
+Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUserDefault='No', verbs, resources, apiGroups, nonResourcesURLs}) => {
+
+  // // Access to user & authentication menu and create desired role template
+  cy.accesMenuSelection('Users & Authentication', 'Role Templates');
+  cy.clickButton(`Create ${roleType}`);
+  cy.contains('.title', ': Create').should('be.visible');
+
+  // Add role name
+  cy.typeValue('Name', roleName);
+
+  // Add new user default
+  if (newUserDefault === 'Yes') {
+    cy.get('span[aria-label="Yes: Default role for new users"]').click();
+  }
+  
+  // Addition of resources and verbs linked to resources
+  if (resources) {
+    resources.forEach((resource, i) => {
+      // Iterate over Resource cells and add 1 resource
+      cy.get(`input.vs__search`).eq(2 * i + 1).click();
+      cy.contains(resource, { matchCase: false }).should("exist").click();
+      cy.clickButton("Add Resource");
+
+      if (verbs) {
+        verbs.forEach((verb) => {
+          cy.get(`input.vs__search`).eq(2 * i).click();
+          cy.get(`ul.vs__dropdown-menu > li`).contains(verb).should("exist").click();
+        });
+      }
+    });
+  }
+
+  // "Hack" to get the button to be clickable
+  cy.get('button.role-link').last().click()
+  cy.clickButton("Create");
+})
+
+// Create command to assign role based on user name
+Cypress.Commands.add('assignRoleToUser', (userName, roleName) => {
+  cy.accesMenuSelection('Users & Authentication');
+  cy.contains('.title', 'Users').should('be.visible');
+  cy.filterInSearchBox(userName);
+  cy.open3dotsMenu(userName, 'Edit Config');
+  cy.get(`span[aria-label='${roleName}']`).scrollIntoView();
+  cy.get(`span[aria-label='${roleName}']`).should('be.visible').click();
+  cy.clickButton('Save');
+  cy.verifyTableRow(0, 'Active', userName);
+})
