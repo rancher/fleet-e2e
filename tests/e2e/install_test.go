@@ -272,10 +272,10 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 					internalClusterName, _ = kubectl.Run("get", "clusters.provisioning.cattle.io",
 						"--namespace", "fleet-default",
 						downstreamClusterName,
-						"-o", "jsonpath={..status.clusterName}",
+						"-o", "jsonpath={.status.clusterName}",
 					)
 					return internalClusterName
-				}, tools.SetTimeout(2*time.Minute), 10*time.Second).ShouldNot(BeEmpty())
+				}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(ContainSubstring("c-m-"))
 
 				// Get insecureCommand for importing cluster
 				// INSECURE_COMMAND=$(kubectl get ClusterRegistrationToken.management.cattle.io -n $INTERNAL_CLUSTER_NAME -o jsonpath='{.items[0].status.insecureCommand}')
@@ -285,7 +285,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 						"-o", "jsonpath={.items[0].status.insecureCommand}",
 					)
 					return insecureRegistrationCommand
-				}, tools.SetTimeout(2*time.Minute), 10*time.Second).ShouldNot(BeEmpty())
+				}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(ContainSubstring("curl --insecure"))
 
 				// Fill the struct with the values
 				downstreamClusters = append(downstreamClusters, downstreamCluster{
