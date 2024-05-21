@@ -22,7 +22,7 @@ beforeEach(() => {
 });
 
 Cypress.config();
-describe('Test Fleet access with RBAC with custom roles', () => {
+describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () => {
 
   const baseUser      = "base-user"
   const uiPassword    = "rancherpassword"
@@ -51,12 +51,12 @@ describe('Test Fleet access with RBAC with custom roles', () => {
       // Logout as admin and login as other user
       cypressLib.logout();
       cy.login(baseUser, uiPassword);
-
+      
       // What the user should be able to access
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspaces');
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Bundles');
-
+      
       // What the user should NOT be able to access
       cy.accesMenuSelection('Continuous Delivery');
       cy.contains('Clusters').should('not.exist');

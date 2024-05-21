@@ -153,9 +153,11 @@ Cypress.Commands.add('filterInSearchBox', (filterText) => {
 
 // Go to specific Sub Menu from Access Menu
 Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery',secondAccessMenu, clickOption) => {
-      cypressLib.burgerMenuToggle();
+      cypressLib.burgerMenuToggle( {animationDistanceThreshold: 10} );
+      cy.contains(firstAccessMenu).should('be.visible')
       cypressLib.accesMenu(firstAccessMenu);
       if (secondAccessMenu) {
+        cy.contains(secondAccessMenu).should('be.visible')
         cypressLib.accesMenu(secondAccessMenu);
       };
       if (clickOption) {
