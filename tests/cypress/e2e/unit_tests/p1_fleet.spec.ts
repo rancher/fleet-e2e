@@ -16,11 +16,13 @@ import 'cypress/support/commands';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 import { qase } from 'cypress-qase-reporter/dist/mocha';
 
-export const appName = "nginx-keep"
+export const resourceName = "nginx-keep"
 export const branch = "master"
 export const path = "qa-test-apps/nginx-app"
 export const repoUrl = "https://github.com/rancher/fleet-test-data/"
 export const dsClusterName = 'imported-0'
+export const fleetDefaultNamespace = 'fleet-default'
+export const fleetLocalNamespace = 'fleet-local'
 
 beforeEach(() => {
   cy.login();
@@ -71,8 +73,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
       } else {
         qase(qase_id,
           it(`Fleet-${qase_id}: Test GitRepo bundle name TRIMMING behavior. GitRepo with "${test_explanation}"`, { tags: `@fleet-${qase_id}` }, () => {
-            // Change namespace to fleet-local
-            cy.fleetNamespaceToggle('fleet-local');
+            cy.fleetNamespaceToggle(fleetDefaultNamespace);
 
             // Add Fleet repository and create it
             cy.addFleetGitRepo({repoName, repoUrl, branch, path});
@@ -87,13 +88,13 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
             cy.contains('tr.main-row[data-testid="sortable-table-1-row"]').should('not.be.empty', { timeout: 25000 });
             cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-1-row"]`)
               .children({ timeout: 300000 })
-              .should('not.have.text', 'fleet-agent-local')
+              .should('not.have.text', `fleet-agent-${dsClusterName}`)
               .should('not.be.empty')
               .should('include.text', 'test-')
               .should(($ele) => {
                 expect($ele).have.length.lessThan(53)
               })
-            cy.checkApplicationStatus(appName);
+            cy.checkApplicationStatus(resourceName, dsClusterName);
             cy.deleteAllFleetRepos();
           })
         )
@@ -118,15 +119,16 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
       qase(qase_id,
         it(`Fleet-${qase_id}: Test ${test_explanation}`, { tags: `@fleet-${qase_id}` }, () => {
           const repoName = `local-cluster-fleet-${qase_id}`
-          cy.fleetNamespaceToggle('fleet-local')
+          cy.fleetNamespaceToggle(fleetDefaultNamespace)
           cy.addFleetGitRepo({ repoName, repoUrl, branch, path, keepResources });
           cy.clickButton('Create');
           cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-          cy.checkApplicationStatus(appName);
+          cy.checkApplicationStatus(resourceName, dsClusterName);
           cy.deleteAllFleetRepos();
           if (keepResources === 'yes') {
-            cy.checkApplicationStatus(appName);
-            cy.deleteApplicationDeployment();
+            cy.checkApplicationStatus(resourceName, dsClusterName);
+            // Resource Namespace is having same name as resource.
+            cy.deleteApplicationDeployment(dsClusterName, resourceName);
           }
         })
       )
@@ -150,21 +152,21 @@ describe('Test Self-Healing of resource modification when correctDrift option us
       qase(qase_id,
         it(`Fleet-${qase_id}: Test ${test_explanation}`, { tags: `@fleet-${qase_id}` }, () => {
           const repoName = `local-cluster-correct-${qase_id}`
-          cy.fleetNamespaceToggle('fleet-local')
+          cy.fleetNamespaceToggle(fleetDefaultNamespace)
           cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift });
           cy.clickButton('Create');
           cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-          cy.checkApplicationStatus(appName);
+          cy.checkApplicationStatus(resourceName, dsClusterName);
 
           // Modify deployment count of application
-          cy.modifyDeployedApplication(appName);
+          cy.modifyDeployedApplication(resourceName, dsClusterName);
 
           if (correctDrift === 'yes') {
             // Resources will be restored, hence count will be 1/1.
-            cy.verifyTableRow(0, appName, '1/1');
+            cy.verifyTableRow(0, resourceName, '1/1');
           } else {
             // Resource count will get increased as resource will not be restored
-            cy.verifyTableRow(0, appName, '2/2');
+            cy.verifyTableRow(0, resourceName, '2/2');
           }
           cy.deleteAllFleetRepos();
         })
@@ -177,30 +179,30 @@ describe('Test Self-Healing of resource modification when correctDrift option us
   qase(77,
     it("Fleet-77: Test MODIFICATION to resources will be self-healed when correctDrift is set to true in existing GitRepo.", { tags: '@fleet-77', retries: 1 }, () => {
       const repoName = "local-cluster-correct-77"
-      cy.fleetNamespaceToggle('fleet-local')
+      cy.fleetNamespaceToggle(fleetDefaultNamespace)
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
       cy.clickButton('Create');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-      cy.checkApplicationStatus(appName);
+      cy.checkApplicationStatus(resourceName, dsClusterName);
 
       // Modify deployment count of application
-      cy.modifyDeployedApplication(appName);
+      cy.modifyDeployedApplication(resourceName, dsClusterName);
 
       // Resource count will get increased as resource will not be restored
-      cy.verifyTableRow(0, appName, '2/2');
+      cy.verifyTableRow(0, resourceName, '2/2');
 
       // Update exising GitRepo by enabling 'correctDrift'
-      cy.addFleetGitRepo({ repoName, correctDrift: 'yes', editConfig: true });
+      cy.addFleetGitRepo({ repoName, correctDrift: 'yes', fleetNamespace: fleetDefaultNamespace, editConfig: true });
       cy.clickButton('Save');
       cy.open3dotsMenu(repoName, 'Force Update');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-      cy.checkApplicationStatus(appName);
+      cy.checkApplicationStatus(resourceName, dsClusterName);
 
       // Modify deployment count of application
-      cy.modifyDeployedApplication(appName);
+      cy.modifyDeployedApplication(resourceName, dsClusterName);
 
       // Resources will be restored, hence count will be 1/1.
-      cy.verifyTableRow(0, appName, '1/1');
+      cy.verifyTableRow(0, resourceName, '1/1');
 
       cy.deleteAllFleetRepos();
     })
@@ -211,15 +213,15 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
   qase(71,
     it("Fleet-71: Test RESOURCES will be KEPT and NOT be DELETED after GitRepo is deleted when keepResources is set to true in existing GitRepo.", { tags: '@fleet-71' }, () => {
       const repoName = "local-cluster-keep-71"
-      cy.fleetNamespaceToggle('fleet-local')
+      cy.fleetNamespaceToggle(fleetDefaultNamespace);
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
       cy.clickButton('Create');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-      cy.checkApplicationStatus(appName);
+      cy.checkApplicationStatus(resourceName, dsClusterName);
 
       // Edit existing GitRepo with 'keepResource: true' to prevent
       // application removal after GitRepo delete.
-      cy.addFleetGitRepo({ repoName, keepResources: 'yes', editConfig: true });
+      cy.addFleetGitRepo({ repoName, keepResources: 'yes', fleetNamespace: fleetDefaultNamespace, editConfig: true });
       cy.clickButton('Save');
       cy.open3dotsMenu(repoName, 'Force Update');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
@@ -228,8 +230,8 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
       cy.deleteAllFleetRepos();
 
       // Check application still exists after deleting existing GitRepo
-      cy.checkApplicationStatus(appName);
-      cy.deleteApplicationDeployment();
+      cy.checkApplicationStatus(resourceName, dsClusterName);
+      cy.deleteApplicationDeployment(dsClusterName, resourceName);
     })
   )
 });
@@ -240,7 +242,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
     qase(107,
       it("Fleet-107: Test LOCAL CLUSTER cannot be moved to another workspace as no 'Change workspace' option available..", { tags: '@fleet-107' }, () => {
         cy.accesMenuSelection('Continuous Deliver', 'Clusters');
-        cy.fleetNamespaceToggle('fleet-local');
+        cy.fleetNamespaceToggle(fleetLocalNamespace);
         cy.open3dotsMenu('local', 'Change workspace', true);
       })
     )
@@ -252,11 +254,9 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
     qase(112,
       it("Fleet-112: Test imagescan app without expected semver range does not break fleet controller", { tags: '@fleet-112' }, () => {;
         const repoName = 'local-cluster-imagescan-112'
-        const repoUrl = 'https://github.com/rancher/fleet-test-data'
-        const branch = 'master'
         const path = 'imagescans'
 
-        cy.fleetNamespaceToggle('fleet-local');
+        cy.fleetNamespaceToggle(fleetLocalNamespace);
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         cy.clickButton('Create');
         cy.verifyTableRow(0, 'Error', '1/1');
@@ -270,16 +270,13 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
   });
 }
 
-
   describe('Test OCI support', { tags: '@p1'}, () => {
     qase(60,
       it("Fleet-60: Test OCI helm chart support on Github Container Registry", { tags: '@fleet-60' }, () => {;
         const repoName = 'default-oci-60'
-        const repoUrl = 'https://github.com/rancher/fleet-test-data'
-        const branch = 'master'
         const path = 'helm-oci'
 
-        cy.fleetNamespaceToggle('fleet-default');
+        cy.fleetNamespaceToggle(fleetDefaultNamespace);
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         cy.clickButton('Create');
         cy.verifyTableRow(0, 'Active', /([1-9]\d*)\/\1/);
@@ -303,7 +300,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
         const userOrPublicKey = Cypress.env("gh_private_user")
         const pwdOrPrivateKey = Cypress.env("gh_private_pwd")
     
-        cy.fleetNamespaceToggle('fleet-default');
+        cy.fleetNamespaceToggle(fleetDefaultNamespace);
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey});
         cy.clickButton('Create');
         cy.verifyTableRow(0, 'Active', /([1-9]\d*)\/\1/);
@@ -344,10 +341,11 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
             const path = "multiple-paths"
 
             // Add GitRepo by enabling 'correctDrift'
-            cy.fleetNamespaceToggle('fleet-default')
+            cy.fleetNamespaceToggle(fleetDefaultNamespace)
             cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift: 'yes' });
             cy.clickButton('Create');
             cy.checkGitRepoStatus(repoName, '2 / 2', '2 / 2');
+            cy.checkApplicationStatus(resourceName, dsClusterName, resourceLocation, resourceType, resourceNamespace);
             cy.accesMenuSelection(dsClusterName, resourceLocation, resourceType);
             cy.nameSpaceMenuToggle(resourceNamespace);
             cy.filterInSearchBox(resourceName);

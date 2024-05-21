@@ -16,6 +16,7 @@ limitations under the License.
 
 import 'cypress-file-upload';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
+import { resourceName } from '../e2e/unit_tests/p1_fleet.spec';
 
 // Generic commands
 
@@ -163,6 +164,7 @@ Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery
       if (clickOption) {
         cy.get('nav.side-nav').contains(clickOption).should('be.visible').click();
       };
+
 });
 
 // Fleet namespace toggle
@@ -212,31 +214,29 @@ Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
   }
 });
 
-// Check deployed application status (present or not)
-Cypress.Commands.add('checkApplicationStatus', (appName, clusterName='local') => {
-  cypressLib.burgerMenuToggle();
-  cypressLib.accesMenu(clusterName);
-  cy.clickNavMenu(['Workloads', 'Pods']);
+// Check deployed resource status (present or not)
+Cypress.Commands.add('checkApplicationStatus', (resourceName, clusterName, firstSubMenu="Workloads", secondSubMenu="Pods", applicationNamespace="All Namespaces") => {
+  cy.accesMenuSelection(clusterName, firstSubMenu, secondSubMenu);
+  cy.nameSpaceMenuToggle(applicationNamespace);
+  cy.filterInSearchBox(resourceName);
   cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-0-row"]`)
     .children({ timeout: 60000 })
-    .should('contain.text', appName);
+    .should('contain.text', resourceName);
 });
 
 // Delete the leftover applications
-Cypress.Commands.add('deleteApplicationDeployment', (clusterName='local') => {
-  cypressLib.burgerMenuToggle();
-  cypressLib.accesMenu(clusterName);
-  cy.clickNavMenu(['Workloads', 'Deployments']);
+Cypress.Commands.add('deleteApplicationDeployment', (clusterName , applicationNamespace) => {
+  cy.accesMenuSelection(clusterName, 'Workloads', 'Deployments');
   cy.wait(500);
+  cy.nameSpaceMenuToggle(applicationNamespace);
   cy.deleteAll(false);
 });
 
 // Modify given application
 Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local') => {
-  cypressLib.burgerMenuToggle();
-  cypressLib.accesMenu(clusterName);
-  cy.clickNavMenu(['Workloads', 'Deployments']);
+  cy.accesMenuSelection(clusterName, 'Workloads', 'Deployments');
+  cy.filterInSearchBox(appName);
   // Modify deployment of given application
   cy.wait(500);
   cy.get('#trigger').click({ force: true });
