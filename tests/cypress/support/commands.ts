@@ -246,7 +246,7 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local')
   cy.get('#trigger > .icon.icon-chevron-up').click({ force: true });
 });
 
-// Create Role Template (User & Authentication)S
+// Create Role Template (User & Authentication)
 Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUserDefault='No', verbs, resources, apiGroups, nonResourcesURLs}) => {
 
   // // Access to user & authentication menu and create desired role template
@@ -292,6 +292,7 @@ Cypress.Commands.add('assignRoleToUser', (userName, roleName) => {
   cy.open3dotsMenu(userName, 'Edit Config');
   cy.get(`span[aria-label='${roleName}']`).scrollIntoView();
   cy.get(`span[aria-label='${roleName}']`).should('be.visible').click();
+
   cy.clickButton('Save');
   cy.verifyTableRow(0, 'Active', userName);
 })

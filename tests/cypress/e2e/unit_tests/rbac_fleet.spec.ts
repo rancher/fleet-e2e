@@ -41,17 +41,15 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
         newUserDefault: "Yes",
         resources: ["fleetworkspaces", "gitrepos", "bundles"],
         verbs: ["create", "delete", "get", "list", "patch", "update", "watch"],
-        apiGroups: ["*"],
-        nonResourcesURLs: ["*"]
       });
 
-      // Assign role ti created user
+      // Assign role to the created user
       cy.assignRoleToUser(baseUser, "fleetAllVerbsRole");
       
       // Logout as admin and login as other user
       cypressLib.logout();
       cy.login(baseUser, uiPassword);
-      
+
       // What the user should be able to access
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspaces');
