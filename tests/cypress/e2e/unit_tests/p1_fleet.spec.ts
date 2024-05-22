@@ -73,7 +73,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
       } else {
         qase(qase_id,
           it(`Fleet-${qase_id}: Test GitRepo bundle name TRIMMING behavior. GitRepo with "${test_explanation}"`, { tags: `@fleet-${qase_id}` }, () => {
-            cy.fleetNamespaceToggle(fleetDefaultNamespace);
+            cy.fleetNamespaceToggle(fleetLocalNamespace);
 
             // Add Fleet repository and create it
             cy.addFleetGitRepo({repoName, repoUrl, branch, path});
@@ -81,20 +81,19 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
             cy.verifyTableRow(0, 'Active', repoName);
 
             // Navigate to Bundles
-            cypressLib.accesMenu("Advanced")
-            cypressLib.accesMenu("Bundles")
+            cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Bundles');
 
             // Check bundle name trimed to less than 53 characters
             cy.contains('tr.main-row[data-testid="sortable-table-1-row"]').should('not.be.empty', { timeout: 25000 });
             cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-1-row"]`)
               .children({ timeout: 300000 })
-              .should('not.have.text', `fleet-agent-${dsClusterName}`)
+              .should('not.have.text', `fleet-agent-local`)
               .should('not.be.empty')
               .should('include.text', 'test-')
               .should(($ele) => {
                 expect($ele).have.length.lessThan(53)
               })
-            cy.checkApplicationStatus(resourceName, dsClusterName);
+            cy.checkApplicationStatus(resourceName, 'local');
             cy.deleteAllFleetRepos();
           })
         )
@@ -128,7 +127,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
           if (keepResources === 'yes') {
             cy.checkApplicationStatus(resourceName, dsClusterName);
             // Resource Namespace is having same name as resource.
-            cy.deleteApplicationDeployment(dsClusterName, resourceName);
+            cy.deleteApplicationDeployment(resourceName);
           }
         })
       )
@@ -231,7 +230,8 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
 
       // Check application still exists after deleting existing GitRepo
       cy.checkApplicationStatus(resourceName, dsClusterName);
-      cy.deleteApplicationDeployment(dsClusterName, resourceName);
+      // Resource Namespace is having same name as resource.
+      cy.deleteApplicationDeployment(resourceName);
     })
   )
 });

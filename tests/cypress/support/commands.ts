@@ -16,8 +16,9 @@ limitations under the License.
 
 import 'cypress-file-upload';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
-import { resourceName } from '../e2e/unit_tests/p1_fleet.spec';
 
+// export const allDSClusterNames = ['imported-0', 'imported-1', 'imported-2']
+export const allDSClusterNames = ['imported-0']
 // Generic commands
 
 // Fleet commands
@@ -149,7 +150,7 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
 
 // Command to filter text in searchbox
 Cypress.Commands.add('filterInSearchBox', (filterText) => {
-  cy.get('input.input-sm.search-box').should('be.visible').clear().type(filterText)
+  cy.get('input.input-sm.search-box').should('be.visible').type(filterText)
 });
 
 // Go to specific Sub Menu from Access Menu
@@ -176,7 +177,7 @@ Cypress.Commands.add('fleetNamespaceToggle', (toggleOption='local') => {
 // Command to delete all rows if check box and delete button are present
 // Note: This function may be substituted by 'cypressLib.deleteAllResources' 
 // when hardcoded texts present can be parameterized
-Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
+Cypress.Commands.add('deleteAll', (fleetCheck=true, matchQueryMessage=false) => {
   cy.get('body').then(($body) => {
     if ($body.text().includes('Delete')) {
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
@@ -184,6 +185,8 @@ Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
       cy.get('.btn', { timeout: 20000 }).contains('Delete').should('not.exist');
       if (fleetCheck === true) {
         cy.contains('No repositories have been added', { timeout: 20000 }).should('be.visible')
+      } else if (matchQueryMessage === true) {
+        cy.contains('There are no rows which match your search query.', { timeout: 20000 }).should('be.visible')
       } else {
         cy.contains('There are no rows to show.', { timeout: 20000 }).should('be.visible')
       }
@@ -218,7 +221,7 @@ Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
 Cypress.Commands.add('checkApplicationStatus', (resourceName, clusterName, firstSubMenu="Workloads", secondSubMenu="Pods", applicationNamespace="All Namespaces") => {
   cy.accesMenuSelection(clusterName, firstSubMenu, secondSubMenu);
   cy.nameSpaceMenuToggle(applicationNamespace);
-  cy.filterInSearchBox(resourceName);
+  // cy.filterInSearchBox(resourceName);
   cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-0-row"]`)
     .children({ timeout: 60000 })
@@ -226,17 +229,22 @@ Cypress.Commands.add('checkApplicationStatus', (resourceName, clusterName, first
 });
 
 // Delete the leftover applications
-Cypress.Commands.add('deleteApplicationDeployment', (clusterName , applicationNamespace) => {
-  cy.accesMenuSelection(clusterName, 'Workloads', 'Deployments');
-  cy.wait(500);
-  cy.nameSpaceMenuToggle(applicationNamespace);
-  cy.deleteAll(false);
+Cypress.Commands.add('deleteApplicationDeployment', (applicationNamespace) => {
+  allDSClusterNames.forEach((dsClusterName) => {
+    cy.accesMenuSelection(dsClusterName, 'Workloads', 'Deployments');
+    cy.nameSpaceMenuToggle(applicationNamespace);
+    cy.wait(500);
+    // Application name and namespace is same.
+    //TODO: If deleteApplicationDeployment is used in other test cases then give separate appName.
+    cy.filterInSearchBox(applicationNamespace);
+    cy.deleteAll(false, true);
+  });
 });
 
 // Modify given application
 Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local') => {
   cy.accesMenuSelection(clusterName, 'Workloads', 'Deployments');
-  cy.filterInSearchBox(appName);
+  cy.nameSpaceMenuToggle(appName);
   // Modify deployment of given application
   cy.wait(500);
   cy.get('#trigger').click({ force: true });

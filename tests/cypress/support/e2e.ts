@@ -29,11 +29,11 @@ declare global {
       nameSpaceMenuToggle(namespaceName: string): Chainable<Element>;
       accesMenuSelection(firstAccessMenu: string, secondAccessMenu?: string, clickOption?: string): Chainable<Element>;
       filterInSearchBox(filterText: string): Chainable<Element>;
-      deleteAll(fleetCheck?: boolean): Chainable<Element>;
+      deleteAll(fleetCheck?: boolean, matchQueryMessage?:boolean): Chainable<Element>;
       deleteAllFleetRepos(): Chainable<Element>;
       checkGitRepoStatus(repoName: string, bundles?: string, resources?: string): Chainable<Element>;
       checkApplicationStatus(clusterName: string, resourceName: string, firstSubMenu?: string, secondSubMenu?: string, applicationNamespace?: string): Chainable<Element>;
-      deleteApplicationDeployment(clusterName: string, applicationNamespace: string): Chainable<Element>;
+      deleteApplicationDeployment(applicationNamespace: string): Chainable<Element>;
       modifyDeployedApplication(appName: string, clusterName?: string): Chainable<Element>;
       createRoleTemplate(roleType: string, roleName: string, newUserDefault?: string['yes'|'no'], verbs?: string[], resources?: string[], apiGroups?: string[], nonResourcesURLs?: string[] ): Chainable<Element>;
       assignRoleToUser(userName: string, roleName: string): Chainable<Element>;
