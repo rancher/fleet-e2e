@@ -112,11 +112,11 @@ jobs:
           echo "uuid=${UUID//-}" >> ${GITHUB_OUTPUT}
           echo "runner=${GH_REPO//\//-}-ci-${UUID//-}" >> ${GITHUB_OUTPUT}
       - name: Authenticate to GCP
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.credentials }}
       - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v1
+        uses: google-github-actions/setup-gcloud@v2
       - name: Create runner
         run: |
           gcloud compute instances create ${{ steps.generator.outputs.runner }} \
@@ -233,7 +233,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version-file: tests/go.mod
       - name: Install Node
@@ -346,11 +346,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Authenticate to GCP
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.credentials }}
       - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v1
+        uses: google-github-actions/setup-gcloud@v2
       - name: Delete PAT token secrets
         run: |
           gcloud --quiet secrets delete PAT_TOKEN_${{ needs.create-runner.outputs.uuid }} || true
