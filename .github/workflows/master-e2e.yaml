@@ -235,6 +235,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v5
         with:
+          cache: false
           go-version-file: tests/go.mod
       - name: Install Node
         uses: actions/setup-node@v4
