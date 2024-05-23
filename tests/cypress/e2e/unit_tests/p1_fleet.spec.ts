@@ -270,6 +270,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
   });
 }
 
+if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
 describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () => {
   const repoName = 'local-cluster-helmrepo-63'
   const repoUrl = 'https://github.com/thehejik/fleet-examples.git'
@@ -311,6 +312,7 @@ describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () 
     })
   )
 });
+}
 
   describe('Test OCI support', { tags: '@p1'}, () => {
     qase(60,

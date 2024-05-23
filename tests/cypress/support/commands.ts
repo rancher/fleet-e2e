@@ -51,18 +51,18 @@ Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPub
 
 Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
   cypressLib.burgerMenuToggle();
-  cy.get(`button[data-testid="menu-cluster-${clusterName}"]`).click();
+  cy.get('div.cluster-name').contains(clusterName).click();
   cy.get('header').find('button').filter(':has(i.icon-upload)').click();
-  cy.get('div.modal-container').contains('Import YAML').should('be.visible');
+  cy.get('div.card-container').contains('Import YAML').should('be.visible');
 
   // Insert file content into the CodeMirror editor
   cy.readFile(yamlFilePath).then((content) => {
     cy.get('.CodeMirror').then((codeMirrorElement) => {
-      const cm = codeMirrorElement[0].CodeMirror;
+      const cm = (codeMirrorElement[0] as any).CodeMirror;
       cm.setValue(content);
     });
   })
-  cy.get('button[data-testid="import-yaml-import-action"]').click();
+  cy.clickButton('Import');
   cy.get('div.card-container').contains(/Applied \d+ Resources/).should('be.visible');
 
   // Check if there is a column with age which contains a number
@@ -70,7 +70,7 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
     cy.wrap($el).contains(/\d+/, { timeout: 60000 });
   }).then(() => {
     // All elements defined, click Close button
-    cy.get('button[data-testid="import-yaml-close"]').click();
+    cy.clickButton('Close');
   });
 });
 
