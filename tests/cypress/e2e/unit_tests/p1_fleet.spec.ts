@@ -273,6 +273,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
 if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
 describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () => {
   const repoName = 'local-cluster-helmrepo-63'
+  // So far using custom repo, we should expose fleet.yaml somewhere on fleet-qa-examples repo
   const repoUrl = 'https://github.com/thehejik/fleet-examples.git'
   const branch = 'main'
   const path = 'local-chart'
@@ -282,6 +283,7 @@ describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () 
   const gitAuthType = "http"
   var helmUrlRegex = 'http.*'
 
+  // We should rethink this part as it is not actually a test but preparation step
   it("Prepare the private helm registry", { tags: '@preparation' }, () => {
     cy.importYaml({ clusterName: 'local', yamlFilePath: 'assets/helm-server-with-auth-and-data.yaml' });
     cy.nameSpaceMenuToggle('default');
