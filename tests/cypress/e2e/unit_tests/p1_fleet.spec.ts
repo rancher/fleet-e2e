@@ -270,7 +270,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
   });
 }
 
-describe.only('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () => {
+describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () => {
   const repoName = 'local-cluster-helmrepo-63'
   const repoUrl = 'https://github.com/thehejik/fleet-examples.git'
   const branch = 'main'
@@ -281,7 +281,7 @@ describe.only('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}
   const gitAuthType = "http"
   var helmUrlRegex = 'http.*'
 
-  it("Prepare the private helm registry", () => {
+  it("Prepare the private helm registry", { tags: '@preparation' }, () => {
     cy.importYaml({ clusterName: 'local', yamlFilePath: 'assets/helm-server-with-auth-and-data.yaml' });
     cy.nameSpaceMenuToggle('default');
     cy.checkApplicationStatus('nginx-helm-repo');
