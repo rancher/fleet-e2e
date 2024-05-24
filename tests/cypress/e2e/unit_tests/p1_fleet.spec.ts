@@ -281,18 +281,27 @@ describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () 
   const pwdOrPrivateKey = 'password'
   const gitOrHelmAuth = 'Helm'
   const gitAuthType = "http"
-  var helmUrlRegex = 'http.*'
+  var helmUrlRegex
 
   // We should rethink this part as it is not actually a test but preparation step
   it("Prepare the private helm registry", { tags: '@preparation' }, () => {
     cy.importYaml({ clusterName: 'local', yamlFilePath: 'assets/helm-server-with-auth-and-data.yaml' });
     cy.nameSpaceMenuToggle('default');
+    // The check doesn't wait for Active state, only its presence
     cy.checkApplicationStatus('nginx-helm-repo');
   });
 
   qase(63,
     it("Fleet-63: Test private helm registries with \"helmRepoURLRegex and helmSecretName\" parameters", { tags: '@fleet-63' }, () => {;
+      // Negative test using non-matching regex 1234.*
+      helmUrlRegex = '1234.*'
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex });
+      cy.clickButton('Create');
+      cy.get('.text-error', { timeout: 120000 }).should('contain', 'error code: 401');
+      cy.deleteAllFleetRepos();
       // Positive test using matching regex http.*
+      helmUrlRegex = 'http.*'
       cy.fleetNamespaceToggle('fleet-local');
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex });
       cy.clickButton('Create');
@@ -303,13 +312,6 @@ describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () 
       cy.wait(2000);
       cy.get('.col-link-detail').contains('local-chart-configmap').should('be.visible').click({ force: true });
       cy.get('section#data').should('contain', 'sample-cm').and('contain', 'sample-data-inside');
-      cy.deleteAllFleetRepos();
-      // Negative test using non-matching regex 1234.*
-      helmUrlRegex = '1234.*'
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex });
-      cy.clickButton('Create');
-      cy.get('.text-error', { timeout: 120000 }).should('contain', 'error code: 401');
       cy.deleteAllFleetRepos();
     })
   )
