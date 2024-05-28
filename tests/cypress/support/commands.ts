@@ -263,7 +263,7 @@ Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUse
   }
   
     // Addition of resources and verbs linked to resources
-    // Each resource is an object with 2 keys: resource and verbs
+    // Each rule is an object with 2 keys: resource and verbs
     rules.forEach((rule: { resource: string, verbs: string[] }, i) => {
       // Iterate over Resource cells and add 1 resource
       cy.get(`input.vs__search`).eq(2 * i + 1).click();
