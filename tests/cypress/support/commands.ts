@@ -153,16 +153,16 @@ Cypress.Commands.add('filterInSearchBox', (filterText) => {
 
 // Go to specific Sub Menu from Access Menu
 Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery',secondAccessMenu, clickOption) => {
-      cypressLib.burgerMenuToggle( {animationDistanceThreshold: 10} );
-      cy.contains(firstAccessMenu).should('be.visible')
-      cypressLib.accesMenu(firstAccessMenu);
-      if (secondAccessMenu) {
-        cy.contains(secondAccessMenu).should('be.visible')
-        cypressLib.accesMenu(secondAccessMenu);
-      };
-      if (clickOption) {
-        cy.get('nav.side-nav').contains(clickOption).should('be.visible').click();
-      };
+  cypressLib.burgerMenuToggle( {animationDistanceThreshold: 10} );
+  cy.contains(firstAccessMenu).should('be.visible')
+  cypressLib.accesMenu(firstAccessMenu);
+  if (secondAccessMenu) {
+    cy.contains(secondAccessMenu).should('be.visible')
+    cypressLib.accesMenu(secondAccessMenu);
+  };
+  if (clickOption) {
+    cy.get('nav.side-nav').contains(clickOption).should('be.visible').click();
+  };
 });
 
 // Fleet namespace toggle
@@ -247,7 +247,7 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local')
 });
 
 // Create Role Template (User & Authentication)
-Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUserDefault='No', verbs, resources, apiGroups, nonResourcesURLs}) => {
+Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUserDefault='No', verbs, rules, apiGroups, nonResourcesURLs}) => {
 
   // // Access to user & authentication menu and create desired role template
   cy.accesMenuSelection('Users & Authentication', 'Role Templates');
@@ -264,21 +264,17 @@ Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUse
   
     // Addition of resources and verbs linked to resources
     // Each resource is an object with 2 keys: resource and verbs
-    if (resources) {
-      resources.forEach((resource: { resource: string, verbs: string[] }, i) => {
-        // Iterate over Resource cells and add 1 resource
-        cy.get(`input.vs__search`).eq(2 * i + 1).click();
-        cy.contains(resource.resource, { matchCase: false }).should("exist").click();
-        cy.clickButton("Add Resource");
-  
-        if (resource.verbs) {
-          resource.verbs.forEach((verb) => {
-            cy.get(`input.vs__search`).eq(2 * i).click();
-            cy.get(`ul.vs__dropdown-menu > li`).contains(verb).should("exist").click();
-          });
-        }
-      });
-    }
+    rules.forEach((resource: { resource: string, verbs: string[] }, i) => {
+      // Iterate over Resource cells and add 1 resource
+      cy.get(`input.vs__search`).eq(2 * i + 1).click();
+      cy.contains(resource.resource, { matchCase: false }).should("exist").click();
+      cy.clickButton("Add Resource");
+
+        resource.verbs.forEach((verb) => {
+          cy.get(`input.vs__search`).eq(2 * i).click();
+          cy.get(`ul.vs__dropdown-menu > li`).contains(verb).should("exist").click();
+        });
+    });
 
   // "Hack" to get the button to be clickable
   cy.get('button.role-link').last().click()

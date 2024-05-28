@@ -38,7 +38,7 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
       cy.createRoleTemplate({
         roleType: "Global",
         roleName: "fleetAllVerbsRole",
-        resources: [
+        rules: [
           { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
           { resource: "gitrepos", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
           { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
@@ -47,7 +47,7 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
 
       // Assign role to the created user
       cy.assignRoleToUser(baseUser, "fleetAllVerbsRole");
-      
+
       // Logout as admin and login as other user
       cypressLib.logout();
       cy.login(baseUser, uiPassword);
@@ -78,7 +78,7 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
       cy.createRoleTemplate({
         roleType: "Global",
         roleName: customRoleName,
-        resources: [
+        rules: [
           { resource: "fleetworkspaces", verbs: ["list", "create"]},
           { resource: "gitrepos", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
           { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
@@ -108,7 +108,7 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
   )
 
   qase(44,
-    it('Test "Std-Base" user with custom roles to "fleetworkspaces" all verbs except "Delete can "edit" but not "delete" them', { tags: '@fleet-44' }, () => {
+    it('Test "Std-Base" user with custom role to "fleetworkspaces" all verbs except "delete can "edit" but not "delete" them', { tags: '@fleet-44' }, () => {
       
       const stduser = "std-user-44"
       const customRoleName = "fleetAllExceptDeleteFleetWorkspaces"
@@ -120,16 +120,16 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
       cy.createRoleTemplate({
         roleType: "Global",
         roleName: customRoleName,
-        resources: [
+        rules: [
           { resource: "fleetworkspaces", verbs: ["create", "get", "list", "patch", "update", "watch"]},
           { resource: "gitrepos", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
           { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
         ]
       });
 
-      // // Assign role to the created user
+      // Assign role to the created user
       cy.assignRoleToUser(stduser, customRoleName)
-      
+
       // Logout as admin and login as other user
       cypressLib.logout();
       cy.login(stduser, uiPassword);
@@ -143,6 +143,7 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
       cy.verifyTableRow(0, 'Active', 'fleet-default');
       cy.verifyTableRow(1, 'Active', 'fleet-local');
       cy.open3dotsMenu('fleet-default', 'Edit Config');
+      cy.contains('allowedTargetNamespaces').should('be.visible');
       
       // What the user should NOT be able to access (once in Fleet Workspace menu)
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspace');
