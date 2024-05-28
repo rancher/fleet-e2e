@@ -28,7 +28,7 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
   const uiPassword    = "rancherpassword"
 
   qase(5,
-    it('Test "User-Base" user with custom role to "fleetworkspaces", "gitrepos" and "bundles" and  ALL verbs access can access "Workspaces", "Bundles" and "Git Repos" but not to "Clusters" and "Clusters Groups"', { tags: '@fleet-5' }, () => {
+    it('Test "User-Base" role user with custom role to "fleetworkspaces", "gitrepos" and "bundles" and  ALL verbs access CAN access "Workspaces", "Bundles" and "Git Repos" but NOT "Clusters" NOR "Clusters Groups"', { tags: '@fleet-5' }, () => {
 
       // Create User "User-Base"
       cypressLib.burgerMenuToggle();
@@ -52,7 +52,7 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
       cypressLib.logout();
       cy.login(baseUser, uiPassword);
 
-      // What the user should be able to access
+      // What the user should be able to access / do
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.wait(500)
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspaces');
@@ -66,10 +66,10 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
   )
 
   qase(43,
-    it('Test "Std-Base" user with custom role "list" and "create" to "fleetworkspaces" can list and create workspaces but NOT  "edit" nor "delete" them', { tags: '@fleet-43' }, () => {
+    it('Test "Standard Base" role user with "list" and "create" verbs for "fleetworkspaces" resource. User can NOT "edit" nor "delete" them', { tags: '@fleet-43' }, () => {
       
       const stduser = "std-user-43"
-      const customRoleName = "fleetListAndCreateRole"
+      const customRoleName = "fleetListAndCreateRoleOnFleetworkspaces"
 
       //  Create "Standard User"
       cypressLib.burgerMenuToggle();
@@ -92,7 +92,7 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
       cypressLib.logout();
       cy.login(stduser, uiPassword);
 
-      // What the user should be able to access
+      // What the user should be able to access / do
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.wait(500)
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Bundles');
@@ -101,17 +101,17 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
       cy.verifyTableRow(1, 'Active', 'fleet-local');
       cy.get('a.btn.role-primary').contains('Create').should('be.visible');
       
-      // What the user should NOT be able to access
+      // Ensuring the user is not able to "edit" or "delete" workspaces.
       cy.open3dotsMenu('fleet-default', 'Delete', true);
       cy.open3dotsMenu('fleet-default', 'Edit Config', true);
     })
   )
 
   qase(44,
-    it('Test "Std-Base" user with custom role to "fleetworkspaces" all verbs except "delete can "edit" but not "delete" them', { tags: '@fleet-44' }, () => {
+    it('Test "Standard Base" role with custom role to "fleetworkspaces" with all verbs except "delete" can "edit" but can NOT "delete" them', { tags: '@fleet-44' }, () => {
       
       const stduser = "std-user-44"
-      const customRoleName = "fleetAllExceptDeleteFleetWorkspaces"
+      const customRoleName = "fleetAllExceptDeleteFleetOnFleetWorkspacesRole"
 
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
@@ -134,7 +134,7 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
       cypressLib.logout();
       cy.login(stduser, uiPassword);
 
-      // What the user should be able to access
+      // What the user should be able to access / do
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.wait(1000)
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Bundles');
@@ -145,7 +145,7 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
       cy.open3dotsMenu('fleet-default', 'Edit Config');
       cy.contains('allowedTargetNamespaces').should('be.visible');
       
-      // What the user should NOT be able to access (once in Fleet Workspace menu)
+      // Ensuring the user is not able to "delete" workspaces. 
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspace');
       cy.open3dotsMenu('fleet-default', 'Delete', true);
     })

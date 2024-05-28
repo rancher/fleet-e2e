@@ -247,7 +247,7 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local')
 });
 
 // Create Role Template (User & Authentication)
-Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUserDefault='No', verbs, rules, apiGroups, nonResourcesURLs}) => {
+Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUserDefault='no', rules, apiGroups, nonResourcesURLs}) => {
 
   // // Access to user & authentication menu and create desired role template
   cy.accesMenuSelection('Users & Authentication', 'Role Templates');
@@ -258,19 +258,19 @@ Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUse
   cy.typeValue('Name', roleName);
 
   // Add new user default
-  if (newUserDefault === 'Yes') {
+  if (newUserDefault === 'yes') {
     cy.get('span[aria-label="Yes: Default role for new users"]').click();
   }
   
     // Addition of resources and verbs linked to resources
     // Each resource is an object with 2 keys: resource and verbs
-    rules.forEach((resource: { resource: string, verbs: string[] }, i) => {
+    rules.forEach((rule: { resource: string, verbs: string[] }, i) => {
       // Iterate over Resource cells and add 1 resource
       cy.get(`input.vs__search`).eq(2 * i + 1).click();
-      cy.contains(resource.resource, { matchCase: false }).should("exist").click();
+      cy.contains(rule.resource, { matchCase: false }).should("exist").click();
       cy.clickButton("Add Resource");
 
-        resource.verbs.forEach((verb) => {
+        rule.verbs.forEach((verb) => {
           cy.get(`input.vs__search`).eq(2 * i).click();
           cy.get(`ul.vs__dropdown-menu > li`).contains(verb).should("exist").click();
         });
