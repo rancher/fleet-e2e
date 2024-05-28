@@ -247,7 +247,7 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local')
 });
 
 // Create Role Template (User & Authentication)
-Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUserDefault='no', rules, apiGroups, nonResourcesURLs}) => {
+Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUserDefault='no', rules}) => {
 
   // // Access to user & authentication menu and create desired role template
   cy.accesMenuSelection('Users & Authentication', 'Role Templates');

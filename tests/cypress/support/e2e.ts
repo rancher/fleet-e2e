@@ -35,7 +35,7 @@ declare global {
       checkApplicationStatus(appName: string, clusterName?: string): Chainable<Element>;
       deleteApplicationDeployment(clusterName?: string): Chainable<Element>;
       modifyDeployedApplication(appName: string, clusterName?: string): Chainable<Element>;
-      createRoleTemplate(roleType: string, roleName: string, newUserDefault?: string['yes'|'no'], rules?: string[], apiGroups?: string[], nonResourcesURLs?: string[] ): Chainable<Element>;
+      createRoleTemplate(roleType: string, roleName: string, newUserDefault?: string['yes'|'no'], rules?: string[]): Chainable<Element>;
       assignRoleToUser(userName: string, roleName: string): Chainable<Element>;
     }
   }
