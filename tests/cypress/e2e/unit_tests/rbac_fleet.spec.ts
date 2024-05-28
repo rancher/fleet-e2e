@@ -151,4 +151,44 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
     })
   )
 
+  qase(45,
+  it('Test "Standard-Base" role user with RESOURCE "fleetworkspaces" with ACTIONS "List", "Delete" can "edit" but can NOT "delete" them', { tags: '@fleet-45' }, () => {
+    
+    const stduser = "std-user-45"
+    const customRoleName = "fleetWorkspaces-ListAndDelete-Role"
+
+    // Create "Standard User"
+    cypressLib.burgerMenuToggle();
+    cypressLib.createUser(stduser, uiPassword);
+
+    cy.createRoleTemplate({
+      roleType: "Global",
+      roleName: customRoleName,
+      rules: [
+        { resource: "fleetworkspaces", verbs: ["list", "delete"]},
+        { resource: "gitrepos", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+      ]
+    });
+
+    // // Assign role to the created user
+    cy.assignRoleToUser(stduser, customRoleName)
+    
+    // Logout as admin and login as other user
+    cypressLib.logout();
+    cy.login(stduser, uiPassword);
+
+    // Ensuring the user IS able to "go to Continuous Delivery" and "list" workspaces.
+    cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspace');
+    cy.verifyTableRow(0, 'Active', 'fleet-default');
+    cy.verifyTableRow(1, 'Active', 'fleet-local');
+  
+    
+    // Ensuring the user is NOT able to "delete or edit" workspaces. 
+    cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspace');
+    cy.contains('Delete').should('not.be.visible');
+    cy.open3dotsMenu('fleet-default', 'Edit Config', true);
+  })
+)
+
 });
