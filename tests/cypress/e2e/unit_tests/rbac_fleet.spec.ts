@@ -30,6 +30,8 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
   qase(5,
     it('Test "User-Base" role user with custom role to "fleetworkspaces", "gitrepos" and "bundles" and  ALL verbs access CAN access "Workspaces", "Bundles" and "Git Repos" but NOT "Clusters" NOR "Clusters Groups"', { tags: '@fleet-5' }, () => {
 
+      const customRoleName = "fleetworkspaces-bundles-gitrepos-all-verbs-role"
+
       // Create User "User-Base"
       cypressLib.burgerMenuToggle();
       cypressLib.createUser(baseUser, uiPassword, "User-Base", true);
@@ -37,7 +39,7 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
       // Create role
       cy.createRoleTemplate({
         roleType: "Global",
-        roleName: "fleetAllVerbsRole",
+        roleName: customRoleName,
         rules: [
           { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
           { resource: "gitrepos", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
@@ -46,19 +48,19 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
       });
 
       // Assign role to the created user
-      cy.assignRoleToUser(baseUser, "fleetAllVerbsRole");
+      cy.assignRoleToUser(baseUser, customRoleName);
 
       // Logout as admin and login as other user
       cypressLib.logout();
       cy.login(baseUser, uiPassword);
 
-      // What the user should be able to access / do
+      // Ensuring the user IS able to "go to Continuous Delivery", "list" and "delete" workspaces.
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.wait(500)
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspaces');
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Bundles');
       
-      // What the user should NOT be able to access
+      // Ensuring user cannot access Clusters nor Clusters Groups
       cy.accesMenuSelection('Continuous Delivery');
       cy.contains('Clusters').should('not.exist');
       cy.contains('Clusters Groups').should('not.exist');
@@ -69,7 +71,7 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
     it('Test "Standard Base" role user with "list" and "create" verbs for "fleetworkspaces" resource. User can NOT "edit" nor "delete" them', { tags: '@fleet-43' }, () => {
       
       const stduser = "std-user-43"
-      const customRoleName = "fleetListAndCreateRoleOnFleetworkspaces"
+      const customRoleName = "fleetworkspaces-list-and-create-role"
 
       //  Create "Standard User"
       cypressLib.burgerMenuToggle();
@@ -92,7 +94,8 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
       cypressLib.logout();
       cy.login(stduser, uiPassword);
 
-      // What the user should be able to access / do
+      // Ensuring the user IS able to "go to Continuous Delivery",
+      //"go to Bundles" and "list" and "create" workspaces.
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.wait(500)
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Bundles');
@@ -111,7 +114,7 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
     it('Test "Standard Base" role with custom role to "fleetworkspaces" with all verbs except "delete" can "edit" but can NOT "delete" them', { tags: '@fleet-44' }, () => {
       
       const stduser = "std-user-44"
-      const customRoleName = "fleetAllExceptDeleteFleetOnFleetWorkspacesRole"
+      const customRoleName = "fleetworskspaces-all-but-delete-role"
 
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
@@ -134,7 +137,7 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
       cypressLib.logout();
       cy.login(stduser, uiPassword);
 
-      // What the user should be able to access / do
+      // Ensuring the user IS able  to "list", "edit" and "create" workspaces.
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.wait(1000)
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Bundles');
@@ -152,10 +155,10 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
   )
 
   qase(45,
-  it('Test "Standard-Base" role user with RESOURCE "fleetworkspaces" with ACTIONS "List", "Delete" can "edit" but can NOT "delete" them', { tags: '@fleet-45' }, () => {
+  it('Test "Standard-Base" role user with RESOURCE "fleetworkspaces" with ACTIONS "List", "Delete" can "list and delete" but can NOT "edit" them', { tags: '@fleet-45' }, () => {
     
     const stduser = "std-user-45"
-    const customRoleName = "fleetWorkspaces-ListAndDelete-Role"
+    const customRoleName = "fleetworkspaces-list-and-delete-role"
 
     // Create "Standard User"
     cypressLib.burgerMenuToggle();
@@ -178,15 +181,14 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
     cypressLib.logout();
     cy.login(stduser, uiPassword);
 
-    // Ensuring the user IS able to "go to Continuous Delivery" and "list" workspaces.
+    // Ensuring the user IS able to "go to Continuous Delivery", "list" and "delete" workspaces.
     cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspace');
     cy.verifyTableRow(0, 'Active', 'fleet-default');
     cy.verifyTableRow(1, 'Active', 'fleet-local');
+    cy.contains('Delete').should('be.visible');
   
-    
-    // Ensuring the user is NOT able to "delete or edit" workspaces. 
+    // Ensuring the user is NOT able to "edit" workspaces. 
     cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspace');
-    cy.contains('Delete').should('not.be.visible');
     cy.open3dotsMenu('fleet-default', 'Edit Config', true);
   })
 )
