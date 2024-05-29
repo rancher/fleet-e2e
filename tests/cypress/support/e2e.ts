@@ -28,7 +28,7 @@ declare global {
       verifyTableRow(rowNumber: number, expectedText1?: string, expectedText2?: string|RegExp): Chainable<Element>;
       nameSpaceMenuToggle(namespaceName: string): Chainable<Element>;
       accesMenuSelection(firstAccessMenu: string, secondAccessMenu?: string, clickOption?: string): Chainable<Element>;
-      filterInSearchBox(filterText: string): Chainable<Element>;
+      filterInSearchBox(filterText: string, role?: boolean): Chainable<Element>;
       deleteAll(fleetCheck?: boolean): Chainable<Element>;
       deleteAllFleetRepos(): Chainable<Element>;
       checkGitRepoStatus(repoName: string, bundles?: string, resources?: string): Chainable<Element>;
@@ -37,6 +37,8 @@ declare global {
       modifyDeployedApplication(appName: string, clusterName?: string): Chainable<Element>;
       createRoleTemplate(roleType: string, roleName: string, newUserDefault?: string['yes'|'no'], rules?: string[]): Chainable<Element>;
       assignRoleToUser(userName: string, roleName: string): Chainable<Element>;
+      deleteUser(userName: string): Chainable<Element>;
+      deleteRole(roleName: string, roleTypeTemplate: string): Chainable<Element>;
     }
   }
 }

@@ -176,6 +176,7 @@ Cypress.Commands.add('fleetNamespaceToggle', (toggleOption='local') => {
 // Note: This function may be substituted by 'cypressLib.deleteAllResources' 
 // when hardcoded texts present can be parameterized
 Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
+  const noRowsMessages = ['There are no rows to show.', 'There are no rows which match your search query.']
   cy.get('body').then(($body) => {
     if ($body.text().includes('Delete')) {
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
@@ -184,7 +185,7 @@ Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
       if (fleetCheck === true) {
         cy.contains('No repositories have been added', { timeout: 20000 }).should('be.visible')
       } else {
-        cy.contains('There are no rows to show.', { timeout: 20000 }).should('be.visible')
+        cy.get('td > span, td.text-center > span').invoke('text').should('be.oneOf', noRowsMessages)
       }
     };
   });
@@ -296,4 +297,31 @@ Cypress.Commands.add('assignRoleToUser', (userName, roleName) => {
   // Sortering by Age so first row is the desired user
   cy.contains('Age').should('be.visible').click();
   cy.verifyTableRow(0,'Active', userName);
+})
+
+// Delete created user
+Cypress.Commands.add('deleteUser', (userName) => {
+  // Delete user
+  cy.accesMenuSelection('Users & Authentication');
+  cy.contains('.title', 'Users').should('be.visible');
+  cy.filterInSearchBox(userName);
+  cy.deleteAll(false);
+})
+
+// Delete created role
+Cypress.Commands.add('deleteRole', (roleName, roleTypeTemplate) => {
+  cy.accesMenuSelection('Users & Authentication', 'Role Templates');
+  cy.contains('.title', 'Role Templates').should('be.visible');
+  
+  // Filter role by it's name and roleTypeTemplate.
+  cy.get(`section[id="${roleTypeTemplate}"]`).within(() => {
+    cy.get("input[placeholder='Filter']").should('exist').clear({ force: true}).type(roleName)
+    // Check all filtered rows
+    cy.get(' th:nth-child(1)').should('be.visible').click();
+    // Delete role
+    cy.clickButton('Delete');    
+  })
+  // Confirm deletion on window popup
+  cy.confirmDelete();
+  cy.contains('There are no rows which match your search query.', { timeout: 2000 }).should('be.visible');
 })
