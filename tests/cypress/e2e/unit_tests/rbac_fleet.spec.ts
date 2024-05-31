@@ -16,87 +16,66 @@ import 'cypress/support/commands';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 import { qase } from 'cypress-qase-reporter/dist/mocha';
 
+export const uiPassword    = "rancherpassword"
+export const roleTypeTemplate = "Global"
+
 beforeEach(() => {
   cy.login();
   cy.visit('/');
 });
 
 Cypress.config();
-describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () => {
+describe('Test Fleet access with RBAC with custom roles using all verbs for User-Base and Standard User.', { tags: '@rbac' }, () => {
 
-  const baseUser      = "base-user"
-  const uiPassword    = "rancherpassword"
-  const roleTypeTemplate = "Global"
+  qase(5,
+    it('Test "User-Base" role user with custom role to "fleetworkspaces", "gitrepos" and "bundles" and  ALL verbs access CAN access "Workspaces", "Bundles" and "Git Repos" but NOT "Clusters" NOR "Clusters Groups"', { tags: '@fleet-5' }, () => {
 
+      const baseUser      = "base-user"
+      const customRoleName = "fleetworkspaces-bundles-gitrepos-all-verbs-role"
+      // Create 'base-user' User using "User-Base"
+      cypressLib.burgerMenuToggle();
+      cypressLib.createUser(baseUser, uiPassword, "User-Base", true);
 
-  const rbacTestData: testData[] = [
-    { 
-      qase_id: 5,
-      test_explanation: 'NOT "Clusters" NOR "Clusters Groups"',
-      defaultBaseRole: "User-Base",
-    },
-    {
-      qase_id: 42,
-      test_explanation: 'NOT "Cluster Registration Tokens" "BundleNamespaceMappings" and "GitRepoRestrictions"',
-      defaultBaseRole: "Standard User",
-    }
-  ]
+      cy.createRoleTemplate({
+        roleType: roleTypeTemplate,
+        roleName: customRoleName,
+        rules: [
+          { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+          { resource: "gitrepos", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+          { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        ]
+      });
 
-  rbacTestData.forEach(
-    ({qase_id, test_explanation, defaultBaseRole}) => {
-      qase(`${qase_id}`,
-      it(`Test ${defaultBaseRole} role user with custom role to "fleetworkspaces", "gitrepos" and "bundles" and  ALL verbs access CAN access "Workspaces", "Bundles" and "Git Repos" but ${test_explanation}`, { tags: `@fleet-${qase_id}` }, () => {
-        const customRoleName = "fleetworkspaces-bundles-gitrepos-all-verbs-role"
+      // Assign role to the created user
+      cy.assignRoleToUser(baseUser, customRoleName);
 
-        // Create User "User-Base"
-        cypressLib.burgerMenuToggle();
-        cypressLib.createUser(baseUser, uiPassword, defaultBaseRole, true);
+      // Logout as admin and login as other user
+      cypressLib.logout();
+      cy.login(baseUser, uiPassword);
 
-        cy.createRoleTemplate({
-          roleType: roleTypeTemplate,
-          roleName: customRoleName,
-          rules: [
-            { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-            { resource: "gitrepos", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-            { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-          ]
-        });
+      // Ensuring the user IS able to access "Continuous Delivery" and
+      // sub menu "GitRepo", "FleetWorkspaces" and "Bundles".
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.wait(500);
+      cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspaces');
+      cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Bundles');
 
-        // Assign role to the created user
-        cy.assignRoleToUser(baseUser, customRoleName);
+      // Ensuring user cannot access Clusters nor Clusters Groups
+      cy.accesMenuSelection('Continuous Delivery');
+      cy.contains('Clusters').should('not.exist');
+      cy.contains('Clusters Groups').should('not.exist');
 
-        // Logout as admin and login as other user
-        cypressLib.logout();
-        cy.login(baseUser, uiPassword);
-
-        // Ensuring the user IS able to "go to Continuous Delivery", "list" and "delete" workspaces.
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-        cy.wait(500);
-        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspaces');
-        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Bundles');
-
-        // Ensuring user cannot access Clusters nor Clusters Groups
-        cy.accesMenuSelection('Continuous Delivery');
-        cy.contains('Clusters').should('not.exist');
-        cy.contains('Clusters Groups').should('not.exist');
-
-        // FLEET-42 test cases extra check.
-        if (qase_id === 42) {
-          cy.accesMenuSelection('Continuous Delivery', 'Advanced');
-          cy.contains('Cluster Registration Tokens').should('not.exist');
-          cy.contains('GitRepoRestrictions').should('not.exist');
-          cy.contains('BundleNamespaceMappings').should('not.exist');
-        }
-        // Logout other user and login as admin user to perform user and role cleanup
-        cypressLib.logout();
-        cy.login();
-        cy.deleteUser(baseUser);
-        cy.deleteRole(customRoleName, roleTypeTemplate.toUpperCase());
-      })
-    )
-    }
+      // Logout other user and login as admin user to perform user and role cleanup
+      cypressLib.logout();
+      cy.login();
+      cy.deleteUser(baseUser);
+      cy.deleteRole(customRoleName, roleTypeTemplate.toUpperCase());
+    })
   )
 
+});
+
+describe('Test Fleet access with RBAC with custom roles using Standard User', { tags: '@rbac' }, () => {
   qase(43,
     it('Test "Standard Base" role user with "list" and "create" verbs for "fleetworkspaces" resource. User can NOT "edit" nor "delete" them', { tags: '@fleet-43' }, () => {
       
@@ -237,6 +216,55 @@ describe('Test Fleet access with RBAC with custom roles', { tags: '@rbac' }, () 
       cypressLib.logout();
       cy.login();
       cy.deleteUser(stduser);
+      cy.deleteRole(customRoleName, roleTypeTemplate.toUpperCase());
+    })
+  )
+
+  qase(42,
+    it('Test "Standard User" role user with custom role to "fleetworkspaces", "gitrepos" and "bundles" and  ALL verbs access CAN access "Workspaces", "Bundles" and "Git Repos" but NOT "Cluster Registration Tokens" "BundleNamespaceMappings" and "GitRepoRestrictions"', { tags: '@fleet-42' }, () => {
+
+      const baseUser      = "base-user"
+      const customRoleName = "fleetworkspaces-bundles-gitrepos-all-verbs-role"
+
+      // Create 'base-user' User using "Standard User"
+      cypressLib.burgerMenuToggle();
+      cypressLib.createUser(baseUser, uiPassword, "Standard User", true);
+
+      cy.createRoleTemplate({
+        roleType: roleTypeTemplate,
+        roleName: customRoleName,
+        rules: [
+          { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+          { resource: "gitrepos", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+          { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        ]
+      });
+
+      // Assign role to the created user
+      cy.assignRoleToUser(baseUser, customRoleName);
+
+      // Logout as admin and login as other user
+      cypressLib.logout();
+      cy.login(baseUser, uiPassword);
+
+      // Ensuring the user IS able to access "Continuous Delivery" and
+      // sub-menu "GitRepo", "FleetWorkspaces" and "Bundles".
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.wait(500);
+      cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspaces');
+      cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Bundles');
+
+      // Ensuring user is not able to access "Cluster Registration Tokens",
+      // "GitRepoRestrictions', "BundleNamespaceMappings".
+      cy.accesMenuSelection('Continuous Delivery', 'Advanced');
+      cy.contains('Cluster Registration Tokens').should('not.exist');
+      cy.contains('GitRepoRestrictions').should('not.exist');
+      cy.contains('BundleNamespaceMappings').should('not.exist');
+
+      // Logout other user and login as admin user to perform user and role cleanup
+      cypressLib.logout();
+      cy.login();
+      cy.deleteUser(baseUser);
       cy.deleteRole(customRoleName, roleTypeTemplate.toUpperCase());
     })
   )
