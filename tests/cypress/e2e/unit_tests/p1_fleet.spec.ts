@@ -270,13 +270,14 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
   });
 }
 
-// RepoURLRegex is supported on v2.8 but error reporting is not working well there
+// RepoURLRegex is supported on v2.8 but error reporting is not working correctly there
+// Ref. https://github.com/rancher/fleet/issues/2462 but it wont be fixed in v2.8
 if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
-  describe.only('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () => {
+  describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () => {
 
     // So far using custom repo, we should expose fleet.yaml somewhere on fleet-qa-examples repo
     const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public.git'
-    const branch = 'urlregex' // switch to main when the branch is merged
+    const branch = 'main'
     const userOrPublicKey = 'user'
     const pwdOrPrivateKey = 'password'
     const gitOrHelmAuth = 'Helm'
@@ -311,7 +312,7 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
       ({qase_id, repoName, path, helmUrlRegex_matching, test_explanation}) => {
         qase(qase_id,
           it(`Fleet-${qase_id}: Test private helm registries for \"helmRepoURLRegex\" matches with \"${test_explanation}\" URL specified in fleet.yaml file`, { tags: '@fleet-64' }, () => {;
-            // Positive test using matching regex http.*
+            // Positive test using matching regex
             helmUrlRegex = helmUrlRegex_matching
             cy.fleetNamespaceToggle('fleet-local');
             cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex });
