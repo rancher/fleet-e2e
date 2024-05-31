@@ -89,8 +89,9 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitO
 // 3 dots menu selection
 Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) => {
   // Open 3 dots button
-  cy.contains('tr.main-row', name).within(() => {
-    cy.get('.icon.icon-actions', { timeout: 5000 }).click({ force: true });
+  cy.contains('tr.main-row', name).should('exist').within(() => {
+    cy.get('.icon.icon-actions').click({ force: true });
+    cy.wait(250)
   });
 
   if (checkNotInMenu === true) {
@@ -279,6 +280,7 @@ Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUse
   // "Hack" to get the button to be clickable
   cy.get('button.role-link').last().click()
   cy.clickButton("Create");
+  cy.contains('Grant Resources').should('not.exist');
 })
 
 // Create command to assign role based on user name
