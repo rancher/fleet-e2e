@@ -270,52 +270,71 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
   });
 }
 
-if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
-describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () => {
-  const repoName = 'local-cluster-helmrepo-63'
-  // So far using custom repo, we should expose fleet.yaml somewhere on fleet-qa-examples repo
-  const repoUrl = 'https://github.com/thehejik/fleet-examples.git'
-  const branch = 'main'
-  const path = 'local-chart'
-  const userOrPublicKey = 'user'
-  const pwdOrPrivateKey = 'password'
-  const gitOrHelmAuth = 'Helm'
-  const gitAuthType = "http"
-  var helmUrlRegex
+// RepoURLRegex is supported on v2.8 but error reporting is not working well there
+if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
+  describe.only('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () => {
 
-  // We should rethink this part as it is not actually a test but preparation step
-  it("Prepare the private helm registry", { tags: '@preparation' }, () => {
-    cy.importYaml({ clusterName: 'local', yamlFilePath: 'assets/helm-server-with-auth-and-data.yaml' });
-    cy.nameSpaceMenuToggle('default');
-    // The check doesn't wait for Active state, only its presence
-    cy.checkApplicationStatus('nginx-helm-repo');
+    // So far using custom repo, we should expose fleet.yaml somewhere on fleet-qa-examples repo
+    const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public.git'
+    const branch = 'urlregex' // switch to main when the branch is merged
+    const userOrPublicKey = 'user'
+    const pwdOrPrivateKey = 'password'
+    const gitOrHelmAuth = 'Helm'
+    const gitAuthType = "http"
+    var helmUrlRegex
+
+    const privateHelmData: testData[] = [
+      { qase_id: 64,
+        repoName: "local-private-helm-repo-64",
+        path: 'helm-urlregex-repo',
+        test_explanation: 'repo',
+        helmUrlRegex_matching: '^http.*',
+      },
+      { qase_id: 65,
+        repoName: "local-private-helm-chart-65",
+        path: 'helm-urlregex-chart',
+        test_explanation: 'chart',
+        helmUrlRegex_matching: '^http.*app.*tgz$',
+      },
+    ]
+
+    // Actually just a preparation step
+    it("Prepare the private helm registry", { tags: '@preparation' }, () => {
+      cy.importYaml({ clusterName: 'local', yamlFilePath: 'assets/helm-server-with-auth-and-data.yaml' });
+      cy.nameSpaceMenuToggle('default');
+      // The check doesn't wait for Active state, only its presence
+      cy.checkApplicationStatus('nginx-helm-repo');
+      // We keep the resources in cluster forever
+    });
+
+    privateHelmData.forEach(
+      ({qase_id, repoName, path, helmUrlRegex_matching, test_explanation}) => {
+        qase(qase_id,
+          it(`Fleet-${qase_id}: Test private helm registries for \"helmRepoURLRegex\" matches with \"${test_explanation}\" URL specified in fleet.yaml file`, { tags: '@fleet-64' }, () => {;
+            // Positive test using matching regex http.*
+            helmUrlRegex = helmUrlRegex_matching
+            cy.fleetNamespaceToggle('fleet-local');
+            cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex });
+            cy.clickButton('Create');
+            cy.verifyTableRow(0, 'Active', /([1-9]\d*)\/\1/);
+            cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
+            cy.nameSpaceMenuToggle('All Namespaces');
+            cy.filterInSearchBox('local-chart-configmap');
+            cy.wait(2000);
+            cy.get('.col-link-detail').contains('local-chart-configmap').should('be.visible').click({ force: true });
+            cy.get('section#data').should('contain', 'sample-cm').and('contain', 'sample-data-inside');
+            cy.deleteAllFleetRepos();
+            // Negative test using non-matching regex 1234.*
+            helmUrlRegex = '1234.*'
+            cy.fleetNamespaceToggle('fleet-local');
+            cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex });
+            cy.clickButton('Create');
+            cy.get('.text-error', { timeout: 120000 }).should('contain', 'code: 401');
+            cy.deleteAllFleetRepos();
+          })
+        )
+      })
   });
-
-  qase(63,
-    it("Fleet-63: Test private helm registries with \"helmRepoURLRegex and helmSecretName\" parameters", { tags: '@fleet-63' }, () => {;
-      // Negative test using non-matching regex 1234.*
-      helmUrlRegex = '1234.*'
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex });
-      cy.clickButton('Create');
-      cy.get('.text-error', { timeout: 120000 }).should('contain', 'error code: 401');
-      cy.deleteAllFleetRepos();
-      // Positive test using matching regex http.*
-      helmUrlRegex = 'http.*'
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex });
-      cy.clickButton('Create');
-      cy.verifyTableRow(0, 'Active', /([1-9]\d*)\/\1/);
-      cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
-      cy.nameSpaceMenuToggle('All Namespaces');
-      cy.filterInSearchBox('local-chart-configmap');
-      cy.wait(2000);
-      cy.get('.col-link-detail').contains('local-chart-configmap').should('be.visible').click({ force: true });
-      cy.get('section#data').should('contain', 'sample-cm').and('contain', 'sample-data-inside');
-      cy.deleteAllFleetRepos();
-    })
-  )
-});
 }
 
   describe('Test OCI support', { tags: '@p1'}, () => {
