@@ -275,7 +275,6 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
 if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
   describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () => {
 
-    // So far using custom repo, we should expose fleet.yaml somewhere on fleet-qa-examples repo
     const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public.git'
     const branch = 'main'
     const userOrPublicKey = 'user'
@@ -311,7 +310,7 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
     privateHelmData.forEach(
       ({qase_id, repoName, path, helmUrlRegex_matching, test_explanation}) => {
         qase(qase_id,
-          it(`Fleet-${qase_id}: Test private helm registries for \"helmRepoURLRegex\" matches with \"${test_explanation}\" URL specified in fleet.yaml file`, { tags: '@fleet-64' }, () => {;
+          it(`Fleet-${qase_id}: Test private helm registries for \"helmRepoURLRegex\" matches with \"${test_explanation}\" URL specified in fleet.yaml file`, { tags: `@fleet-${qase_id}` }, () => {;
             // Positive test using matching regex
             helmUrlRegex = helmUrlRegex_matching
             cy.fleetNamespaceToggle('fleet-local');
