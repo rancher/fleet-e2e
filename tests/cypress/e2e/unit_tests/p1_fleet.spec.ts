@@ -281,7 +281,7 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
     const pwdOrPrivateKey = 'password'
     const gitOrHelmAuth = 'Helm'
     const gitAuthType = "http"
-    var helmUrlRegex
+    let helmUrlRegex
 
     const privateHelmData: testData[] = [
       { qase_id: 64,
