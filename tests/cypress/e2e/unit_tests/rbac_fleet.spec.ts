@@ -269,4 +269,74 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
     })
   )
 
+  qase(46,
+    it('Test "Standard-Base" role user with RESOURCE "fleetworkspaces" and "bundles" with all verbs and "gitrepos" with  "List" only', { tags: '@fleet-46' }, () => {
+      
+      const stduser = "std-user-46"
+      const customRoleName = "gitrepo-list-fleetworkspaces-bundles-all-role"
+      const repoName = "local-cluster-fleet-46"
+      const branch = "master"
+      const path = "simple-chart"
+      const repoUrl = "https://github.com/rancher/fleet-test-data"
+      const repoNameDefault = "local-cluster-default-46"
+      const pathDefault = "qa-test-apps"
+
+      // Create "Standard User"
+      cypressLib.burgerMenuToggle();
+      cypressLib.createUser(stduser, uiPassword);
+
+      cy.createRoleTemplate({
+        roleType: roleTypeTemplate,
+        roleName: customRoleName,
+        rules: [
+          { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+          { resource: "gitrepos", verbs: ["list"]},
+          { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        ]
+      });
+
+      // // Assign role to the created user
+      cy.assignRoleToUser(stduser, customRoleName)
+
+      // Create git repos
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.addFleetGitRepo({ repoName: repoNameDefault, repoUrl, branch, path: pathDefault });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoNameDefault, '1 / 1', '1 / 1');
+      
+      // Logout as admin and login as other user
+      cypressLib.logout();
+      cy.login(stduser, uiPassword);
+
+      // Ensuring the user IS able to "go to Continuous Delivery", "list" workspaces.
+      cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspace');
+      cy.verifyTableRow(0, 'Active', 'fleet-default');
+      cy.verifyTableRow(1, 'Active', 'fleet-local');
+      
+      // Ensuring the user is NOT able to "edit" nor "delete" Git Repos. 
+      // both in default and local gitrepos
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
+      cy.open3dotsMenu(repoNameDefault, 'Delete', true);
+      // Now checking in local one
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.open3dotsMenu(repoName, 'Edit Config', true);
+      cy.open3dotsMenu(repoName, 'Delete', true);
+     
+      // Logout other user and login as admin user to perform user and role cleanup
+      cypressLib.logout();
+      cy.login();
+      cy.deleteUser(stduser);
+      cy.deleteRole(customRoleName, roleTypeTemplate.toUpperCase());
+      // cy.deleteAllFleetRepos();
+    })
+  )
+
 });
