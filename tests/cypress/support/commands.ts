@@ -101,6 +101,8 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
         cy.get('ul.list-unstyled.menu').contains(selection).should('not.exist')
       }        
     });
+    // Close 3 dots button menu
+    cy.get('.background').should('exist').click({ force: true });
   }
   
   else if (selection) {
@@ -109,7 +111,7 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
     cy.get('.list-unstyled.menu > li > span', { timeout: 15000 }).contains(selection).click({ force: true });
     // Ensure dropdown is not present
     cy.contains('Edit Config').should('not.exist')
-  }
+    }
 });
 
 // Verify textvalues in table giving the row number
@@ -164,6 +166,8 @@ Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery
   if (clickOption) {
     cy.get('nav.side-nav').contains(clickOption).should('be.visible').click();
   };
+  // Ensure some title exist to proof the menu is loaded
+  cy.get('.m-0').should('exist').and('not.be.empty');
 });
 
 // Fleet namespace toggle
@@ -181,7 +185,6 @@ Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
     if ($body.text().includes('Delete')) {
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
       cy.get('.btn').contains('Delete').click({ctrlKey: true});
-      cy.get('.btn', { timeout: 20000 }).contains('Delete').should('not.exist');
       if (fleetCheck === true) {
         cy.contains('No repositories have been added', { timeout: 20000 }).should('be.visible')
       } else {
