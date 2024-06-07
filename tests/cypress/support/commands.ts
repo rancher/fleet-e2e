@@ -183,6 +183,7 @@ Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
   const noRowsMessages = ['There are no rows to show.', 'There are no rows which match your search query.']
   cy.get('body').then(($body) => {
     if ($body.text().includes('Delete')) {
+      cy.wait(250) // Add small wait to give time for things to settle
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
       cy.get('.btn').contains('Delete').click({ctrlKey: true});
       if (fleetCheck === true) {
