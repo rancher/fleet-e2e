@@ -270,7 +270,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
   )
 });
 
-describe('Test Fleet access with RBAC with custom roles and git repos using Standard User', { tags: '@rbac' }, () => {
+describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "STANDARD USER"', { tags: '@rbac' }, () => {
 
   const repoName = "fleet-local-simple-chart"
   const branch = "master"
@@ -278,8 +278,13 @@ describe('Test Fleet access with RBAC with custom roles and git repos using Stan
   const repoUrl = "https://github.com/rancher/fleet-test-data"
   const repoNameDefault = "fleet-default-nginx"
   const pathDefault = "qa-test-apps/nginx-app"
+  // Custom roles
+  const customRoleName_1 = "gitrepo-list-fleetworkspaces-bundles-all-role"
+  const customRoleName_2 = "gitrepo-list-create-fleetworkspaces-bundles-all-role"
+  const customRoleName_3 = "gitrepo-list-create-update-get-fleetworkspaces-bundles-all-role"
+  const customRoleName_4 = "gitrepo-list-delete-fleetworkspaces-bundles-all-role"
   
-  before(() => {
+  before('Preparing GitRepos', () => {
     cy.login();
     // Create git repos
     cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
@@ -295,101 +300,138 @@ describe('Test Fleet access with RBAC with custom roles and git repos using Stan
     cy.checkGitRepoStatus(repoNameDefault, '1 / 1', '1 / 1');
   })
 
-  after(() => {
+  before ('Preparing Role Templates', () => {
     cy.login();
-    cy.deleteAllFleetRepos();
+    // Create Custom Roles
+    cy.createRoleTemplate({
+      roleType: roleTypeTemplate,
+      roleName: customRoleName_1,
+      rules: [
+        { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        { resource: "gitrepos", verbs: ["list"]},
+        { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+      ]
+    });
+
+    cy.createRoleTemplate({
+      roleType: roleTypeTemplate,
+      roleName: customRoleName_2,
+      rules: [
+        { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        { resource: "gitrepos", verbs: ["list", "create"]},
+        { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+      ]
+    });
+
+    cy.createRoleTemplate({
+      roleType: roleTypeTemplate,
+      roleName: customRoleName_3,
+      rules: [
+        { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        { resource: "gitrepos", verbs: ["list", "create", "update", "get"]},
+        { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+      ]
+    });
+      
+    cy.createRoleTemplate({
+      roleType: roleTypeTemplate,
+      roleName: customRoleName_4,
+      rules: [
+        { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        { resource: "gitrepos", verbs: ["list", "delete"]},
+        { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+      ]
+    });
   })
 
+  // Pls note this is anti-pattern: 
+  // https://docs.cypress.io/guides/references/best-practices#Using-after-Or-afterEach-Hooks
+  // Done here for demonstration. Better to set before if needed.
+  after('Deleting Fleet repos, Roles, Users', () => {
+    cy.login();
+    cy.deleteAllFleetRepos();
+    // Delete Standard Users
+    const stdusers = ["std-user-46", "std-user-47", "std-user-48", "std-user-50"];
+    stdusers.forEach(user => {
+      cy.deleteUser(user);
+    })
+    // Delete Custom Roles
+    const customRoles = [customRoleName_1, customRoleName_2, customRoleName_3, customRoleName_4];
+    customRoles.forEach(role => {
+      cy.deleteRole(role, roleTypeTemplate.toUpperCase());
+    })
+  })
+
+
   qase(46,
-    it('Test "Standard-Base" role user with RESOURCE "fleetworkspaces" and "bundles" with all verbs and "gitrepos" with  "List" only', { tags: '@fleet-46' }, () => {
+    it('Fleet-46: Test "Standard-user" | Custom Role | Fleetworkspaces, Bundles = [ALL] | GitRepos = [List]', { tags: '@fleet-46' }, () => {
       
       const stduser = "std-user-46"
-      const customRoleName = "gitrepo-list-fleetworkspaces-bundles-all-role"
       
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
       cypressLib.createUser(stduser, uiPassword);
 
-      cy.createRoleTemplate({
-        roleType: roleTypeTemplate,
-        roleName: customRoleName,
-        rules: [
-          { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-          { resource: "gitrepos", verbs: ["list"]},
-          { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-        ]
-      });
-
       // Assign role to the created user
-      cy.assignRoleToUser(stduser, customRoleName)
+      cy.assignRoleToUser(stduser, customRoleName_1)
       
       // Logout as admin and login as other user
       cypressLib.logout();
       cy.login(stduser, uiPassword);
 
-      // Ensuring the user IS able go to Continuous Delivery  Dashboard and "list" girepos
+      // CAN go to Continuous Delivery Dashboard and "list" gitrepos
       cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
       cy.get("div[data-testid='collapsible-card-fleet-local']").contains(repoName).should('be.visible');
       cy.get("div[data-testid='collapsible-card-fleet-default']").contains(repoNameDefault).should('be.visible');
       
-      // Ensuring the user is NOT able to "create", "edit" nor "delete" Git Repos. 
-      // both in default and local gitrepos
+      // CHECKS IN  FLEET-DEFAULT
+      // Can't "Create", "Edit" nor "Delete"
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.get('.btn.role-primary').contains('Add Repository').should('not.exist');
-      // Ensures list is possible but not edit or deletion
+      // Note: listing is checked implictly here
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
       cy.open3dotsMenu(repoNameDefault, 'Delete', true);
-      // Now checking in local one
+      // CHECKS IN  FLEET-DEFAULT
+      // Can't "Create", "Edit" nor "Delete"
       cy.fleetNamespaceToggle('fleet-local');
       cy.open3dotsMenu(repoName, 'Edit Config', true);
       cy.open3dotsMenu(repoName, 'Delete', true);
-
     })
   )
 
   qase(47,
-    it('Test "Standard-Base" role user with RESOURCE "fleetworkspaces" and "bundles" with all verbs and "gitrepos" with  "List, Create" only', { tags: '@fleet-47' }, () => {
+    it('Fleet-47: Test "Standard-user" | Custom Role | Fleetworkspaces, Bundles = [ALL] | GitRepos = [List, Create]', { tags: '@fleet-47' }, () => {
       
-      const stduser = "std-user-47"
-      const customRoleName = "gitrepo-list-create-fleetworkspaces-bundles-all-role"
+      const stduser = "std-user-47"     
       
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
       cypressLib.createUser(stduser, uiPassword);
 
-      cy.createRoleTemplate({
-        roleType: roleTypeTemplate,
-        roleName: customRoleName,
-        rules: [
-          { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-          { resource: "gitrepos", verbs: ["list", "create"]},
-          { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-        ]
-      });
-
       // Assign role to the created user
-      cy.assignRoleToUser(stduser, customRoleName)
+      cy.assignRoleToUser(stduser, customRoleName_2)
       
       // Logout as admin and login as other user
       cypressLib.logout();
       cy.login(stduser, uiPassword);
 
-      // Ensuring the user IS able go to Continuous Delivery Dashboard and "list" girepos
+      // CAN go to Continuous Delivery Dashboard and "list" gitrepos
       cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
       cy.get("div[data-testid='collapsible-card-fleet-local']").contains(repoName).should('be.visible');
       cy.get("div[data-testid='collapsible-card-fleet-default']").contains(repoNameDefault).should('be.visible');
-      // Able to create Git Repo
+
+      // CHECKS IN  FLEET-DEFAULT
+      // CAN "Create" repos
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.clickButton('Add Repository');
       cy.contains('Git Repo:').should('be.visible');
-
-      // Ensuring the user is NOT able to "edit" nor "delete" Git Repos. 
-      // both in default and local gitrepos
-      // Ensures list is possible but not edit or deletion
+      // Can't "Edit" nor "Delete" repos
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
       cy.open3dotsMenu(repoNameDefault, 'Delete', true);
-      // Now checking in local one
+      
+      // CHECKS IN  FLEET-LOCAL
+      // Can't "Edit" nor "Delete" repos
       cy.fleetNamespaceToggle('fleet-local');
       cy.open3dotsMenu(repoName, 'Edit Config', true);
       cy.open3dotsMenu(repoName, 'Delete', true);
@@ -398,90 +440,70 @@ describe('Test Fleet access with RBAC with custom roles and git repos using Stan
   )
 
   qase(48,
-    it('Test "Standard-Base" role user with RESOURCE "fleetworkspaces" and "bundles" with all verbs and "gitrepos" with  "List, Create" only', { tags: '@fleet-48' }, () => {
+    it('Fleet-48: Test "Standard-user" | Custom Role | Fleetworkspaces, Bundles = [ALL] | GitRepos = [List, Create, Update, Get]', { tags: '@fleet-48' }, () => {
       
       const stduser = "std-user-48"
-      const customRoleName = "gitrepo-list-create-update-get-fleetworkspaces-bundles-all-role"
       
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
       cypressLib.createUser(stduser, uiPassword);
 
-      cy.createRoleTemplate({
-        roleType: roleTypeTemplate,
-        roleName: customRoleName,
-        rules: [
-          { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-          { resource: "gitrepos", verbs: ["list", "create", "update", "get"]},
-          { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-        ]
-      });
-
       // Assign role to the created user
-      cy.assignRoleToUser(stduser, customRoleName)
+      cy.assignRoleToUser(stduser, customRoleName_3)
 
       // Logout as admin and login as other user
       cypressLib.logout();
       cy.login(stduser, uiPassword);
 
-      // Ensuring the user IS able go to Continuous Delivery Dashboard and "list" girepos
+      // CAN go to Continuous Delivery Dashboard and "list" gitrepos
       cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
       cy.get("div[data-testid='collapsible-card-fleet-local']").contains(repoName).should('be.visible');
       cy.get("div[data-testid='collapsible-card-fleet-default']").contains(repoNameDefault).should('be.visible');
-      // Able to create Git Repo
+      
+      // CHECKS IN  FLEET-DEFAULT
+      // CAN "Create" and "Edit"
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.clickButton('Add Repository');
       cy.contains('Git Repo:').should('be.visible');
       cy.clickButton('Cancel');
       cy.open3dotsMenu(repoNameDefault, 'Edit Config');
-
-      // Ensuring the user is NOT able to "delete" Git Repos. 
-      // both in default and local gitrepos
-      // Ensures list is possible but not edit or deletion
-      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.clickButton('Cancel');
+      // Can`t "Delete"
       cy.open3dotsMenu(repoNameDefault, 'Delete', true);
-      // Now checking in local one
+
+      // CHECKS IN  FLEET-LOCAL
       cy.fleetNamespaceToggle('fleet-local');
-      cy.open3dotsMenu(repoName, 'Delete', true);
-      // Able to edit config in local
+      // CAN "Edit"
       cy.open3dotsMenu(repoName, 'Edit Config');
+      cy.clickButton('Cancel');
+      // Can`t "Delete"
+      cy.open3dotsMenu(repoName, 'Delete', true);
     })
   )
 
   qase(50,
-    it('Test "Standard-Base" role user with RESOURCE "fleetworkspaces" and "bundles" with all verbs and "gitrepos" with  "List, Delete" only', { tags: '@fleet-50' }, () => {
+    it('Fleet-50: Test "Standard-user" | Custom Role | Fleetworkspaces, Bundles = [ALL] | GitRepos = [List, Delete]', { tags: '@fleet-50' }, () => {
       
       const stduser = "std-user-50"
-      const customRoleName = "gitrepo-list-delete-fleetworkspaces-bundles-all-role"
       
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
       cypressLib.createUser(stduser, uiPassword);
 
-      cy.createRoleTemplate({
-        roleType: roleTypeTemplate,
-        roleName: customRoleName,
-        rules: [
-          { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-          { resource: "gitrepos", verbs: ["list", "delete"]},
-          { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-        ]
-      });
-
       // Assign role to the created user
-      cy.assignRoleToUser(stduser, customRoleName)
+      cy.assignRoleToUser(stduser, customRoleName_4)
 
       // Logout as admin and login as other user
       cypressLib.logout();
       cy.login(stduser, uiPassword);
 
-      // Ensuring the user IS able go to Continuous Delivery Dashboard and "list" girepos
+      // CAN go to Continuous Delivery Dashboard and "list" gitrepos
       cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
       cy.get("div[data-testid='collapsible-card-fleet-local']").contains(repoName).should('be.visible');
-      cy.get("div[data-testid='collapsible-card-fleet-default']").contains(repoNameDefault).should('be.visible');
-                 
+      cy.get("div[data-testid='collapsible-card-fleet-default']").contains(repoNameDefault).should('be.visible');      
+      // CHECKS IN  FLEET-DEFAULT
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');       
       // Can't "Create" repos    
-      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.get('.btn.role-primary').contains('Add Repository').should('not.exist');
       // Cant't "Edit"
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
@@ -489,16 +511,14 @@ describe('Test Fleet access with RBAC with custom roles and git repos using Stan
       cy.open3dotsMenu(repoNameDefault, 'Delete');
       cy.clickButton('Cancel');
 
-      // Now checking in local one
+      // CHECKS IN  FLEET-LOCAL
       cy.fleetNamespaceToggle('fleet-local');
-      // Cant't "Edit"
-      cy.log('Cant Edit')
-      cy.open3dotsMenu(repoName, 'Edit Config', true);
       // CAN "Delete"
-      cy.log('Can Delete')
       cy.open3dotsMenu(repoName, 'Delete');
       cy.clickButton('Cancel');
-      
+      // Cant't "Edit"
+      cy.open3dotsMenu(repoName, 'Edit Config', true);
     })
   )
+
 });
