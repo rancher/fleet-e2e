@@ -311,6 +311,7 @@ Cypress.Commands.add('deleteUser', (userName) => {
   cy.accesMenuSelection('Users & Authentication');
   cy.contains('.title', 'Users').should('be.visible');
   cy.filterInSearchBox(userName);
+  cy.wait(250); // Add small wait to allow typing to conclude
   cy.deleteAll(false);
 })
 
