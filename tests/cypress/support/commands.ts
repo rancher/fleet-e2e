@@ -111,7 +111,7 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
     cy.get('.list-unstyled.menu > li > span', { timeout: 15000 }).contains(selection).click({ force: true });
     // Ensure dropdown is not present
     cy.contains('Edit Config').should('not.exist')
-    }
+  }
 });
 
 // Verify textvalues in table giving the row number

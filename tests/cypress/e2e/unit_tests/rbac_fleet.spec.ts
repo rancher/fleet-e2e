@@ -300,7 +300,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
     cy.checkGitRepoStatus(repoNameDefault, '1 / 1', '1 / 1');
   })
 
-  before ('Preparing Role Templates', () => {
+  before('Preparing Role Templates', () => {
     cy.login();
     // Create Custom Roles
     cy.createRoleTemplate({
@@ -384,14 +384,15 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.get("div[data-testid='collapsible-card-fleet-local']").contains(repoName).should('be.visible');
       cy.get("div[data-testid='collapsible-card-fleet-default']").contains(repoNameDefault).should('be.visible');
       
-      // CHECKS IN  FLEET-DEFAULT
+      // CHECKS IN FLEET-DEFAULT
       // Can't "Create", "Edit" nor "Delete"
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.get('.btn.role-primary').contains('Add Repository').should('not.exist');
       // Note: listing is checked implictly here
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
       cy.open3dotsMenu(repoNameDefault, 'Delete', true);
-      // CHECKS IN  FLEET-DEFAULT
+      
+      // CHECKS IN FLEET-DEFAULT
       // Can't "Create", "Edit" nor "Delete"
       cy.fleetNamespaceToggle('fleet-local');
       cy.open3dotsMenu(repoName, 'Edit Config', true);
@@ -420,7 +421,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.get("div[data-testid='collapsible-card-fleet-local']").contains(repoName).should('be.visible');
       cy.get("div[data-testid='collapsible-card-fleet-default']").contains(repoNameDefault).should('be.visible');
 
-      // CHECKS IN  FLEET-DEFAULT
+      // CHECKS IN FLEET-DEFAULT
       // CAN "Create" repos
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.clickButton('Add Repository');
@@ -430,7 +431,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
       cy.open3dotsMenu(repoNameDefault, 'Delete', true);
       
-      // CHECKS IN  FLEET-LOCAL
+      // CHECKS IN FLEET-LOCAL
       // Can't "Edit" nor "Delete" repos
       cy.fleetNamespaceToggle('fleet-local');
       cy.open3dotsMenu(repoName, 'Edit Config', true);
@@ -460,7 +461,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.get("div[data-testid='collapsible-card-fleet-local']").contains(repoName).should('be.visible');
       cy.get("div[data-testid='collapsible-card-fleet-default']").contains(repoNameDefault).should('be.visible');
       
-      // CHECKS IN  FLEET-DEFAULT
+      // CHECKS IN FLEET-DEFAULT
       // CAN "Create" and "Edit"
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.clickButton('Add Repository');
@@ -468,15 +469,15 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.clickButton('Cancel');
       cy.open3dotsMenu(repoNameDefault, 'Edit Config');
       cy.clickButton('Cancel');
-      // Can`t "Delete"
+      // Can't "Delete"
       cy.open3dotsMenu(repoNameDefault, 'Delete', true);
 
-      // CHECKS IN  FLEET-LOCAL
+      // CHECKS IN FLEET-LOCAL
       cy.fleetNamespaceToggle('fleet-local');
       // CAN "Edit"
       cy.open3dotsMenu(repoName, 'Edit Config');
       cy.clickButton('Cancel');
-      // Can`t "Delete"
+      // Can't "Delete"
       cy.open3dotsMenu(repoName, 'Delete', true);
     })
   )
@@ -500,8 +501,9 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       // CAN go to Continuous Delivery Dashboard and "list" gitrepos
       cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
       cy.get("div[data-testid='collapsible-card-fleet-local']").contains(repoName).should('be.visible');
-      cy.get("div[data-testid='collapsible-card-fleet-default']").contains(repoNameDefault).should('be.visible');      
-      // CHECKS IN  FLEET-DEFAULT
+      cy.get("div[data-testid='collapsible-card-fleet-default']").contains(repoNameDefault).should('be.visible');
+
+      // CHECKS IN FLEET-DEFAULT
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');       
       // Can't "Create" repos    
       cy.get('.btn.role-primary').contains('Add Repository').should('not.exist');
@@ -511,7 +513,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.open3dotsMenu(repoNameDefault, 'Delete');
       cy.clickButton('Cancel');
 
-      // CHECKS IN  FLEET-LOCAL
+      // CHECKS IN FLEET-LOCAL
       cy.fleetNamespaceToggle('fleet-local');
       // CAN "Delete"
       cy.open3dotsMenu(repoName, 'Delete');
