@@ -524,7 +524,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
 describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.', { tags: '@rbac' }, () => {
   qase(39,
     it('Test "GitRepoRestrictions" on non-existent namespace throws error in the UI', { tags: '@fleet-39' }, () => {
-      cy.deleteAllFleetRepos();
+
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
       cy.clickButton('Create from YAML');
       cy.readFile('assets/git-repo-restrictions-non-exists-ns.yaml').then((content) => {
@@ -547,7 +547,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
       const repoUrl = "https://github.com/rancher/fleet-test-data/"
       const appName = 'nginx-keep'
       const allowedTargetNamespace = 'allowed-namespace'
-      cy.deleteAllFleetRepos();
+
       // Create GitRepoRestrictions with allowedTargetNamespace
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
       cy.clickButton('Create from YAML');
