@@ -614,12 +614,12 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
       // Add Fleet repository and create it
       cy.fleetNamespaceToggle('fleet-local');
       cy.addFleetGitRepo({repoName, repoUrl, branch, path});
-
       cy.clickButton('Create');
       cy.verifyTableRow(0, 'Error', repoName);
+      cy.get('td.text-error')
+        .contains("Empty targetNamespace denied, because allowedTargetNamespaces restriction is present");
 
       // Edit GitRepo by adding allowed target namespace.
-      cy.fleetNamespaceToggle('fleet-local');
       cy.open3dotsMenu(repoName, 'Edit Config');
       cy.contains('Git Repo:').should('be.visible');
       cy.clickButton('Next');
