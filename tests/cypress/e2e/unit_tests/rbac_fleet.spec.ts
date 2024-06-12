@@ -381,7 +381,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
 
       // CAN go to Continuous Delivery Dashboard and "list" gitrepos
       cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
-      cy.get('div.fleet-dashboard-data').should('contain',repoName).and('contain',repoNameDefault);
+      cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
       
       // CHECKS IN FLEET-DEFAULT
       // Can't "Create", "Edit" nor "Delete"
@@ -417,7 +417,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
 
       // CAN go to Continuous Delivery Dashboard and "list" gitrepos
       cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
-      cy.get('div.fleet-dashboard-data').should('contain',repoName).and('contain',repoNameDefault);
+      cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
 
       // CHECKS IN FLEET-DEFAULT
       // CAN "Create" repos
@@ -456,7 +456,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
 
       // CAN go to Continuous Delivery Dashboard and "list" gitrepos
       cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
-      cy.get('div.fleet-dashboard-data').should('contain',repoName).and('contain',repoNameDefault);
+      cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
       
       // CHECKS IN FLEET-DEFAULT
       // CAN "Create" and "Edit"
@@ -497,7 +497,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
 
       // CAN go to Continuous Delivery Dashboard and "list" gitrepos
       cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
-      cy.get('div.fleet-dashboard-data').should('contain',repoName).and('contain',repoNameDefault);
+      cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
 
       // CHECKS IN FLEET-DEFAULT
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');       
