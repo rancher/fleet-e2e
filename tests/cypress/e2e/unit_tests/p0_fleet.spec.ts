@@ -70,7 +70,7 @@ describe('Test Fleet deployment on PRIVATE repos with HTTP auth', { tags: '@p0' 
         cy.fleetNamespaceToggle('fleet-default')
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
         cy.clickButton('Create');
-        cy.open3dotsMenu(repoName, 'Force Update');
+        // cy.open3dotsMenu(repoName, 'Force Update');
         cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
         cy.checkApplicationStatus(appName, clusterName);
         cy.deleteAllFleetRepos();
@@ -100,7 +100,7 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }
         cy.fleetNamespaceToggle('fleet-default')
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
         cy.clickButton('Create');
-        cy.open3dotsMenu(repoName, 'Force Update');
+        // cy.open3dotsMenu(repoName, 'Force Update');
         cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
         cy.checkApplicationStatus(appName, clusterName);
         cy.deleteAllFleetRepos();
