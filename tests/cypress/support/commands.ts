@@ -154,20 +154,30 @@ Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2)
   cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
     .children({ timeout: 60000 })
-    .then(($children) => {
-      // Decide if the text is a RegExp or a string
-      const tableRow = $children.text();
-      if (expectedText1 instanceof RegExp) {
-        expect(tableRow).to.match(expectedText1);
-      } else {
-        expect(tableRow).to.contain(expectedText1);
-      }
-      if (expectedText2 instanceof RegExp) {
-        expect(tableRow).to.match(expectedText2);
-      } else {
-        expect(tableRow).to.contain(expectedText2);
-      }
-    });
+    .then(() => {
+    // Check if expectedText1 is a regular expression or a string
+    if (expectedText1 instanceof RegExp) {
+      cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
+        .children({ timeout: 60000 })
+        .invoke('text')
+        .should('match', expectedText1);
+    } else {
+      cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
+        .children({ timeout: 60000 })
+        .should('contain', expectedText1);
+    }
+    // Check if expectedText2 is a regular expression or a string
+    if (expectedText2 instanceof RegExp) {
+      cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
+        .children({ timeout: 60000 })
+        .invoke('text')
+        .should('match', expectedText2);
+    } else {
+      cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
+        .children({ timeout: 60000 })
+        .should('contain', expectedText2);
+    }
+   });
 });
 
 // Namespace Toggle
