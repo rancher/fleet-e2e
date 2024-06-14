@@ -154,18 +154,18 @@ Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2)
   cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
     .children({ timeout: 60000 })
-    .should('contain', expectedText1 )
-    // Check if expectedText2 is a RegExp or a string
-    .then(() => {
-      if (expectedText2 instanceof RegExp) {
-        cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
-          .children({ timeout: 60000 })
-          .invoke('text')
-          .should('match', expectedText2);
+    .then(($children) => {
+      // Decide if the text is a RegExp or a string
+      const tableRow = $children.text();
+      if (expectedText1 instanceof RegExp) {
+        expect(tableRow).to.match(expectedText1);
       } else {
-        cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
-          .children({ timeout: 60000 })
-          .should('contain', expectedText2);
+        expect(tableRow).to.contain(expectedText1);
+      }
+      if (expectedText2 instanceof RegExp) {
+        expect(tableRow).to.match(expectedText2);
+      } else {
+        expect(tableRow).to.contain(expectedText2);
       }
     });
 });
@@ -332,7 +332,8 @@ Cypress.Commands.add('assignRoleToUser', (userName, roleName) => {
   cy.clickButton('Save');
   // Sortering by Age so first row is the desired user
   cy.contains('Age').should('be.visible').click();
-  cy.verifyTableRow(0,'Active', userName);
+  // Since v2.7.14-rc3 and v2.8.5-rc3 the State is Enabled instead of Active in v2.X-head
+  cy.verifyTableRow(0, /Active|Enabled/ , userName);
 })
 
 // Delete created user
