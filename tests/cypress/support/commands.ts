@@ -84,7 +84,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitO
     cy.fleetNamespaceToggle(fleetNamespace);
     // After deployment modification, GitRepo is in 'modified' state.
     // Force update is required to make it active before editing.
-    cy.open3dotsMenu(repoName, 'Force Update');
+    // cy.open3dotsMenu(repoName, 'Force Update');
     cy.verifyTableRow(0, 'Active', repoName);
     cy.open3dotsMenu(repoName, 'Edit Config');
     cy.contains('Git Repo:').should('be.visible');
