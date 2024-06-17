@@ -41,6 +41,10 @@ declare global {
       deleteAllUsers(): Chainable<Element>;
       deleteRole(roleName: string, roleTypeTemplate: string): Chainable<Element>;
       importYaml(clusterName: string, yamlFilePath: string): Chainable<Element>;
+      assignClusterLabel(clusterName: string, key: string, value: string): Chainable<Element>;
+      createClusterGroup(clusterGroupName: string, key: string, value: string, lastClusterName: string, clusterCount: number): Chainable<Element>;
+      deleteClusterGroups(): Chainable<Element>;
+      deployToClusterOrClusterGroup(deployToTarget: string): Chainable<Element>;
     }
   }
 }

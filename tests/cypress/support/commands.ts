@@ -78,7 +78,7 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
 
 // Command add and edit Fleet Git Repository
 // TODO: Rename this command name to 'addEditFleetGitRepo'
-Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex }) => {
+Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget }) => {
   cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
   if (editConfig === true) {
     cy.fleetNamespaceToggle(fleetNamespace);
@@ -111,6 +111,17 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitO
   }
   cy.clickButton('Next');
   cy.get('button.btn').contains('Previous').should('be.visible');
+  // Target to any cluster or group or no cluster.
+  if (deployToTarget) {
+    cy.deployToClusterOrClusterGroup(deployToTarget);
+  }
+});
+
+// Deploy To target functionality used in addGitRepo
+Cypress.Commands.add('deployToClusterOrClusterGroup', (deployToTarget) => {
+  cy.get('div.labeled-select.create.hoverable').should('be.visible');
+  cy.get('div.labeled-select.create.hoverable').click({ force: true });
+  cy.get('ul.vs__dropdown-menu > li').contains(deployToTarget).should("exist").click();
 });
 
 // 3 dots menu selection
@@ -266,8 +277,8 @@ Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
 // Check deployed application status (present or not)
 Cypress.Commands.add('checkApplicationStatus', (appName, clusterName='local') => {
   cypressLib.burgerMenuToggle();
-  cypressLib.accesMenu(clusterName);
-  cy.clickNavMenu(['Workloads', 'Pods']);
+  cy.accesMenuSelection(clusterName, 'Workloads', 'Pods');
+  cy.filterInSearchBox(appName);
   cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-0-row"]`)
     .children({ timeout: 60000 })
@@ -394,4 +405,40 @@ Cypress.Commands.add('deleteRole', (roleName, roleTypeTemplate) => {
 
   // Verify that there are no rows
   cy.contains('There are no rows which match your search query.', { timeout: 2000 }).should('be.visible');
+})
+
+// Add label to the imported cluster(s)
+Cypress.Commands.add('assignClusterLabel', (clusterName, key, value) => {
+  cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+  cy.contains('.title', 'Clusters').should('be.visible');
+  cy.filterInSearchBox(clusterName);
+  cy.open3dotsMenu(clusterName, 'Edit Config');
+  cy.clickButton('Add Label');
+  cy.get('div[class="row"] div[class="key-value"] input[placeholder="e.g. foo"]').last().type(key);
+  cy.get('div[class="row"] div[class="key-value"] textarea[placeholder="e.g. bar"]').last().type(value);
+  cy.wait(500);
+  cy.clickButton('Save');
+})
+
+// Create clusterGroup based on label assigned to the cluster
+Cypress.Commands.add('createClusterGroup', (clusterGroupName, key, value, lastClusterName, clusterCount=1) => {
+  cy.accesMenuSelection('Continuous Delivery', 'Cluster Groups');
+  cy.contains('.title', 'Cluster Groups').should('be.visible');
+  cy.fleetNamespaceToggle('fleet-default')
+  cy.clickButton('Create');
+  cy.get('input[placeholder="A unique name"]').type(clusterGroupName);
+  cy.clickButton('Add Rule');
+  cy.get('[data-testid="input-match-expression-key-control-0"]').focus().type(key);
+  cy.get('[data-testid="input-match-expression-values-control-0"]').type(value);
+  // Pass the clusterCount, when there are more than 1 cluster to match.
+  cy.get('div.banner.warning').contains(`Matches ${clusterCount} of 3 existing clusters, including ${lastClusterName}`).should('be.visible');
+  cy.clickButton('Create');
+  cy.verifyTableRow(0, 'Active', clusterGroupName);
+})
+
+// Delete Cluster Group
+Cypress.Commands.add('deleteClusterGroups', () => {
+  cy.accesMenuSelection('Continuous Delivery', 'Cluster Groups');
+  cy.fleetNamespaceToggle('fleet-default');
+  cy.deleteAll(false);
 })

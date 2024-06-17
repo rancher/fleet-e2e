@@ -475,3 +475,42 @@ describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled'
     }
   )
 });
+
+describe('Test application deployment based on clusterGroup', { tags: '@p1'}, () => {
+  qase(25,
+    it("Fleet-25: Test install single application to the all available clusters using 'clusterGroup'", { tags: '@fleet-25' }, () => {
+      const repoName = 'default-single-app-cluster-group-25'
+      const key = 'key_env'
+      const value = 'value_prod'
+      const clusterGroupName = 'cluster-group-env-prod'
+      const dsClusterList = ["imported-0", "imported-1"]
+
+      // Assign label to the clusters 
+      dsClusterList.forEach(
+        (dsClusterName) => {
+          cy.assignClusterLabel(dsClusterName, key, value);
+        }
+      )
+
+      // Create group of cluster consists of same label.
+      // dsClusterList[1]: this will provide index 1 element of the array.
+      cy.createClusterGroup(clusterGroupName, key, value, dsClusterList[1], 2);
+
+      // Create a GitRepo targeting cluster group created.
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, deployToTarget: clusterGroupName });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+      // Check application status on both clusters.
+      dsClusterList.forEach(
+        (dsClusterName) => {
+          cy.checkApplicationStatus(appName, dsClusterName);
+        }
+      )
+
+      // Delete Cluster Group and GitRepo.
+      cy.deleteClusterGroups();
+      cy.deleteAllFleetRepos();
+    })
+  )
+});
