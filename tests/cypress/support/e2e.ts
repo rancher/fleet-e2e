@@ -40,6 +40,7 @@ declare global {
       deleteUser(userName: string): Chainable<Element>;
       deleteRole(roleName: string, roleTypeTemplate: string): Chainable<Element>;
       importYaml(clusterName: string, yamlFilePath: string): Chainable<Element>;
+      deployToClusterOrClusterGroup(deployToTarget: string): Chainable<Element>;
     }
   }
 }

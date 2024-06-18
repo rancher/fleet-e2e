@@ -78,10 +78,12 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
 
 // Command add and edit Fleet Git Repository
 // TODO: Rename this command name to 'addEditFleetGitRepo'
-Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex }) => {
+Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget }) => {
   cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
   if (editConfig === true) {
     cy.fleetNamespaceToggle(fleetNamespace);
+    // Adding wait for loading GitRepo after namespace toggle.
+    cy.wait(500);
     // After deployment modification, GitRepo is in 'modified' state.
     // Force update is required to make it active before editing.
     cy.open3dotsMenu(repoName, 'Force Update');
@@ -114,6 +116,17 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitO
   }
   cy.clickButton('Next');
   cy.get('button.btn').contains('Previous').should('be.visible');
+  // Target to any cluster or group or no cluster.
+  if (deployToTarget) {
+    cy.deployToClusterOrClusterGroup(deployToTarget);
+  }
+});
+
+// Deploy To target functionality used in addGitRepo
+Cypress.Commands.add('deployToClusterOrClusterGroup', (deployToTarget) => {
+  cy.get('div.labeled-select.create.hoverable').should('be.visible');
+  cy.get('div.labeled-select.create.hoverable').click({ force: true });
+  cy.get('ul.vs__dropdown-menu > li').contains(deployToTarget).should("exist").click();
 });
 
 // 3 dots menu selection

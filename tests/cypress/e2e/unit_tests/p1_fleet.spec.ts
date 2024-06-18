@@ -411,7 +411,7 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
 
             // Add GitRepo by enabling 'correctDrift'
             cy.fleetNamespaceToggle('fleet-default')
-            cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift: 'yes' });
+            cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift: 'yes', deployToTarget: dsClusterName });
             cy.clickButton('Create');
             cy.checkGitRepoStatus(repoName, '2 / 2', '2 / 2');
             cy.accesMenuSelection(dsClusterName, resourceLocation, resourceType);
