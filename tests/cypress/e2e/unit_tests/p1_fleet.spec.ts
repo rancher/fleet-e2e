@@ -192,6 +192,8 @@ describe('Test Self-Healing of resource modification when correctDrift option us
       // Update exising GitRepo by enabling 'correctDrift'
       cy.addFleetGitRepo({ repoName, correctDrift: 'yes', editConfig: true });
       cy.clickButton('Save');
+      // This test is exception for using 'Force Update'.
+      cy.open3dotsMenu(repoName, 'Force Update');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
       cy.checkApplicationStatus(appName);
 
