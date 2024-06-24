@@ -192,6 +192,8 @@ describe('Test Self-Healing of resource modification when correctDrift option us
       // Update exising GitRepo by enabling 'correctDrift'
       cy.addFleetGitRepo({ repoName, correctDrift: 'yes', editConfig: true });
       cy.clickButton('Save');
+      // This test is exception for using 'Force Update'.
+      cy.open3dotsMenu(repoName, 'Force Update');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
       cy.checkApplicationStatus(appName);
 
@@ -440,6 +442,12 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
             // But with ConfigMaps and Services it is not because they are immutable i.e.
             // They didn't reconciled when `correctDrift` is used.
             cy.deleteAllFleetRepos();
+
+            // Delete leftover resources if there are any.
+            cy.accesMenuSelection(dsClusterName, resourceLocation, resourceType);
+            cy.nameSpaceMenuToggle(resourceNamespace);
+            cy.filterInSearchBox(resourceName);
+            cy.deleteAll(false);
           })
         )
       }
