@@ -270,8 +270,8 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
   )
 });
 
-describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "STANDARD USER"', { tags: '@rbac' }, () => {
-
+  // Adding specific data here for next tests.
+  // TO DO: take this to the top and make it reusable for all that apply
   const repoName = "fleet-local-simple-chart"
   const branch = "master"
   const path = "simple-chart"
@@ -350,9 +350,9 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
   after('Deleting Fleet repos, Roles, Users', () => {
     cy.login();
     cy.deleteAllFleetRepos();
-    // Delete Standard Users
-    const stdusers = ["std-user-46", "std-user-47", "std-user-48", "std-user-50"];
-    stdusers.forEach(user => {
+    // Delete Users
+    const users = ["std-user-46", "std-user-47", "std-user-48", "std-user-50", "base-user-13", "base-user-14", "base-user-15", "base-user-16" ];
+    users.forEach(user => {
       cy.deleteUser(user);
     })
     // Delete Custom Roles
@@ -362,6 +362,8 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
     })
   })
 
+
+describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "STANDARD USER"', { tags: '@rbac' }, () => {
 
   qase(46,
     it('Fleet-46: Test "Standard-user" | Custom Role | Fleetworkspaces, Bundles = [ALL] | GitRepos = [List]', { tags: '@fleet-46' }, () => {
@@ -522,97 +524,6 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
 });
 
 describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "USER-BASE" user', { tags: '@rbac' }, () => {
-
-  const repoName = "fleet-local-simple-chart"
-  const branch = "master"
-  const path = "simple-chart"
-  const repoUrl = "https://github.com/rancher/fleet-test-data"
-  const repoNameDefault = "fleet-default-nginx"
-  const pathDefault = "qa-test-apps/nginx-app"
-  // Custom roles
-  const customRoleName_1 = "gitrepo-list-fleetworkspaces-bundles-all-role"
-  const customRoleName_2 = "gitrepo-list-create-fleetworkspaces-bundles-all-role"
-  const customRoleName_3 = "gitrepo-list-create-update-get-fleetworkspaces-bundles-all-role"
-  const customRoleName_4 = "gitrepo-list-delete-fleetworkspaces-bundles-all-role"
-  
-  before('Preparing GitRepos', () => {
-    cy.login();
-    // Create git repos
-    cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-    cy.fleetNamespaceToggle('fleet-local');
-    cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
-    cy.clickButton('Create');
-    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-
-    cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-    cy.fleetNamespaceToggle('fleet-default');
-    cy.addFleetGitRepo({ repoName: repoNameDefault, repoUrl, branch, path: pathDefault });
-    cy.clickButton('Create');
-    cy.checkGitRepoStatus(repoNameDefault, '1 / 1', '1 / 1');
-  })
-
-  before('Preparing Role Templates', () => {
-    cy.login();
-    // Create Custom Roles
-    cy.createRoleTemplate({
-      roleType: roleTypeTemplate,
-      roleName: customRoleName_1,
-      rules: [
-        { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-        { resource: "gitrepos", verbs: ["list"]},
-        { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-      ]
-    });
-
-    cy.createRoleTemplate({
-      roleType: roleTypeTemplate,
-      roleName: customRoleName_2,
-      rules: [
-        { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-        { resource: "gitrepos", verbs: ["list", "create"]},
-        { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-      ]
-    });
-
-    cy.createRoleTemplate({
-      roleType: roleTypeTemplate,
-      roleName: customRoleName_3,
-      rules: [
-        { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-        { resource: "gitrepos", verbs: ["list", "create", "update", "get"]},
-        { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-      ]
-    });
-      
-    cy.createRoleTemplate({
-      roleType: roleTypeTemplate,
-      roleName: customRoleName_4,
-      rules: [
-        { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-        { resource: "gitrepos", verbs: ["list", "delete"]},
-        { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-      ]
-    });
-  })
-
-  // Pls note this is anti-pattern: 
-  // https://docs.cypress.io/guides/references/best-practices#Using-after-Or-afterEach-Hooks
-  // Done here for demonstration. Better to set before if needed.
-  after('Deleting Fleet repos, Roles, Users', () => {
-    cy.login();
-    cy.deleteAllFleetRepos();
-    // Delete Standard Users
-    const baseusers = ["base-user-13", "base-user-14", "base-user-15", "base-user-16"];
-    baseusers.forEach(user => {
-      cy.deleteUser(user);
-    })
-    // Delete Custom Roles
-    const customRoles = [customRoleName_1, customRoleName_2, customRoleName_3, customRoleName_4];
-    customRoles.forEach(role => {
-      cy.deleteRole(role, roleTypeTemplate.toUpperCase());
-    })
-  })
-
 
   qase(13,
     it('Fleet-13: Test "Base-user" | Custom Role | Fleetworkspaces, Bundles = [ALL] | GitRepos = [List]', { tags: '@fleet-13' }, () => {
