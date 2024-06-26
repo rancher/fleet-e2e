@@ -478,12 +478,16 @@ describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled'
 
 describe('Test application deployment based on clusterGroup', { tags: '@p1'}, () => {
   qase(25,
-    it("Fleet-25: Test install single application to the all available clusters using 'clusterGroup'", { tags: '@fleet-25' }, () => {
+    it("Fleet-25: Test install single application to the all available clusters in the 'clusterGroup'", { tags: '@fleet-25' }, () => {
       const repoName = 'default-single-app-cluster-group-25'
       const key = 'key_env'
       const value = 'value_prod'
       const clusterGroupName = 'cluster-group-env-prod'
       const dsClusterList = ["imported-0", "imported-1"]
+      const bannerMessageToAssert = 'Matches 2 of 3 existing clusters, including "imported-1"'
+
+      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+      cy.contains('.title', 'Clusters').should('be.visible');
 
       // Assign label to the clusters 
       dsClusterList.forEach(
@@ -493,13 +497,14 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
       )
 
       // Create group of cluster consists of same label.
-      // dsClusterList[1]: this will provide index 1 element of the array.
-      cy.createClusterGroup(clusterGroupName, key, value, dsClusterList[1], 2);
+      cy.clickNavMenu(['Cluster Groups']);
+      cy.contains('.title', 'Cluster Groups').should('be.visible');
+      cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
 
       // Create a GitRepo targeting cluster group created.
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path, deployToTarget: clusterGroupName });
       cy.clickButton('Create');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      cy.checkGitRepoStatus(repoName, '1 / 1');
 
       // Check application status on both clusters.
       dsClusterList.forEach(

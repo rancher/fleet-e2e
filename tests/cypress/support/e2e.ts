@@ -23,7 +23,7 @@ declare global {
       open3dotsMenu(name: string, selection?: string, checkNotInMenu?: boolean): Chainable<Element>;
       addPathOnGitRepoCreate(path: string): Chainable<Element>;
       gitRepoAuth(AuthType: string, userOrPublicKey?: string, pwdOrPrivateKey?: string, gitOrHelmAuth?: string, helmUrlRegex?: string): Chainable<Element>;
-      addFleetGitRepo(repoName: string, repoUrl?: string, branch?: string, path?: string, fleetNamespace?: string): Chainable<Element>;
+      addFleetGitRepo(repoName: string, repoUrl?: string, branch?: string, path?: string, fleetNamespace?: string, editConfig?: boolean, helmUrlRegex?: string, deployToTarget?: string): Chainable<Element>;
       fleetNamespaceToggle(toggleOption: string): Chainable<Element>;
       verifyTableRow(rowNumber: number, expectedText1?: string|RegExp, expectedText2?: string|RegExp): Chainable<Element>;
       nameSpaceMenuToggle(namespaceName: string): Chainable<Element>;
@@ -42,7 +42,7 @@ declare global {
       deleteRole(roleName: string, roleTypeTemplate: string): Chainable<Element>;
       importYaml(clusterName: string, yamlFilePath: string): Chainable<Element>;
       assignClusterLabel(clusterName: string, key: string, value: string): Chainable<Element>;
-      createClusterGroup(clusterGroupName: string, key: string, value: string, lastClusterName: string, clusterCount: number): Chainable<Element>;
+      createClusterGroup(clusterGroupName: string, key: string, value: string, bannerMessageToAssert: string): Chainable<Element>;
       deleteClusterGroups(): Chainable<Element>;
       deployToClusterOrClusterGroup(deployToTarget: string): Chainable<Element>;
     }
