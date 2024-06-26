@@ -463,6 +463,9 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
       const clusterGroupName = 'cluster-group-env-prod'
       const dsClusterList = ["imported-0", "imported-1"]
 
+      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+      cy.contains('.title', 'Clusters').should('be.visible');
+
       // Assign label to the clusters 
       dsClusterList.forEach(
         (dsClusterName) => {
@@ -472,12 +475,14 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
 
       // Create group of cluster consists of same label.
       // dsClusterList[1]: this will provide index 1 element of the array.
-      cy.createClusterGroup(clusterGroupName, key, value, dsClusterList[1], 2);
+      cy.clickNavMenu(['Cluster Groups']);
+      cy.contains('.title', 'Cluster Groups').should('be.visible');
+      cy.createClusterGroup(clusterGroupName, key, value, dsClusterList[0], 2);
 
       // Create a GitRepo targeting cluster group created.
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path, deployToTarget: clusterGroupName });
       cy.clickButton('Create');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      cy.checkGitRepoStatus(repoName, '1 / 1');
 
       // Check application status on both clusters.
       dsClusterList.forEach(
