@@ -16,12 +16,28 @@ import 'cypress/support/commands';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 import { qase } from 'cypress-qase-reporter/dist/mocha';
 
+// General constants
 export const uiPassword    = "rancherpassword"
 export const roleTypeTemplate = "Global"
+// Gitrepos constants
+export const repoName = "fleet-local-simple-chart"
+export const branch = "master"
+export const path = "simple-chart"
+export const repoUrl = "https://github.com/rancher/fleet-test-data"
+export const repoNameDefault = "fleet-default-nginx"
+export const pathDefault = "qa-test-apps/nginx-app"
+// Custom roles constants
+export const customRoleName_1 = "gitrepo-list-fleetworkspaces-bundles-all-role"
+export const customRoleName_2 = "gitrepo-list-create-fleetworkspaces-bundles-all-role"
+export const customRoleName_3 = "gitrepo-list-create-update-get-fleetworkspaces-bundles-all-role"
+export const customRoleName_4 = "gitrepo-list-delete-fleetworkspaces-bundles-all-role"
+  
 
 beforeEach(() => {
   cy.login();
   cy.visit('/');
+  cy.deleteAllUsers();
+  cy.deleteRole('-role', roleTypeTemplate.toUpperCase());
 });
 
 Cypress.config();
@@ -64,12 +80,6 @@ describe('Test Fleet access with RBAC with custom roles using all verbs for User
       cy.accesMenuSelection('Continuous Delivery');
       cy.contains('Clusters').should('not.exist');
       cy.contains('Clusters Groups').should('not.exist');
-
-      // Logout other user and login as admin user to perform user and role cleanup
-      cypressLib.logout();
-      cy.login();
-      cy.deleteUser(baseUser);
-      cy.deleteRole(customRoleName, roleTypeTemplate.toUpperCase());
     })
   )
 
@@ -116,12 +126,6 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       // Ensuring the user is not able to "edit" or "delete" workspaces.
       cy.open3dotsMenu('fleet-default', 'Delete', true);
       cy.open3dotsMenu('fleet-default', 'Edit Config', true);
-
-      // Logout other user and login as admin user to perform user and role cleanup
-      cypressLib.logout();
-      cy.login();
-      cy.deleteUser(stduser);
-      cy.deleteRole(customRoleName, roleTypeTemplate.toUpperCase());
     })
   )
 
@@ -166,12 +170,6 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       // Ensuring the user is not able to "delete" workspaces. 
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspace');
       cy.open3dotsMenu('fleet-default', 'Delete', true);
-
-      // Logout other user and login as admin user to perform user and role cleanup
-      cypressLib.logout();
-      cy.login();
-      cy.deleteUser(stduser);
-      cy.deleteRole(customRoleName, roleTypeTemplate.toUpperCase());
     })
   )
 
@@ -211,12 +209,6 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       // Ensuring the user is NOT able to "edit" workspaces. 
       cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'Workspace');
       cy.open3dotsMenu('fleet-default', 'Edit Config', true);
-
-      // Logout other user and login as admin user to perform user and role cleanup
-      cypressLib.logout();
-      cy.login();
-      cy.deleteUser(stduser);
-      cy.deleteRole(customRoleName, roleTypeTemplate.toUpperCase());
     })
   )
 
@@ -260,111 +252,30 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       cy.contains('Cluster Registration Tokens').should('not.exist');
       cy.contains('GitRepoRestrictions').should('not.exist');
       cy.contains('BundleNamespaceMappings').should('not.exist');
-
-      // Logout other user and login as admin user to perform user and role cleanup
-      cypressLib.logout();
-      cy.login();
-      cy.deleteUser(baseUser);
-      cy.deleteRole(customRoleName, roleTypeTemplate.toUpperCase());
     })
   )
 });
-
-  // Adding specific data here for next tests.
-  // TO DO: take this to the top and make it reusable for all that apply
-  const repoName = "fleet-local-simple-chart"
-  const branch = "master"
-  const path = "simple-chart"
-  const repoUrl = "https://github.com/rancher/fleet-test-data"
-  const repoNameDefault = "fleet-default-nginx"
-  const pathDefault = "qa-test-apps/nginx-app"
-  // Custom roles
-  const customRoleName_1 = "gitrepo-list-fleetworkspaces-bundles-all-role"
-  const customRoleName_2 = "gitrepo-list-create-fleetworkspaces-bundles-all-role"
-  const customRoleName_3 = "gitrepo-list-create-update-get-fleetworkspaces-bundles-all-role"
-  const customRoleName_4 = "gitrepo-list-delete-fleetworkspaces-bundles-all-role"
   
-  before('Preparing GitRepos', () => {
-    cy.login();
-    // Create git repos
-    cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-    cy.fleetNamespaceToggle('fleet-local');
-    cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
-    cy.clickButton('Create');
-    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+  describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "STANDARD USER"', { tags: '@rbac' }, () => {
+    
+    before('Deleting leftover Gitrepos preparing needed ones for next tests', () => {
+      cy.login();
+      cy.deleteAllFleetRepos();
 
-    cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-    cy.fleetNamespaceToggle('fleet-default');
-    cy.addFleetGitRepo({ repoName: repoNameDefault, repoUrl, branch, path: pathDefault });
-    cy.clickButton('Create');
-    cy.checkGitRepoStatus(repoNameDefault, '1 / 1', '1 / 1');
-  })
-
-  before('Preparing Role Templates', () => {
-    cy.login();
-    // Create Custom Roles
-    cy.createRoleTemplate({
-      roleType: roleTypeTemplate,
-      roleName: customRoleName_1,
-      rules: [
-        { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-        { resource: "gitrepos", verbs: ["list"]},
-        { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-      ]
-    });
-
-    cy.createRoleTemplate({
-      roleType: roleTypeTemplate,
-      roleName: customRoleName_2,
-      rules: [
-        { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-        { resource: "gitrepos", verbs: ["list", "create"]},
-        { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-      ]
-    });
-
-    cy.createRoleTemplate({
-      roleType: roleTypeTemplate,
-      roleName: customRoleName_3,
-      rules: [
-        { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-        { resource: "gitrepos", verbs: ["list", "create", "update", "get"]},
-        { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-      ]
-    });
-      
-    cy.createRoleTemplate({
-      roleType: roleTypeTemplate,
-      roleName: customRoleName_4,
-      rules: [
-        { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-        { resource: "gitrepos", verbs: ["list", "delete"]},
-        { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
-      ]
-    });
-  })
-
-  // Pls note this is anti-pattern: 
-  // https://docs.cypress.io/guides/references/best-practices#Using-after-Or-afterEach-Hooks
-  // Done here for demonstration. Better to set before if needed.
-  after('Deleting Fleet repos, Roles, Users', () => {
-    cy.login();
-    cy.deleteAllFleetRepos();
-    // Delete Users
-    const users = ["std-user-46", "std-user-47", "std-user-48", "std-user-50", "base-user-13", "base-user-14", "base-user-15", "base-user-16" ];
-    users.forEach(user => {
-      cy.deleteUser(user);
+      // Create git repos
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+  
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.addFleetGitRepo({ repoName: repoNameDefault, repoUrl, branch, path: pathDefault });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoNameDefault, '1 / 1', '1 / 1');
     })
-    // Delete Custom Roles
-    const customRoles = [customRoleName_1, customRoleName_2, customRoleName_3, customRoleName_4];
-    customRoles.forEach(role => {
-      cy.deleteRole(role, roleTypeTemplate.toUpperCase());
-    })
-  })
-
-
-describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "STANDARD USER"', { tags: '@rbac' }, () => {
-
+    
   qase(46,
     it('Fleet-46: Test "Standard-user" | Custom Role | Fleetworkspaces, Bundles = [ALL] | GitRepos = [List]', { tags: '@fleet-46' }, () => {
       
@@ -373,6 +284,16 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
       cypressLib.createUser(stduser, uiPassword);
+
+      cy.createRoleTemplate({
+        roleType: roleTypeTemplate,
+        roleName: customRoleName_1,
+        rules: [
+          { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+          { resource: "gitrepos", verbs: ["list"]},
+          { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        ]
+      });
 
       // Assign role to the created user
       cy.assignRoleToUser(stduser, customRoleName_1)
@@ -410,6 +331,16 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cypressLib.burgerMenuToggle();
       cypressLib.createUser(stduser, uiPassword);
 
+      cy.createRoleTemplate({
+        roleType: roleTypeTemplate,
+        roleName: customRoleName_2,
+        rules: [
+          { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+          { resource: "gitrepos", verbs: ["list", "create"]},
+          { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        ]
+      });
+
       // Assign role to the created user
       cy.assignRoleToUser(stduser, customRoleName_2)
       
@@ -436,7 +367,6 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.fleetNamespaceToggle('fleet-local');
       cy.open3dotsMenu(repoName, 'Edit Config', true);
       cy.open3dotsMenu(repoName, 'Delete', true);
-
     })
   )
 
@@ -448,6 +378,16 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
       cypressLib.createUser(stduser, uiPassword);
+
+      cy.createRoleTemplate({
+        roleType: roleTypeTemplate,
+        roleName: customRoleName_3,
+        rules: [
+          { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+          { resource: "gitrepos", verbs: ["list", "create", "update", "get"]},
+          { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        ]
+      });
 
       // Assign role to the created user
       cy.assignRoleToUser(stduser, customRoleName_3)
@@ -490,6 +430,16 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cypressLib.burgerMenuToggle();
       cypressLib.createUser(stduser, uiPassword);
 
+      cy.createRoleTemplate({
+        roleType: roleTypeTemplate,
+        roleName: customRoleName_4,
+        rules: [
+          { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+          { resource: "gitrepos", verbs: ["list", "delete"]},
+          { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        ]
+      });
+
       // Assign role to the created user
       cy.assignRoleToUser(stduser, customRoleName_4)
 
@@ -525,6 +475,24 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
 
 describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "USER-BASE" user', { tags: '@rbac' }, () => {
 
+  before('Deleting leftover Gitrepos preparing needed ones for next tests', () => {
+    cy.login();
+    cy.deleteAllFleetRepos();
+
+    // Create git repos
+    cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+    cy.fleetNamespaceToggle('fleet-local');
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+    cy.clickButton('Create');
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+    cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+    cy.fleetNamespaceToggle('fleet-default');
+    cy.addFleetGitRepo({ repoName: repoNameDefault, repoUrl, branch, path: pathDefault });
+    cy.clickButton('Create');
+    cy.checkGitRepoStatus(repoNameDefault, '1 / 1', '1 / 1');
+  })
+
   qase(13,
     it('Fleet-13: Test "Base-user" | Custom Role | Fleetworkspaces, Bundles = [ALL] | GitRepos = [List]', { tags: '@fleet-13' }, () => {
       
@@ -533,6 +501,16 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       // Create "Base User"
       cypressLib.burgerMenuToggle();
       cypressLib.createUser(baseUser, uiPassword, "User-Base", true);
+
+      cy.createRoleTemplate({
+        roleType: roleTypeTemplate,
+        roleName: customRoleName_1,
+        rules: [
+          { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+          { resource: "gitrepos", verbs: ["list"]},
+          { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        ]
+      });
 
       // Assign role to the created user
       cy.assignRoleToUser(baseUser, customRoleName_1)
@@ -570,6 +548,16 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cypressLib.burgerMenuToggle();
       cypressLib.createUser(baseUser, uiPassword, "User-Base", true);
 
+      cy.createRoleTemplate({
+        roleType: roleTypeTemplate,
+        roleName: customRoleName_2,
+        rules: [
+          { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+          { resource: "gitrepos", verbs: ["list", "create"]},
+          { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        ]
+      });
+
       // Assign role to the created user
       cy.assignRoleToUser(baseUser, customRoleName_2)
       
@@ -596,7 +584,6 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.fleetNamespaceToggle('fleet-local');
       cy.open3dotsMenu(repoName, 'Edit Config', true);
       cy.open3dotsMenu(repoName, 'Delete', true);
-
     })
   )
 
@@ -608,6 +595,16 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       // Create "Base User"
       cypressLib.burgerMenuToggle();
       cypressLib.createUser(baseUser, uiPassword, "User-Base", true);
+
+      cy.createRoleTemplate({
+        roleType: roleTypeTemplate,
+        roleName: customRoleName_3,
+        rules: [
+          { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+          { resource: "gitrepos", verbs: ["list", "create", "update", "get"]},
+          { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        ]
+      });
 
       // Assign role to the created user
       cy.assignRoleToUser(baseUser, customRoleName_3)
@@ -650,6 +647,16 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cypressLib.burgerMenuToggle();
       cypressLib.createUser(baseUser, uiPassword, "User-Base", true);
 
+      cy.createRoleTemplate({
+        roleType: roleTypeTemplate,
+        roleName: customRoleName_4,
+        rules: [
+          { resource: "fleetworkspaces", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+          { resource: "gitrepos", verbs: ["list", "delete"]},
+          { resource: "bundles", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
+        ]
+      });
+
       // Assign role to the created user
       cy.assignRoleToUser(baseUser, customRoleName_4)
 
@@ -680,7 +687,6 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.open3dotsMenu(repoName, 'Edit Config', true);
     })
   )
-
 });
 
 describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.', { tags: '@rbac' }, () => {
