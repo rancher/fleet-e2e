@@ -747,7 +747,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
-        roleName: customRoleName_5,
+        roleName: customRoleName_6,
         rules: [
           { resource: "fleetworkspaces", verbs: ["create", "get", "list", "patch", "update", "watch"]},
           { resource: "gitrepos", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
@@ -756,7 +756,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       });
 
       // Assign role to the created user
-      cy.assignRoleToUser(baseUser, customRoleName_5)
+      cy.assignRoleToUser(baseUser, customRoleName_6)
 
       // Logout as admin and login as other user
       cypressLib.logout();
@@ -790,7 +790,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
-        roleName: customRoleName_6,
+        roleName: customRoleName_7,
         rules: [
           { resource: "fleetworkspaces", verbs: ["list", "delete"]},
           { resource: "gitrepos", verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]},
@@ -799,7 +799,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       });
 
       // // Assign role to the created user
-      cy.assignRoleToUser(baseUser, customRoleName_6)
+      cy.assignRoleToUser(baseUser, customRoleName_7)
       
       // Logout as admin and login as other user
       cypressLib.logout();
