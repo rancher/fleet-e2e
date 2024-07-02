@@ -383,6 +383,9 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
     )  
   });
 
+// Perform this test only if rancher_version does not contain "/2.9"
+// Re-iterate this test cases once 2.9.0 released.
+if (!/\/2\.9/.test(Cypress.env('rancher_version'))) {
   describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled', { tags: '@p1'}, () => {
     const correctDriftTestData: testData[] = [
       { qase_id: 80,
@@ -456,3 +459,4 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
       }
     )
   });
+}
