@@ -386,7 +386,7 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
   describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled', { tags: '@p1'}, () => {
     const correctDriftTestData: testData[] = [
       { qase_id: 80,
-        repoName: "local-cluster-correct-80",
+        repoName: "ds-cluster-correct-80",
         resourceType: "ConfigMaps",
         resourceName: "mp-app-config",
         resourceLocation: "Storage",
@@ -394,7 +394,7 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
         dataToAssert: "test, test_key",
       },
       { qase_id: 79,
-        repoName: "local-cluster-correct-79",
+        repoName: "ds-cluster-correct-79",
         resourceType: "Services",
         resourceName: "mp-app-service",
         resourceLocation: "Service Discovery",
@@ -408,6 +408,7 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
         qase(qase_id,
           it(`Fleet-${qase_id}: Test IMMUTABLE resource "${resourceType}" will NOT be self-healed when correctDrift is set to true.`, { tags: `@fleet-${qase_id}` }, () => {
             const path = "multiple-paths"
+            const dsClusterList = ["imported-0", "imported-1", "imported-2"]
 
             // Add GitRepo by enabling 'correctDrift'
             cy.fleetNamespaceToggle('fleet-default')
@@ -443,11 +444,13 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
             // They didn't reconciled when `correctDrift` is used.
             cy.deleteAllFleetRepos();
 
-            // Delete leftover resources if there are any.
-            cy.accesMenuSelection(dsClusterName, resourceLocation, resourceType);
-            cy.nameSpaceMenuToggle(resourceNamespace);
-            cy.filterInSearchBox(resourceName);
-            cy.deleteAll(false);
+            // Delete leftover resources if there are any on each downstream cluster.
+            dsClusterList.forEach((dsClusterName) => {
+              cy.accesMenuSelection(dsClusterName, resourceLocation, resourceType);
+              cy.nameSpaceMenuToggle(resourceNamespace);
+              cy.filterInSearchBox(resourceName);
+              cy.deleteAll(false);
+            })
           })
         )
       }
