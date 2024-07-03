@@ -387,7 +387,6 @@ describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled'
   const correctDriftTestData: testData[] = [
     { qase_id: 80,
       repoName: "ds-cluster-correct-80",
-      path: "multiple-paths/config",
       resourceType: "ConfigMaps",
       resourceName: "mp-app-config",
       resourceLocation: "Storage",
@@ -396,7 +395,6 @@ describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled'
     },
     { qase_id: 79,
       repoName: "ds-cluster-correct-79",
-      path: "multiple-paths/service",
       resourceType: "Services",
       resourceName: "mp-app-service",
       resourceLocation: "Service Discovery",
@@ -406,15 +404,17 @@ describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled'
   ]
 
   correctDriftTestData.forEach(
-    ({qase_id, repoName, path, resourceType, resourceName, resourceLocation, resourceNamespace, dataToAssert}) => {
+    ({qase_id, repoName, resourceType, resourceName, resourceLocation, resourceNamespace, dataToAssert}) => {
       qase(qase_id,
         it(`Fleet-${qase_id}: Test IMMUTABLE resource "${resourceType}" will NOT be self-healed when correctDrift is set to true.`, { tags: `@fleet-${qase_id}` }, () => {
+          const path = "multiple-paths"
+          const dsClusterList = ["imported-0", "imported-1", "imported-2"]
 
           // Add GitRepo by enabling 'correctDrift'
           cy.fleetNamespaceToggle('fleet-default')
           cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift: 'yes' });
           cy.clickButton('Create');
-          cy.checkGitRepoStatus(repoName, '1 / 1');
+          cy.checkGitRepoStatus(repoName, '2 / 2');
           cy.accesMenuSelection(dsClusterName, resourceLocation, resourceType);
           cy.nameSpaceMenuToggle(resourceNamespace);
           cy.filterInSearchBox(resourceName);
@@ -443,6 +443,15 @@ describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled'
           // But with ConfigMaps and Services it is not because they are immutable i.e.
           // They didn't reconciled when `correctDrift` is used.
           cy.deleteAllFleetRepos();
+
+          // Delete leftover resources if there are any on each downstream cluster.
+          // Currently, service is getting deleted from cluster, hence adding check for it.
+          dsClusterList.forEach((dsClusterName) => {
+            cy.accesMenuSelection(dsClusterName, "Service Discovery", "Services");
+            cy.nameSpaceMenuToggle(resourceNamespace);
+            cy.filterInSearchBox(resourceName);
+            cy.deleteAll(false);
+          })
         })
       )
     }
