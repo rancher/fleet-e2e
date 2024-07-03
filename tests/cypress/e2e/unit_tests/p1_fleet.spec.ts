@@ -383,80 +383,68 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
     )  
   });
 
-// Perform this test only if rancher_version does not contain "/2.9"
-// Re-iterate this test cases once 2.9.0 released.
-if (!/\/2\.9/.test(Cypress.env('rancher_version'))) {
-  describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled', { tags: '@p1'}, () => {
-    const correctDriftTestData: testData[] = [
-      { qase_id: 80,
-        repoName: "ds-cluster-correct-80",
-        resourceType: "ConfigMaps",
-        resourceName: "mp-app-config",
-        resourceLocation: "Storage",
-        resourceNamespace: "test-fleet-mp-config",
-        dataToAssert: "test, test_key",
-      },
-      { qase_id: 79,
-        repoName: "ds-cluster-correct-79",
-        resourceType: "Services",
-        resourceName: "mp-app-service",
-        resourceLocation: "Service Discovery",
-        resourceNamespace: "test-fleet-mp-service",
-        dataToAssert: "6341 ",
-      },
-    ]
+describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled', { tags: '@p1'}, () => {
+  const correctDriftTestData: testData[] = [
+    { qase_id: 80,
+      repoName: "ds-cluster-correct-80",
+      path: "multiple-paths/config",
+      resourceType: "ConfigMaps",
+      resourceName: "mp-app-config",
+      resourceLocation: "Storage",
+      resourceNamespace: "test-fleet-mp-config",
+      dataToAssert: "test, test_key",
+    },
+    { qase_id: 79,
+      repoName: "ds-cluster-correct-79",
+      path: "multiple-paths/service",
+      resourceType: "Services",
+      resourceName: "mp-app-service",
+      resourceLocation: "Service Discovery",
+      resourceNamespace: "test-fleet-mp-service",
+      dataToAssert: "6341 ",
+    },
+  ]
 
-    correctDriftTestData.forEach(
-      ({qase_id, repoName, resourceType, resourceName, resourceLocation, resourceNamespace, dataToAssert}) => {
-        qase(qase_id,
-          it(`Fleet-${qase_id}: Test IMMUTABLE resource "${resourceType}" will NOT be self-healed when correctDrift is set to true.`, { tags: `@fleet-${qase_id}` }, () => {
-            const path = "multiple-paths"
-            const dsClusterList = ["imported-0", "imported-1", "imported-2"]
+  correctDriftTestData.forEach(
+    ({qase_id, repoName, path, resourceType, resourceName, resourceLocation, resourceNamespace, dataToAssert}) => {
+      qase(qase_id,
+        it(`Fleet-${qase_id}: Test IMMUTABLE resource "${resourceType}" will NOT be self-healed when correctDrift is set to true.`, { tags: `@fleet-${qase_id}` }, () => {
 
-            // Add GitRepo by enabling 'correctDrift'
-            cy.fleetNamespaceToggle('fleet-default')
-            cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift: 'yes' });
-            cy.clickButton('Create');
-            cy.checkGitRepoStatus(repoName, '2 / 2');
-            cy.accesMenuSelection(dsClusterName, resourceLocation, resourceType);
-            cy.nameSpaceMenuToggle(resourceNamespace);
-            cy.filterInSearchBox(resourceName);
-            cy.get('.col-link-detail').contains(resourceName).should('be.visible');
-            cy.open3dotsMenu(resourceName, 'Edit Config');
+          // Add GitRepo by enabling 'correctDrift'
+          cy.fleetNamespaceToggle('fleet-default')
+          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift: 'yes' });
+          cy.clickButton('Create');
+          cy.checkGitRepoStatus(repoName, '1 / 1');
+          cy.accesMenuSelection(dsClusterName, resourceLocation, resourceType);
+          cy.nameSpaceMenuToggle(resourceNamespace);
+          cy.filterInSearchBox(resourceName);
+          cy.get('.col-link-detail').contains(resourceName).should('be.visible');
+          cy.open3dotsMenu(resourceName, 'Edit Config');
 
-            if (resourceType === 'ConfigMaps') {
-              cy.clickButton('Add');
-              cy.get('[data-testid="input-kv-item-key-1"]').eq(0).focus().type('test_key');
-              cy.get('div.code-mirror.as-text-area').eq(1).click().type("test_data_value");
-              cy.clickButton('Add');
-            }
-            else if (resourceType === 'Services') {
-              cy.get("input[type=number]").clear().type("6341");
-            }
+          if (resourceType === 'ConfigMaps') {
+            cy.clickButton('Add');
+            cy.get('[data-testid="input-kv-item-key-1"]').eq(0).focus().type('test_key');
+            cy.get('div.code-mirror.as-text-area').eq(1).click().type("test_data_value");
+            cy.clickButton('Add');
+          }
+          else if (resourceType === 'Services') {
+            cy.get("input[type=number]").clear().type("6341");
+          }
 
-            else  {
-              throw new Error(`Resource "${resourceType}" is invalid  / not implemented yet`);
-            }
+          else  {
+            throw new Error(`Resource "${resourceType}" is invalid  / not implemented yet`);
+          }
 
-            cy.wait(500);
-            cy.clickButton('Save');
-            cy.filterInSearchBox(resourceName);
-            cy.verifyTableRow(0, resourceName, dataToAssert);
-            // Any mutable resource will reconcile to it's original state immediately
-            // But with ConfigMaps and Services it is not because they are immutable i.e.
-            // They didn't reconciled when `correctDrift` is used.
-            cy.deleteAllFleetRepos();
-
-            // Delete leftover resources if there are any on each downstream cluster.
-            dsClusterList.forEach((dsClusterName) => {
-              cy.accesMenuSelection(dsClusterName, resourceLocation, resourceType);
-              cy.nameSpaceMenuToggle(resourceNamespace);
-              cy.filterInSearchBox(resourceName);
-              cy.deleteAll(false);
-            })
-          })
-        )
-      }
-    )
-  });
-}
+          cy.wait(500);
+          cy.clickButton('Save');
+          cy.filterInSearchBox(resourceName);
+          cy.verifyTableRow(0, resourceName, dataToAssert);
+          // Any mutable resource will reconcile to it's original state immediately
+          // But with ConfigMaps and Services it is not because they are immutable i.e.
+          // They didn't reconciled when `correctDrift` is used.
+          cy.deleteAllFleetRepos();
+        })
+      )
+    }
+  )
+});
