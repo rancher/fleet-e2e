@@ -439,14 +439,32 @@ describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled'
           cy.clickButton('Save');
           cy.filterInSearchBox(resourceName);
           cy.verifyTableRow(0, resourceName, dataToAssert);
+
+          // Adding more wait for 30seconds to capture the error if occurred after modifying the resources.
+          cy.wait(30000);
+          cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+          cy.verifyTableRow(0, 'Active', repoName);
+
+          // Check All clusters are in healthy state after performing any modification to the resources.
+          dsClusterList.forEach((dsClusterName) => {
+            // Adding wait to load page correctly to avoid interference with hamburger-menu.
+            cy.wait(500);
+            cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+            cy.contains('.title', 'Clusters').should('be.visible');
+            cy.filterInSearchBox(dsClusterName);
+            cy.verifyTableRow(0, 'Active', dsClusterName);
+          })
+
           // Any mutable resource will reconcile to it's original state immediately
-          // But with ConfigMaps and Services it is not because they are immutable i.e.
-          // They didn't reconciled when `correctDrift` is used.
+          // But with ConfigMaps and Services, it is not because they are immutable i.e.
+          // they didn't reconciled when `correctDrift` is enabled.
           cy.deleteAllFleetRepos();
 
           // Delete leftover resources if there are any on each downstream cluster.
           // Currently, service is getting deleted from cluster, hence adding check for it.
           dsClusterList.forEach((dsClusterName) => {
+            // Adding wait to load page correctly to avoid interference with hamburger-menu.
+            cy.wait(500);
             cy.accesMenuSelection(dsClusterName, "Service Discovery", "Services");
             cy.nameSpaceMenuToggle(resourceNamespace);
             cy.filterInSearchBox(resourceName);
