@@ -484,7 +484,7 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
       const value = 'value_prod'
       const clusterGroupName = 'cluster-group-env-prod'
       const dsClusterList = ["imported-0", "imported-1"]
-      const bannerMessageToAssert = 'Matches 2 of 3 existing clusters, including "imported-1"'
+      const bannerMessageToAssert = 'Matches 2 of 3 existing clusters, including "imported-0"'
 
       cy.accesMenuSelection('Continuous Delivery', 'Clusters');
       cy.contains('.title', 'Clusters').should('be.visible');
@@ -509,7 +509,18 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
       // Check application status on both clusters.
       dsClusterList.forEach(
         (dsClusterName) => {
-          cy.checkApplicationStatus(appName, dsClusterName);
+          // Adding wait to load page correctly to avoid interference with hamburger-menu.
+          cy.wait(500);
+          cy.checkApplicationStatus(appName, dsClusterName, 'All Namespaces');
+        }
+      )
+
+      // Remove labels from the clusters.
+      dsClusterList.forEach(
+        (dsClusterName) => {
+          // Adding wait to load page correctly to avoid interference with hamburger-menu.
+          cy.wait(500);
+          cy.removeClusterLabels(dsClusterName, key, value);
         }
       )
 

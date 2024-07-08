@@ -279,10 +279,11 @@ Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
 });
 
 // Check deployed application status (present or not)
-Cypress.Commands.add('checkApplicationStatus', (appName, clusterName='local') => {
+Cypress.Commands.add('checkApplicationStatus', (appName, clusterName='local', appNamespace='Only User Namespaces') => {
   cypressLib.burgerMenuToggle();
   cypressLib.accesMenu(clusterName);
   cy.clickNavMenu(['Workloads', 'Pods']);
+  cy.nameSpaceMenuToggle(appNamespace);
   cy.filterInSearchBox(appName);
   cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-0-row"]`)
@@ -445,4 +446,22 @@ Cypress.Commands.add('deleteClusterGroups', () => {
   cy.accesMenuSelection('Continuous Delivery', 'Cluster Groups');
   cy.fleetNamespaceToggle('fleet-default');
   cy.deleteAll(false);
+})
+
+// Remove added labels from the cluster(s)
+Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
+  cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+  cy.contains('.title', 'Clusters').should('be.visible');
+  cy.filterInSearchBox(clusterName);
+  cy.open3dotsMenu(clusterName, 'Edit Config');
+  cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
+  cy.wait(500);
+  cy.clickButton('Save');
+  cy.contains('Save').should('not.exist');
+
+  // Ensure label is removed.
+  cy.contains('.title', 'Clusters').should('be.visible');
+  cy.filterInSearchBox(clusterName);
+  cy.get('td.col-link-detail > span').contains(clusterName).click();
+  cy.get('div.tags > span').should("not.contain", `${key} : ${value}`);
 })
