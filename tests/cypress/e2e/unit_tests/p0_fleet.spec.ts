@@ -44,6 +44,8 @@ describe('Test Fleet deployment on PUBLIC repos',  { tags: '@p0' }, () => {
       cy.contains('apiVersion: fleet.cattle.io/v1alpha1').should('be.visible');
       cy.clickButton('Create')
       cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
+      // Click on "Resources" option
+      cy.get('a[data-testid="btn-resources"]').contains('Resources').should('be.visible').click();
       cy.verifyTableRow(1, 'Service', 'frontend');
       cy.verifyTableRow(3, 'Service', 'redis-master');
       cy.verifyTableRow(5, 'Service', 'redis-slave');
