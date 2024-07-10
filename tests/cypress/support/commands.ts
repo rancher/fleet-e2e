@@ -340,7 +340,7 @@ Cypress.Commands.add('assignRoleToUser', (userName, roleName) => {
   // Sortering by Age so first row is the desired user
   cy.contains('Age').should('be.visible').click();
   // Verifying name only given in 2.9 there is only icon
-  cy.verifyTableRow(0, userName, '');
+  cy.verifyTableRow(0, userName);
 })
 
 // Delete created user
