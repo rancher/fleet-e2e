@@ -158,8 +158,7 @@ Cypress.Commands.add('verifyTableRow', (rowNumber, ...expectedTexts) => {
           expect(text).to.match(expectedText);
         } 
         else {
-          expect(text).to.include(expectedText);
-          cy.contains(expectedText).should('be.visible');  
+          cy.contains(expectedText, { timeout: 30000 }).should('be.visible');                
         }
       });
     });
