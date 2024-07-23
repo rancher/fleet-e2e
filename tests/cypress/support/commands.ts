@@ -204,8 +204,12 @@ Cypress.Commands.add('filterInSearchBox', (filterText) => {
 
 // Go to specific Sub Menu from Access Menu
 Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery',secondAccessMenu, clickOption) => {
-  cypressLib.burgerMenuToggle( {animationDistanceThreshold: 10, force: true} );
+  // added wait of 500ms to make time for CSS transitions to resolve (addresses tests flakiness)
+  // unfortunately there's no "easy" way of waiting for transitions and 500ms is quick and does the trick
+  cypressLib.burgerMenuToggle( {animationDistanceThreshold: 10} );
   cy.wait(500);
+  cy.get('[data-testid="side-menu"]').should('have.class', 'menu-open');
+
   cy.contains(firstAccessMenu).should('be.visible');
   cypressLib.accesMenu(firstAccessMenu);
   if (secondAccessMenu) {
@@ -450,7 +454,16 @@ Cypress.Commands.add('deleteClusterGroups', () => {
 
 // Remove added labels from the cluster(s)
 Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
-  cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+  // Navigate to Clusters page when other navigation is present.
+  cy.get('body').then((body) => {
+    if (body.find('.title').text().includes('Clusters')) {
+      return true
+    }
+    else {
+      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+    }
+  })
+
   cy.contains('.title', 'Clusters').should('be.visible');
   cy.filterInSearchBox(clusterName);
   cy.open3dotsMenu(clusterName, 'Edit Config');
@@ -464,4 +477,7 @@ Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
   cy.filterInSearchBox(clusterName);
   cy.get('td.col-link-detail > span').contains(clusterName).click();
   cy.get('div.tags > span').should("not.contain", `${key} : ${value}`);
+
+  // Navigate back to all clusters page.
+  cy.clickNavMenu(['Clusters']);
 })
