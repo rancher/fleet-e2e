@@ -531,4 +531,52 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
       )
     })
   )
+
+  qase(26,
+    it("Fleet-26: Test install single application to the all defined clusters in the 'clusterGroup'", { tags: '@fleet-26' }, () => {
+      const repoName = 'default-single-app-cluster-group-26'
+      const path2 = 'multiple-paths/config'
+
+      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+      cy.contains('.title', 'Clusters').should('be.visible');
+
+      // Assign label to the clusters 
+      dsClusterList.forEach(
+        (dsClusterName) => {
+          cy.assignClusterLabel(dsClusterName, key, value);
+        }
+      )
+
+      // Create group of cluster consists of same label.
+      cy.clickNavMenu(['Cluster Groups']);
+      cy.contains('.title', 'Cluster Groups').should('be.visible');
+      cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
+
+      // Create a GitRepo targeting cluster group created.
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, path2, deployToTarget: clusterGroupName });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '2 / 2');
+
+      dsClusterList.forEach((dsClusterName) => {
+        // Check first application status on both clusters.
+        cy.checkApplicationStatus(appName, dsClusterName, 'All Namespaces');
+
+        // Check second application status on both clusters.
+        // Adding wait to load page correctly to avoid interference with hamburger-menu.
+        cy.wait(500);
+        cy.accesMenuSelection(dsClusterName, "Storage", "ConfigMaps");
+        cy.nameSpaceMenuToggle("test-fleet-mp-config");
+        cy.filterInSearchBox("mp-app-config");
+      })
+
+      // Remove labels from the clusters.
+      dsClusterList.forEach(
+        (dsClusterName) => {
+          // Adding wait to load page correctly to avoid interference with hamburger-menu.
+          cy.wait(500);
+          cy.removeClusterLabels(dsClusterName, key, value);
+        }
+      )
+    })
+  )
 });
