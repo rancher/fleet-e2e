@@ -557,16 +557,19 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
       cy.clickButton('Create');
       cy.checkGitRepoStatus(repoName, '2 / 2');
 
+      // Check first application status on both clusters.
       dsClusterList.forEach((dsCluster) => {
-        // Check first application status on both clusters.
         cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+      })
 
+      dsClusterList.forEach((dsCluster) => {
         // Check second application status on both clusters.
         // Adding wait to load page correctly to avoid interference with hamburger-menu.
         cy.wait(500);
         cy.accesMenuSelection(dsCluster, "Storage", "ConfigMaps");
         cy.nameSpaceMenuToggle("test-fleet-mp-config");
         cy.filterInSearchBox("mp-app-config");
+        cy.get('td.col-link-detail > span').contains("mp-app-config").click();
       })
 
       // Remove labels from the clusters.
