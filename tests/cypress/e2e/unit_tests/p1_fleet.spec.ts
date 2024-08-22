@@ -344,13 +344,13 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
   });
 }
 
-  describe('Test OCI support', { tags: '@p1'}, () => {
-    qase(60,
-      it("Fleet-60: Test OCI helm chart support on Github Container Registry", { tags: '@fleet-60' }, () => {;
-        const repoName = 'default-oci-60'
-        const repoUrl = 'https://github.com/rancher/fleet-test-data'
-        const branch = 'master'
-        const path = 'helm-oci'
+describe('Test OCI support', { tags: '@p1'}, () => {
+  qase(60,
+    it("Fleet-60: Test OCI helm chart support on Github Container Registry", { tags: '@fleet-60' }, () => {;
+      const repoName = 'default-oci-60'
+      const repoUrl = 'https://github.com/rancher/fleet-test-data'
+      const branch = 'master'
+      const path = 'helm-oci'
 
         cy.fleetNamespaceToggle('fleet-default');
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
@@ -580,13 +580,14 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
 
 describe('Test application deployment based on clusterGroup', { tags: '@p1'}, () => {
   const value = 'value_prod'
-
+  const new_key = 'key1_env'
+  const new_value = 'value1_test'
 
   beforeEach('Cleanup leftover GitRepo, ClusterGroup or label etc. if any.', () => {
     cy.login();
     cy.visit('/');
-    cy.deleteClusterGroups();
     cy.deleteAllFleetRepos();
+    cy.deleteClusterGroups();
   })
 
   const clusterGroup: testData[] = [
@@ -597,6 +598,14 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
     {
       qase_id: 27,
       test_explanation: "install existing application to the third cluster by adding it to the existing 'clusterGroup'",
+    },
+    {
+      qase_id: 28,
+      test_explanation: "remove existing application from cluster-2 by removing it from an existing clusterGroup",
+    },
+    {
+      qase_id: 29,
+      test_explanation: "install app to new set of clusters from old set of clusters using 'clusterGroup'.",
     },
   ]
 
@@ -634,6 +643,7 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
           )
 
           if (qase_id === 27) {
+            cy.wait(500);
             cy.accesMenuSelection('Continuous Delivery', 'Clusters');
             cy.contains('.title', 'Clusters').should('be.visible');
 
@@ -651,15 +661,60 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
             cy.removeClusterLabels(dsThirdClusterName, key, value);
           }
 
+          if (qase_id === 28) {
+            const dsSecondCluster = dsAllClusterList[1]
+            // Remove label from second cluster i.e. 'imported-1',
+            // so that it will be removed from clusterGroup.
+            cy.wait(500);
+            cy.removeClusterLabels(dsSecondCluster, key, value);
+
+            // Check application is removed from second cluster
+            cy.checkApplicationStatus(appName, dsSecondCluster, 'All Namespaces', false);
+          }
+
+          if (qase_id === 29) {
+            const newBannerMessageToAssert = `Matches 1 of 3 existing clusters: "${dsThirdClusterName}"`
+            // Add different label to the third cluster.
+            cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+            cy.contains('.title', 'Clusters').should('be.visible');
+            cy.assignClusterLabel(dsThirdClusterName, new_key, new_value);
+
+            // Update clusterGroup with new label which lists Third cluster.
+            cy.clickNavMenu(['Cluster Groups']);
+            cy.createClusterGroup(clusterGroupName, new_key, new_value, newBannerMessageToAssert, true);
+
+            // Check application removed from both clusters.
+            dsFirstTwoClusterList.forEach(
+              (dsCluster) => {
+              cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces', false);
+            })
+
+            // Check application installed on updated clusterGroup's cluster,
+            // i.e. third cluster.
+            cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
+
+            // Remove label from the third cluster.
+            cy.wait(500);
+            cy.removeClusterLabels(dsThirdClusterName, new_key, new_value);
+          }
+
+          if (qase_id === 28) {
+            cy.wait(500);
+            // As per test Fleet-28, we remove label from the imported-1 cluster
+            // in previous check.
+            // Remove label from only first cluster i.e. imported-0.
+            cy.removeClusterLabels(dsFirstClusterName, key, value);
+          }
           // Remove labels from the clusters.
-          dsFirstTwoClusterList.forEach(
-            (dsCluster) => {
-              // Adding wait to load page correctly to avoid interference with hamburger-menu.
-              cy.wait(500);
-              cy.removeClusterLabels(dsCluster, key, value);
-            }
-          )
-          cy.deleteClusterGroups();
+          else {
+            dsFirstTwoClusterList.forEach(
+              (dsCluster) => {
+                // Adding wait to load page correctly to avoid interference with hamburger-menu.
+                cy.wait(500);
+                cy.removeClusterLabels(dsCluster, key, value);
+              }
+            )
+          }
         })
       )
     }
@@ -718,7 +773,6 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
 });
 
 describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1'}, () => {
-  const key = 'key_env'
   const value = 'value_testing'
   let gitRepoFile
 

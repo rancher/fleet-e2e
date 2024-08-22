@@ -32,7 +32,7 @@ declare global {
       deleteAll(fleetCheck?: boolean): Chainable<Element>;
       deleteAllFleetRepos(): Chainable<Element>;
       checkGitRepoStatus(repoName: string, bundles?: string, resources?: string): Chainable<Element>;
-      checkApplicationStatus(appName: string, clusterName?: string, appNamespace?: string): Chainable<Element>;
+      checkApplicationStatus(appName: string, clusterName?: string, appNamespace?: string, present?: boolean): Chainable<Element>;
       deleteApplicationDeployment(clusterName?: string): Chainable<Element>;
       modifyDeployedApplication(appName: string, clusterName?: string): Chainable<Element>;
       createRoleTemplate(roleType: string, roleName: string, newUserDefault?: string['yes'|'no'], rules?: string[]): Chainable<Element>;
@@ -44,7 +44,7 @@ declare global {
       allowRancherPreReleaseVersions(): Chainable<Element>;
       upgradeFleet(): Chainable<Element>;
       assignClusterLabel(clusterName: string, key: string, value: string): Chainable<Element>;
-      createClusterGroup(clusterGroupName: string, key: string, value: string, bannerMessageToAssert: string|RegExp, assignClusterGroupLabel?: boolean, clusterGroupLabelKey?: string, clusterGroupLabelValue?: string): Chainable<Element>;
+      createClusterGroup(clusterGroupName: string, key: string, value: string, bannerMessageToAssert: string|RegExp, edit?: boolean, assignClusterGroupLabel?: boolean, clusterGroupLabelKey?: string, clusterGroupLabelValue?: string): Chainable<Element>;
       deleteClusterGroups(): Chainable<Element>;
       deployToClusterOrClusterGroup(deployToTarget: string): Chainable<Element>;
       removeClusterLabels(clusterName: string, key: string, value: string): Chainable<Element>;

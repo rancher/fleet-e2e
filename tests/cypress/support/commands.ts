@@ -17,6 +17,8 @@ limitations under the License.
 import 'cypress-file-upload';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 
+export const noRowsMessages = ['There are no rows to show.', 'There are no rows which match your search query.']
+
 // Generic commands
 
 // Fleet commands
@@ -236,7 +238,6 @@ Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery
   cy.contains(firstAccessMenu).should('be.visible');
   cypressLib.accesMenu(firstAccessMenu);
   if (secondAccessMenu) {
-    cy.contains(secondAccessMenu).should('be.visible');
     cypressLib.accesMenu(secondAccessMenu);
   };
   if (clickOption) {
@@ -256,7 +257,6 @@ Cypress.Commands.add('fleetNamespaceToggle', (toggleOption='local') => {
 // Note: This function may be substituted by 'cypressLib.deleteAllResources' 
 // when hardcoded texts present can be parameterized
 Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
-  const noRowsMessages = ['There are no rows to show.', 'There are no rows which match your search query.']
   cy.get('body').then(($body) => {
     if ($body.text().includes('Delete')) {
       cy.wait(250) // Add small wait to give time for things to settle
@@ -306,14 +306,21 @@ Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
 });
 
 // Check deployed application status (present or not)
-Cypress.Commands.add('checkApplicationStatus', (appName, clusterName='local', appNamespace='Only User Namespaces') => {
+Cypress.Commands.add('checkApplicationStatus', (appName, clusterName='local', appNamespace='Only User Namespaces', present=true) => {
   cy.accesMenuSelection(clusterName, 'Workloads', 'Pods');
   cy.nameSpaceMenuToggle(appNamespace);
   cy.filterInSearchBox(appName);
-  cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
-  cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-0-row"]`)
-    .children({ timeout: 60000 })
-    .should('contain.text', appName);
+  cy.wait(500);
+  if (present === true) {
+    cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
+    cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-0-row"]`)
+      .children({ timeout: 60000 })
+      .should('contain.text', appName);
+  } 
+  else {
+    cy.get('td > span, td.text-center > span').invoke('text').should('be.oneOf', noRowsMessages);
+    cy.log("Application not found.");
+  }
 });
 
 // Delete the leftover applications
@@ -493,22 +500,31 @@ Cypress.Commands.add('assignClusterLabel', (clusterName, key, value) => {
 })
 
 // Create clusterGroup based on label assigned to the cluster
-Cypress.Commands.add('createClusterGroup', (clusterGroupName, key, value, bannerMessageToAssert, assignClusterGroupLabel=false, clusterGroupLabelKey, clusterGroupLabelValue) => {
+Cypress.Commands.add('createClusterGroup', (clusterGroupName, key, value, bannerMessageToAssert, edit=false, assignClusterGroupLabel=false, clusterGroupLabelKey, clusterGroupLabelValue) => {
   cy.fleetNamespaceToggle('fleet-default');
-  cy.clickButton('Create');
-  cy.get('input[placeholder="A unique name"]').type(clusterGroupName);
-  cy.clickButton('Add Rule');
-  cy.get('[data-testid="input-match-expression-key-control-0"]').focus().type(key);
-  cy.get('[data-testid="input-match-expression-values-control-0"]').type(value);
-  cy.contains(bannerMessageToAssert).should('be.visible');
-  if (assignClusterGroupLabel === true) {
-    cy.clickButton('Add Label');
-    cy.get('[data-testid="input-kv-item-key-0"]').focus().type(clusterGroupLabelKey);
-    cy.get('[data-testid="value-multiline"]').type(clusterGroupLabelValue);
-    cy.wait(500);
+  if (edit === true) {
+    cy.open3dotsMenu(clusterGroupName, 'Edit Config');
+    cy.get('[data-testid="input-match-expression-key-control-0"]').focus().clear().type(key);
+    cy.get('[data-testid="input-match-expression-values-control-0"]').clear().type(value);
+    cy.contains(bannerMessageToAssert).should('be.visible');
+    cy.clickButton('Save');
   }
-  cy.clickButton('Create');
-  cy.verifyTableRow(0, 'Active', clusterGroupName);
+  else {
+    cy.clickButton('Create');
+    cy.get('input[placeholder="A unique name"]').type(clusterGroupName);
+    cy.clickButton('Add Rule');
+    cy.get('[data-testid="input-match-expression-key-control-0"]').focus().type(key);
+    cy.get('[data-testid="input-match-expression-values-control-0"]').type(value);
+    cy.contains(bannerMessageToAssert).should('be.visible');
+    if (assignClusterGroupLabel === true) {
+      cy.clickButton('Add Label');
+      cy.get('[data-testid="input-kv-item-key-0"]').focus().type(clusterGroupLabelKey);
+      cy.get('[data-testid="value-multiline"]').type(clusterGroupLabelValue);
+      cy.wait(500);
+    }
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', clusterGroupName);
+  }
 })
 
 // Show cluster count in the clusterGroup
@@ -540,16 +556,8 @@ Cypress.Commands.add('deleteClusterGroups', () => {
 
 // Remove added labels from the cluster(s)
 Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
-  // Navigate to Clusters page when other navigation is present.
-  cy.get('body').then((body) => {
-    if (body.find('.title').text().includes('Clusters')) {
-      return true
-    }
-    else {
-      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-    }
-  })
 
+  cy.accesMenuSelection('Continuous Delivery', 'Clusters');
   cy.contains('.title', 'Clusters').should('be.visible');
   cy.filterInSearchBox(clusterName);
   cy.open3dotsMenu(clusterName, 'Edit Config');
@@ -557,6 +565,7 @@ Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
   cy.wait(500);
   cy.clickButton('Save');
   cy.contains('Save').should('not.exist');
+  cy.clickNavMenu(['Clusters']);
 
   // Ensure label is removed.
   cy.contains('.title', 'Clusters').should('be.visible');
