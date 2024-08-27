@@ -481,14 +481,16 @@ describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled'
 describe('Test application deployment based on clusterGroup', { tags: '@p1'}, () => {
   const key = 'key_env'
   const value = 'value_prod'
+  const new_key = 'key1_env'
+  const new_value = 'value1_test'
   const clusterGroupName = 'cluster-group-env-prod'
   const bannerMessageToAssert = /Matches 2 of 3 existing clusters, including "imported-\d"/
 
   beforeEach('Cleanup leftover GitRepo if any.', () => {
     cy.login();
     cy.visit('/');
-    cy.deleteClusterGroups();
     cy.deleteAllFleetRepos();
+    cy.deleteClusterGroups();
   })
 
   const clusterGroup: testData[] = [
@@ -606,6 +608,68 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
         cy.filterInSearchBox("mp-app-config");
         cy.get('td.col-link-detail > span').contains("mp-app-config").click();
       })
+
+      // Remove labels from the clusters.
+      dsClusterList.forEach(
+        (dsCluster) => {
+          // Adding wait to load page correctly to avoid interference with hamburger-menu.
+          cy.wait(500);
+          cy.removeClusterLabels(dsCluster, key, value);
+        }
+      )
+    })
+  )
+
+  qase(29,
+    it("Fleet-29: Test install app to new set of clusters from old set of clusters using 'clusterGroup'.", { tags: '@fleet-29' }, () => {
+      const repoName = 'default-single-app-cluster-group-29'
+      const newBannerMessageToAssert = `Matches 1 of 3 existing clusters: "${dsThirdClusterName}"`
+      const edit = true
+
+      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+      cy.contains('.title', 'Clusters').should('be.visible');
+
+      // Assign label to the clusters 
+      dsClusterList.forEach(
+        (dsCluster) => {
+          cy.assignClusterLabel(dsCluster, key, value);
+        }
+      )
+
+      // Create group of cluster consists of same label.
+      cy.clickNavMenu(['Cluster Groups']);
+      cy.contains('.title', 'Cluster Groups').should('be.visible');
+      cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
+
+      // Create a GitRepo targeting cluster group created.
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, deployToTarget: clusterGroupName });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1');
+
+      // Check application status on both clusters.
+      dsClusterList.forEach((dsCluster) => {
+        cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+      })
+
+      // Add different label to the third cluster.
+      cy.assignClusterLabel(dsThirdClusterName, new_key, new_value);
+
+      // Update clusterGroup with new label which lists Third cluster.
+      cy.clickNavMenu(['Cluster Groups']);
+      cy.createClusterGroup(clusterGroupName, new_key, new_value, newBannerMessageToAssert, edit);
+
+      // Check application removed from both clusters.
+      dsClusterList.forEach((dsCluster) => {
+        cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+      })
+
+      // Check application installed on updated clusterGroup's cluster,
+      // i.e. third cluster.
+      cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
+
+      // Remove label from the third cluster.
+      cy.wait(500);
+      cy.removeClusterLabels(dsThirdClusterName, new_key, new_value);
 
       // Remove labels from the clusters.
       dsClusterList.forEach(

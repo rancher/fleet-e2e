@@ -80,7 +80,15 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
 // Command add and edit Fleet Git Repository
 // TODO: Rename this command name to 'addEditFleetGitRepo'
 Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget }) => {
-  cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+  // Navigate to Clusters page when other navigation is present.
+  cy.get('body').then((body) => {
+    if (body.find('.title').text().includes('Git Repo:')) {
+      return true
+    }
+    else {
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+    }
+  })
   if (editConfig === true) {
     cy.fleetNamespaceToggle(fleetNamespace);
     cy.verifyTableRow(0, /Active|Modified/, repoName);
@@ -457,8 +465,19 @@ Cypress.Commands.add('upgradeFleet', () => {
   cy.contains('SUCCESS: helm upgrade', { timeout: 60000 }).should('be.visible');
   cy.screenshot('Screenshot Fleet upgraded');
 });
+
 // Add label to the imported cluster(s)
 Cypress.Commands.add('assignClusterLabel', (clusterName, key, value) => {
+  // Navigate to Clusters page when other navigation is present.
+  cy.get('body').then((body) => {
+    if (body.find('.title').text().includes('Clusters')) {
+      return true
+    }
+    else {
+      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+    }
+  })
+
   cy.filterInSearchBox(clusterName);
   cy.open3dotsMenu(clusterName, 'Edit Config');
   cy.clickButton('Add Label');
@@ -470,16 +489,25 @@ Cypress.Commands.add('assignClusterLabel', (clusterName, key, value) => {
 })
 
 // Create clusterGroup based on label assigned to the cluster
-Cypress.Commands.add('createClusterGroup', (clusterGroupName, key, value, bannerMessageToAssert) => {
+Cypress.Commands.add('createClusterGroup', (clusterGroupName, key, value, bannerMessageToAssert, edit=false) => {
   cy.fleetNamespaceToggle('fleet-default');
-  cy.clickButton('Create');
-  cy.get('input[placeholder="A unique name"]').type(clusterGroupName);
-  cy.clickButton('Add Rule');
-  cy.get('[data-testid="input-match-expression-key-control-0"]').focus().type(key);
-  cy.get('[data-testid="input-match-expression-values-control-0"]').type(value);
-  cy.contains(bannerMessageToAssert).should('be.visible');
-  cy.clickButton('Create');
-  cy.verifyTableRow(0, 'Active', clusterGroupName);
+  if (edit === true) {
+    cy.open3dotsMenu(clusterGroupName, 'Edit Config');
+    cy.get('[data-testid="input-match-expression-key-control-0"]').focus().clear().type(key);
+    cy.get('[data-testid="input-match-expression-values-control-0"]').clear().type(value);
+    cy.contains(bannerMessageToAssert).should('be.visible');
+    cy.clickButton('Save');
+  }
+  else {
+    cy.clickButton('Create');
+    cy.get('input[placeholder="A unique name"]').type(clusterGroupName);
+    cy.clickButton('Add Rule');
+    cy.get('[data-testid="input-match-expression-key-control-0"]').focus().type(key);
+    cy.get('[data-testid="input-match-expression-values-control-0"]').type(value);
+    cy.contains(bannerMessageToAssert).should('be.visible');
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', clusterGroupName);
+  }
 })
 
 // Show cluster count in the clusterGroup
