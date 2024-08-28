@@ -742,3 +742,63 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1'
     )
   })
 });
+
+describe.only('Test with disablePolling', { tags: '@p1'}, () => {
+  qase(124,
+    
+    it.only("Fleet-124: Test when `disablePolling=true` Gitrepo will not sync latest changes from Github", { tags: '@fleet-124' }, () => {
+      const gh_private_pwd = Cypress.env("gh_private_pwd")
+
+      // // Get to gitrepo step by step
+      cy.fleetNamespaceToggle('fleet-local')
+      cy.clickNavMenu(['Git Repos']);
+      cy.wait(500);
+      cy.clickButton('Add Repository');
+      cy.contains('Git Repo:').should('be.visible');
+      
+      // Pass YAML file (no previous additions of Name, urls or paths)
+      cy.clickButton('Edit as YAML');
+      cy.readFile('assets/disable_polling.yaml').then((content) => {
+        cy.get('.CodeMirror').then((codeMirrorElement) => {
+          const cm = (codeMirrorElement[0] as any).CodeMirror;
+          cm.setValue(content);
+        });
+      })
+      cy.clickButton('Create');
+
+      // Check gitrepo status is ok 
+      cy.checkGitRepoStatus('test-disable-polling', '1 / 1', '1 / 1');
+
+      // Change Github
+      cy.exec(
+        `
+        echo "Cloning Repo"
+        git clone https://fleetqa:${gh_private_pwd}@github.com/fleetqa/fleet-qa-examples-public.git --branch=main fleet-qa-examples-public
+        sleep 5
+        `      
+      ).then((result) => {cy.log(result.stdout, result.stderr);
+      })
+
+      cy.exec(
+        `
+        echo "Ensuring replicas is 2"
+        sed -i 's/replicas: ..*/replicas: 2/g' $PWD/fleet-qa-examples-public/disable-polling/nginx.yaml
+        `      
+      ).then((result) => {cy.log(result.stdout, result.stderr);
+      })
+
+      cy.exec(
+        `
+        cd fleet-qa-examples-public/disable-polling
+        echo -e "Current directory is: $PWD"
+        echo -e "Making Commit"
+        git add nginx.yaml
+        git commit -m 'Ensuring initial number of replicas is 3'
+        echo -e "Pushing"
+        git push -u origin main
+        `      
+      ).then((result) => {cy.log(result.stdout, result.stderr);
+      })
+    })
+  )
+})

@@ -1,0 +1,29 @@
+apiVersion: fleet.cattle.io/v1alpha1
+kind: GitRepo
+metadata:
+  name: test-disable-polling
+  annotations:
+    {}
+    #  key: string
+  labels:
+    {}
+    #  key: string
+  namespace: fleet-local
+spec:
+  branch: master
+  correctDrift:
+    enabled: false
+  insecureSkipTLSVerify: false
+  paths:
+    - qa-test-apps/nginx-app
+#    - string
+  repo: https://github.com/rancher/fleet-test-data
+  disablePolling: true
+  targets:
+    - clusterSelector:
+        matchExpressions:
+          - key: provider.cattle.io
+            operator: NotIn
+            values:
+              - harvester
+__clone: true
