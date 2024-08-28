@@ -746,7 +746,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1'
 describe('Test with disablePolling', { tags: '@p1'}, () => {
   qase(124,
     
-    it.skip("Fleet-124: Test when `disablePolling=true` Gitrepo will not sync latest changes from Github", { tags: '@fleet-124' }, () => {
+    it("Fleet-124: Test when `disablePolling=true` Gitrepo will not sync latest changes from Github", { tags: '@fleet-124' }, () => {
       const gh_private_pwd = Cypress.env("gh_private_pwd")
 
       // // Get to gitrepo step by step
