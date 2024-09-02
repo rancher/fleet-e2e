@@ -749,7 +749,7 @@ describe('Test with disablePolling', { tags: '@p1'}, () => {
     it("Fleet-124: Test when `disablePolling=true` Gitrepo will not sync latest changes from Github", { tags: '@fleet-124' }, () => {
       const gh_private_pwd = Cypress.env("gh_private_pwd")
 
-      // // Get to gitrepo step by step
+      // Get to gitrepo step by step
       cy.fleetNamespaceToggle('fleet-local')
       cy.clickNavMenu(['Git Repos']);
       cy.wait(500);
@@ -769,35 +769,58 @@ describe('Test with disablePolling', { tags: '@p1'}, () => {
       // Check gitrepo status is ok 
       cy.checkGitRepoStatus('test-disable-polling', '1 / 1', '1 / 1');
 
-      // Change Github
+      // Change Github  
+      cy.task('log', 'STARTING CLONING REPO')
       cy.exec(
         `
-        echo "Cloning Repo"
-        git clone https://fleetqa:${gh_private_pwd}@github.com/fleetqa/fleet-qa-examples-public.git --branch=main fleet-qa-examples-public
+        git clone https://fleetqa:${gh_private_pwd}@github.com/fleetqa/fleet-qa-examples-public.git --branch=main $PWD/fleet-qa-examples-public
         sleep 5
-        `      
-      ).then((result) => {cy.log(result.stdout, result.stderr);
-      })
+        `
+      ).then((result) => {
+        // cy.log(result.stdout, result.stderr, result.code);
+        if (result.stderr.includes("fatal:")) {
+          cy.task("log", "Repo already cloned, failing test");
+          cy.then(() => {
+            throw new Error("REPO ALREADY EXISTS", result.stderr);
+          });
+        } else cy.task("log", ["Repo cloned completed", result.stdout]);
+      });
 
+      // Confirm cloned repo is present
+      cy.task('log', 'CONFIRMING IF REPO EXISTS')
       cy.exec(
         `
-        echo "Ensuring replicas is 2"
+        find -path "*fleet-qa-examples-public/disable-polling"
+        `).then(
+        (result) => {
+          if (
+            result.stdout.includes("/fleet-qa-examples-public/disable-polling")
+          ) {
+            cy.then(() => {
+              cy.task("log", `Cloned repo at: ${result.stdout}`);
+            });
+          } else throw new Error("Repo not in path", result.stderr);
+        }
+      );
+
+      cy.task('log', 'Ensuring replicas is 2');
+      cy.exec(
+        `
         sed -i 's/replicas: ..*/replicas: 2/g' $PWD/fleet-qa-examples-public/disable-polling/nginx.yaml
         `      
-      ).then((result) => {cy.log(result.stdout, result.stderr);
-      })
+      ).its('code').should('eq', 0);
 
+      cy.task('log', 'Pushing changes to remote repo');
       cy.exec(
         `
-        cd fleet-qa-examples-public/disable-polling
-        echo -e "Current directory is: $PWD"
-        echo -e "Making Commit"
+        cd $PWD/fleet-qa-examples-public/disable-polling
         git add nginx.yaml
-        git commit -m 'Ensuring initial number of replicas is 3'
+        git commit -m 'Ensuring initial number of replicas is 2'
         echo -e "Pushing"
         git push -u origin main
+        echo -e "Commit Pushed"
         `      
-      ).then((result) => {cy.log(result.stdout, result.stderr);
+      ).then((result) => {cy.log(result.stdout, result.stderr);  cy.task('log', result.stdout);
       })
     })
   )
