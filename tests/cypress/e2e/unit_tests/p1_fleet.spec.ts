@@ -813,10 +813,12 @@ describe('Test with disablePolling', { tags: '@p1'}, () => {
       cy.task('log', 'Pushing changes to remote repo');
       cy.exec(
         `
+        git config --global --add safe.directory $PWD/fleet-qa-examples-public
         cd $PWD/fleet-qa-examples-public/disable-polling
+        git config user.email "fleet.qa.team@gmail.com"
+        git config user.name "fleetqa"
         git add nginx.yaml
         git commit -m 'Ensuring initial number of replicas is 2'
-        echo -e "Pushing"
         git push -u origin main
         echo -e "Commit Pushed"
         `      
