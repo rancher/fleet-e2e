@@ -774,7 +774,6 @@ describe('Test with disablePolling', { tags: '@p1'}, () => {
       cy.exec(
         `
         git clone https://fleetqa:${gh_private_pwd}@github.com/fleetqa/fleet-qa-examples-public.git --branch=main $PWD/fleet-qa-examples-public
-        sleep 5
         `
       ).then((result) => {
         // cy.log(result.stdout, result.stderr, result.code);
@@ -813,7 +812,6 @@ describe('Test with disablePolling', { tags: '@p1'}, () => {
       cy.task('log', 'Pushing changes to remote repo');
       cy.exec(
         `
-        git config --global --add safe.directory $PWD/fleet-qa-examples-public
         cd $PWD/fleet-qa-examples-public/disable-polling
         git config user.email "fleet.qa.team@gmail.com"
         git config user.name "fleetqa"
