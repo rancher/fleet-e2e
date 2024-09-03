@@ -743,7 +743,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1'
   })
 });
 
-describe.only('Test with disablePolling', { tags: '@p1'}, () => {
+describe('Test with disablePolling', { tags: '@p1'}, () => {
   
   beforeEach("Ensuring Github repo has desired amount of replicas (2)", () => {
 
