@@ -744,11 +744,49 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1'
 });
 
 describe('Test with disablePolling', { tags: '@p1'}, () => {
-  qase(124,
-    
-    it("Fleet-124: Test when `disablePolling=true` Gitrepo will not sync latest changes from Github", { tags: '@fleet-124' }, () => {
-      const gh_private_pwd = Cypress.env("gh_private_pwd")
+  
+  beforeEach("Ensuring Github repo has defined amount of replicas", () => {
+    const gh_private_pwd = Cypress.env("gh_private_pwd")
+    cy.exec(
+      `
+      echo -e "Cloning repo"
+      git clone https://fleetqa:${gh_private_pwd}@github.com/fleetqa/fleet-qa-examples-public.git --branch=main $PWD/fleet-qa-examples-public
 
+      echo -e "Confirming repo exist in path"
+
+      test -e "$PWD/fleet-qa-examples-public/disable-polling"
+      if [ $? -ne 0 ]; then
+        echo "Error: path $PWD/fleet-qa-examples-public/disable-polling does not exist"
+        exit 1
+      fi
+
+      echo -e "Ensuring replicas is 2"
+      sed -i 's/replicas: ..*/replicas: 2/g' $PWD/fleet-qa-examples-public/disable-polling/nginx.yaml
+
+      echo -e "Commiting and pushing if needed "
+      cd $PWD/fleet-qa-examples-public/disable-polling
+      git config user.email "fleet.qa.team@gmail.com"
+      git config user.name "fleetqa"
+      git add nginx.yaml
+
+      if ! git diff --quiet origin/main; 
+      then
+        echo "Changes detected from original repo. Changing replicas to 2"
+        git commit -m 'Ensuring initial number of replicas is 2'
+        git push -u origin main
+      else
+        echo -e "Nothing to push, done"
+      fi 
+    `
+    ).then((result) => {
+      cy.log(result.stdout, result.stderr);
+      cy.task("log", result.stdout);
+    });
+  });
+  
+  qase(124,
+    it("Fleet-124: Test when `disablePolling=true` Gitrepo will not sync latest changes from Github", { tags: '@fleet-124' }, () => {
+  
       // Get to gitrepo step by step
       cy.fleetNamespaceToggle('fleet-local')
       cy.clickNavMenu(['Git Repos']);
@@ -769,59 +807,35 @@ describe('Test with disablePolling', { tags: '@p1'}, () => {
       // Check gitrepo status is ok 
       cy.checkGitRepoStatus('test-disable-polling', '1 / 1', '1 / 1');
 
-      // Change Github  
-      cy.task('log', 'STARTING CLONING REPO')
+      // Change replicas to 5
       cy.exec(
         `
-        git clone https://fleetqa:${gh_private_pwd}@github.com/fleetqa/fleet-qa-examples-public.git --branch=main $PWD/fleet-qa-examples-public
-        `
-      ).then((result) => {
-        // cy.log(result.stdout, result.stderr, result.code);
-        if (result.stderr.includes("fatal:")) {
-          cy.task("log", "Repo already cloned, failing test");
-          cy.then(() => {
-            throw new Error("REPO ALREADY EXISTS", result.stderr);
-          });
-        } else cy.task("log", ["Repo cloned completed", result.stdout]);
-      });
-
-      // Confirm cloned repo is present
-      cy.task('log', 'CONFIRMING IF REPO EXISTS')
-      cy.exec(
-        `
-        find -path "*fleet-qa-examples-public/disable-polling"
-        `).then(
-        (result) => {
-          if (
-            result.stdout.includes("/fleet-qa-examples-public/disable-polling")
-          ) {
-            cy.then(() => {
-              cy.task("log", `Cloned repo at: ${result.stdout}`);
-            });
-          } else throw new Error("Repo not in path", result.stderr);
-        }
-      );
-
-      cy.task('log', 'Ensuring replicas is 2');
-      cy.exec(
-        `
-        sed -i 's/replicas: ..*/replicas: 2/g' $PWD/fleet-qa-examples-public/disable-polling/nginx.yaml
-        `      
-      ).its('code').should('eq', 0);
-
-      cy.task('log', 'Pushing changes to remote repo');
-      cy.exec(
-        `
+        echo -e "Ensuring replicas is 5"
+        sed -i 's/replicas: ..*/replicas: 5/g' $PWD/fleet-qa-examples-public/disable-polling/nginx.yaml
+  
+        echo -e "Commiting and pushing if needed "
         cd $PWD/fleet-qa-examples-public/disable-polling
-        git config user.email "fleet.qa.team@gmail.com"
-        git config user.name "fleetqa"
         git add nginx.yaml
-        git commit -m 'Ensuring initial number of replicas is 2'
-        git push -u origin main
-        echo -e "Commit Pushed"
-        `      
-      ).then((result) => {cy.log(result.stdout, result.stderr);  cy.task('log', result.stdout);
-      })
+  
+        if ! git diff --quiet origin/main; 
+        then
+          echo "Changes detected from original repo. Changing replicas to 5"
+          git commit -m 'Ensuring initial number of replicas is 5'
+          git push -u origin main
+        else
+          echo -e "Nothing to push, done"
+        fi 
+      `
+      ).then((result) => {
+        cy.log(result.stdout, result.stderr);
+        cy.task("log", result.stdout);
+      });
+    
+      // Verify deployment is 2 despite having changed to 5 in original repo
+      cy.accesMenuSelection('local', 'Workloads', 'Deployments');
+      cy.filterInSearchBox('nginx-test-polling');
+      cy.verifyTableRow(0, 'Active', '2/2');
+
     })
   )
 })

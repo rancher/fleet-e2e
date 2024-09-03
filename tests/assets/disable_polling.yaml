@@ -10,14 +10,14 @@ metadata:
     #  key: string
   namespace: fleet-local
 spec:
-  branch: master
+  branch: main
   correctDrift:
     enabled: false
   insecureSkipTLSVerify: false
   paths:
-    - qa-test-apps/nginx-app
+    - disable-polling
 #    - string
-  repo: https://github.com/rancher/fleet-test-data
+  repo: https://github.com/fleetqa/fleet-qa-examples-public
   disablePolling: true
   targets:
     - clusterSelector:
