@@ -743,7 +743,8 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1'
   })
 });
 
-describe('Test with disablePolling', { tags: '@p1'}, () => {
+if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
+  describe('Test with disablePolling', { tags: '@p1'}, () => {
   
   beforeEach("Ensuring Github repo has desired amount of replicas (2)", () => {
 
@@ -782,3 +783,4 @@ describe('Test with disablePolling', { tags: '@p1'}, () => {
     })
   )
 })
+}

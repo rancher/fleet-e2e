@@ -2,12 +2,6 @@ apiVersion: fleet.cattle.io/v1alpha1
 kind: GitRepo
 metadata:
   name: test-disable-polling
-  annotations:
-    {}
-    #  key: string
-  labels:
-    {}
-    #  key: string
   namespace: fleet-local
 spec:
   branch: main
@@ -16,7 +10,6 @@ spec:
   insecureSkipTLSVerify: false
   paths:
     - disable-polling
-#    - string
   repo: https://github.com/fleetqa/fleet-qa-examples-public
   disablePolling: true
   targets:
