@@ -745,15 +745,16 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1'
 
 describe('Test with disablePolling', { tags: '@p1'}, () => {
   
-  beforeEach("Ensuring Github repo has defined amount of replicas", () => {
+  beforeEach("Ensuring Github repo has desired amount of replicas (2)", () => {
+
     const gh_private_pwd = Cypress.env("gh_private_pwd")
+
     cy.exec(
       `
       echo -e "Cloning repo"
       git clone https://fleetqa:${gh_private_pwd}@github.com/fleetqa/fleet-qa-examples-public.git --branch=main $PWD/fleet-qa-examples-public
 
       echo -e "Confirming repo exist in path"
-
       test -e "$PWD/fleet-qa-examples-public/disable-polling"
       if [ $? -ne 0 ]; then
         echo "Error: path $PWD/fleet-qa-examples-public/disable-polling does not exist"
@@ -787,24 +788,12 @@ describe('Test with disablePolling', { tags: '@p1'}, () => {
   qase(124,
     it("Fleet-124: Test when `disablePolling=true` Gitrepo will not sync latest changes from Github", { tags: '@fleet-124' }, () => {
   
-      // Get to gitrepo step by step
       cy.fleetNamespaceToggle('fleet-local')
-      cy.clickNavMenu(['Git Repos']);
-      cy.wait(500);
       cy.clickButton('Add Repository');
-      cy.contains('Git Repo:').should('be.visible');
-      
       // Pass YAML file (no previous additions of Name, urls or paths)
       cy.clickButton('Edit as YAML');
-      cy.readFile('assets/disable_polling.yaml').then((content) => {
-        cy.get('.CodeMirror').then((codeMirrorElement) => {
-          const cm = (codeMirrorElement[0] as any).CodeMirror;
-          cm.setValue(content);
-        });
-      })
+      cy.addYamlFile('assets/disable_polling.yaml');
       cy.clickButton('Create');
-
-      // Check gitrepo status is ok 
       cy.checkGitRepoStatus('test-disable-polling', '1 / 1', '1 / 1');
 
       // Change replicas to 5
@@ -835,7 +824,6 @@ describe('Test with disablePolling', { tags: '@p1'}, () => {
       cy.accesMenuSelection('local', 'Workloads', 'Deployments');
       cy.filterInSearchBox('nginx-test-polling');
       cy.verifyTableRow(0, 'Active', '2/2');
-
     })
   )
 })
