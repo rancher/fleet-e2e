@@ -1,10 +1,9 @@
 #!/bin/bash
 
-set -x
+set -ex
 
 echo -e "Cloning repo"
-git clone "https://fleetqa:$gh_private_pwd@github.com/fleetqa/fleet-qa-examples-public.git" --branch=main "$PWD/fleet-qa-examples-public"
-echo $gh_private_pwd
+git clone "https://fleetqa:${gh_private_pwd}@github.com/fleetqa/fleet-qa-examples-public.git" --branch=main "$PWD/fleet-qa-examples-public"
 
 echo -e "Confirming repo exist in path"
 test -e "$PWD/fleet-qa-examples-public/disable-polling"
