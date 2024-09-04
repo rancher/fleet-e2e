@@ -750,12 +750,9 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
   
   beforeEach("Ensuring Github repo has desired amount of replicas (2)", () => {
   
-    cy.exec('bash assets/disable_polling_reset_2_replicas.sh', { env: { gh_private_pwd } }).then((result) => {
-        if (result.code = 0) {
-          cy.task("log", [ result.stdout]);
-        }
-        else cy.task("log", [result.stderr]);
-        }
+    cy.exec('bash assets/disable_polling_reset_2_replicas.sh', { env: { gh_private_pwd }}).then((result) => {
+      cy.log(result.stdout, result.stderr);
+      }
     );
   });
   
@@ -773,7 +770,7 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
       // Change replicas to 5
       cy.exec('bash assets/disable_polling_setting_5_replicas.sh'
       ).then((result) => {
-        cy.task("log", [result.stdout, result.stderr]);
+        cy.log(result.stdout, result.stderr);
       });
 
       // Forcing 15 seconds of wait to check if changes occur after this time.
@@ -784,6 +781,6 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
       cy.filterInSearchBox('nginx-test-polling');
       cy.verifyTableRow(0, 'Active', '2/2');
     })
-  )
-})
+    )
+  })
 }
