@@ -746,12 +746,17 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1'
 if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
   describe('Test with disablePolling', { tags: '@p1'}, () => {
   
+  const gh_private_pwd = Cypress.env("gh_private_pwd")
+  
   beforeEach("Ensuring Github repo has desired amount of replicas (2)", () => {
   
-    cy.exec('bash assets/disable_polling_reset_2_replicas.sh', { gh_private_pwd : Cypress.env('gh_private_pwd')}).then((result) => {
-        cy.log(result.stdout, result.stderr);
-        cy.task("log", result.stdout, result.code);
-    });
+    cy.exec('bash assets/disable_polling_reset_2_replicas.sh', { env: { gh_private_pwd } }).then((result) => {
+        if (result.code = 0) {
+          cy.task("log", [ result.stdout]);
+        }
+        else cy.task("log", [result.stderr]);
+        }
+    );
   });
   
   qase(124,
@@ -768,8 +773,7 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
       // Change replicas to 5
       cy.exec('bash assets/disable_polling_setting_5_replicas.sh'
       ).then((result) => {
-        cy.log(result.stdout, result.stderr);
-        cy.task("log", result.stdout);
+        cy.task("log", [result.stdout, result.stderr]);
       });
 
       // Forcing 15 seconds of wait to check if changes occur after this time.
