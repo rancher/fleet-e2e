@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 echo -e "Ensuring replicas is 5"
 sed -i 's/replicas: ..*/replicas: 5/g' $PWD/fleet-qa-examples-public/disable-polling/nginx.yaml
