@@ -23,7 +23,6 @@ export const repoUrl = "https://github.com/rancher/fleet-test-data/"
 export const dsClusterName = 'imported-0'
 export const dsClusterList = ["imported-0", "imported-1"]
 export const dsThirdClusterName = 'imported-2'
-export const gh_private_pwd = Cypress.env("gh_private_pwd")  
 
 beforeEach(() => {
   cy.login();
@@ -748,8 +747,8 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
   describe('Test with disablePolling', { tags: '@p1'}, () => {
   
   beforeEach("Ensuring Github repo has desired amount of replicas (2)", () => {
-
-    cy.exec('bash assets/disable_polling_reset_2_replicas.sh').then((result) => {
+  
+    cy.exec('bash assets/disable_polling_reset_2_replicas.sh', { gh_private_pwd : Cypress.env('gh_private_pwd')}).then((result) => {
         cy.log(result.stdout, result.stderr);
         cy.task("log", result.stdout, result.code);
     });
