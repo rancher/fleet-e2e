@@ -562,6 +562,7 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
               cy.removeClusterLabels(dsCluster, key, value);
             }
           )
+          cy.deleteClusterGroups();
         })
       )
     }
@@ -797,6 +798,7 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
   beforeEach('Cleanup leftover GitRepo if any.', () => {
     cy.login();
     cy.visit('/');
+    cy.deleteClusterGroups();
     cy.deleteAllFleetRepos();
   })
 
