@@ -745,7 +745,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1'
 });
 
 if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
-  describe('Test with disablePolling', { tags: '@p1' }, () => {
+  describe('Tests with disablePolling', { tags: '@p1' }, () => {
     const gh_private_pwd = Cypress.env('gh_private_pwd');
     const repoName = 'test-disable-polling';
 
@@ -753,7 +753,7 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
       cy.exec('bash assets/disable_polling_reset_2_replicas.sh', { env: { gh_private_pwd } }).then((result) => {
         cy.log(result.stdout, result.stderr);
       });
-      // cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+
       cy.fleetNamespaceToggle('fleet-local');
       cy.clickButton('Add Repository');
 
