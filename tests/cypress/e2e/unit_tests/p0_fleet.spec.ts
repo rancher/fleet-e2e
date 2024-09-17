@@ -112,7 +112,7 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }
 
 describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p0' }, () => {
 
-  it('FLEET-  Test to install "NGINX" app using "KNOWN HOSTS" auth on PRIVATE repository', { tags: '@fleet-141' }, () => {
+  it('FLEET-141  Test to install "NGINX" app using "KNOWN HOSTS" auth on PRIVATE repository', { tags: '@fleet-141' }, () => {
 
     const repoName = 'local-cluster-fleet-141';
     const repoUrl = 'git@github.com:fleetqa/fleet-qa-examples.git';
@@ -121,8 +121,8 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     // Create known host from yaml file
     // For now, his command needs to be executed in local machine only
     cy.exec(`
-      yq eval ".stringData.ssh-privatekey = strenv(RSA_PRIVATE_KEY_QA)" -i assets/known-host.yaml
-      kubectl -n fleet-local apply -f assets/known-host.yaml
+      echo $(yq eval ".stringData.ssh-privatekey = strenv(RSA_PRIVATE_KEY_QA)" -i assets/known-host.yaml)
+      echo $(kubectl -n fleet-local apply -f assets/known-host.yaml)
       `);
 
     // Create private repo using known host
