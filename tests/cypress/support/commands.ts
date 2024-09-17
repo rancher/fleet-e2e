@@ -33,8 +33,8 @@ Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPub
 
 
   // Select the Git auth method
-  cy.get('div.option-kind-highlighted', { timeout: 15000 }).contains(gitAuthType, { matchCase: false }).should('be.visible').click();
-
+  cy.get('ul.vs__dropdown-menu > li > div', { timeout: 15000 }).contains(gitAuthType, { matchCase: false }).should('be.visible').click();
+  
   if (helmUrlRegex) {
     cy.typeValue('Helm Repos (URL Regex)', helmUrlRegex, false,  false );
   }
@@ -43,11 +43,17 @@ Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPub
     cy.typeValue('Username', userOrPublicKey, false,  false );
     cy.typeValue('Password', pwdOrPrivateKey, false,  false );
   }
+  
   else if (gitAuthType === 'ssh') {
     // Ugly implementation needed because 'typeValue' does not work here
     cy.get('textarea.no-resize.no-ease').eq(0).focus().clear().type(userOrPublicKey, {log: false}).blur();
     cy.get('textarea.no-resize.no-ease').eq(1).focus().clear().type(pwdOrPrivateKey, {log: false}).blur();
   }
+
+  else if (gitAuthType && gitAuthType !== 'http' && gitAuthType !== 'ssh') {    
+      cy.contains(gitAuthType).should('be.visible').click();
+    }
+    
 });
 
 Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
@@ -79,7 +85,7 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
 
 // Command add and edit Fleet Git Repository
 // TODO: Rename this command name to 'addEditFleetGitRepo'
-Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget }) => {
+Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, keyExists, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget }) => {
   cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
   if (editConfig === true) {
     cy.fleetNamespaceToggle(fleetNamespace);
@@ -102,7 +108,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
     cy.addPathOnGitRepoCreate(path2, 1);
   }
   if (gitAuthType) {
-    cy.gitRepoAuth(gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex);
+    cy.gitRepoAuth(gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex, keyExists);
   }
   // Check the checkbox of keepResources if option 'yes' is given.
   // After checked check-box, `keepResources: true` is set
