@@ -118,14 +118,24 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     const repoName = 'local-cluster-fleet-141';
     const repoUrl = 'git@github.com:fleetqa/fleet-qa-examples.git';
     const gitAuthType = 'ssh-key-knownhost';
-    // const RSA_PRIVATE_KEY_QA = Cypress.env('rsa_private_key_qa');
+   
     // Create known host from yaml file
-    // For now, his command needs to be executed in local machine only
     cy.exec(`bash assets/add-known-host.sh`).then((result) => {
       cy.log(result.stdout, result.stderr);
     });
+
+    // Create secret via UI
+    cy.accesMenuSelection('local', 'Storage', 'Secrets');
+    cy.clickButton('Create');
+    cy.contains('Public key and private key for SSH').should('be.visible').click();
+    cy.clickButton('Edit as YAML')
+    cy.addYamlFile('assets/known-host.yaml');
+    cy.clickButton('Create');
+    cy.contains('ssh-key-knownhost').should('be.visible')
+
     // Create private repo using known host
-    cy.fleetNamespaceToggle('fleet-local');
+    cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+    cy.fleetNamespaceToggle('fleet-local')
     cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path });
     cy.clickButton('Create');
     cy.checkGitRepoStatus(repoName, '1 / 1');
