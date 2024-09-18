@@ -111,7 +111,7 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }
   });
 });
 
-describe.only('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p0' }, () => {
+describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p0' }, () => {
 
   it('FLEET-141  Test to install "NGINX" app using "KNOWN HOSTS" auth on PRIVATE repository', { tags: '@fleet-141' }, () => {
 
