@@ -85,7 +85,7 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
 
 // Command add and edit Fleet Git Repository
 // TODO: Rename this command name to 'addEditFleetGitRepo'
-Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, keyExists, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget }) => {
+Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget }) => {
   cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
   if (editConfig === true) {
     cy.fleetNamespaceToggle(fleetNamespace);
@@ -108,7 +108,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
     cy.addPathOnGitRepoCreate(path2, 1);
   }
   if (gitAuthType) {
-    cy.gitRepoAuth(gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex, keyExists);
+    cy.gitRepoAuth(gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex);
   }
   // Check the checkbox of keepResources if option 'yes' is given.
   // After checked check-box, `keepResources: true` is set
