@@ -130,7 +130,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     cy.clickButton('Edit as YAML')
     cy.addYamlFile('assets/known-host.yaml');
     cy.clickButton('Create');
-    cy.contains('ssh-key-knownhost').should('be.visible')
+    cy.contains('ssh-key-knownhost').should('exist')
 
     // Create private repo using known host
     cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
@@ -138,6 +138,36 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path });
     cy.clickButton('Create');
     cy.checkGitRepoStatus(repoName, '1 / 1');
+  });
+
+  it('FLEET-143  Test apps cannot be installed when using missmatched "KNOWN HOSTS" auth on PRIVATE repository', { tags: '@fleet-143' }, () => {
+
+    const repoName = 'local-cluster-fleet-143';
+    const repoUrl = 'git@github.com:fleetqa/fleet-qa-examples.git';
+    const gitAuthType = 'ssh-key-knownhost-missmatch';
+   
+    // Create known host from yaml file
+    cy.exec(`bash assets/add-known-host-missmatch.sh`).then((result) => {
+      cy.log(result.stdout, result.stderr);
+    });
+    // Create secret via UI
+    cy.accesMenuSelection('local', 'Storage', 'Secrets');
+    cy.clickButton('Create');
+    cy.contains('Public key and private key for SSH').should('be.visible').click();
+    cy.clickButton('Edit as YAML')
+    cy.addYamlFile('assets/known-host-missmatch.yaml');
+    cy.clickButton('Create');
+    cy.contains('ssh-key-knownhost-missmatch').should('exist')
+
+    // Create private repo using known host
+    cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+    cy.fleetNamespaceToggle('fleet-local')
+    cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path });
+    cy.clickButton('Create');
+
+    // Enrure that apps cannot be installed && error appears
+    cy.verifyTableRow(0, 'Error', '0/0');
+    cy.contains('Ssh: handshake failed: knownhosts: key mismatch').should('be.visible');
   });
 });
 
