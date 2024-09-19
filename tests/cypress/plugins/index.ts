@@ -43,7 +43,6 @@ module.exports = (on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions)
   config.env.gh_private_pwd   = process.env.GH_PRIVATE_PWD;
   config.env.azure_private_user  = process.env.AZURE_PRIVATE_USER;
   config.env.azure_private_pwd   = process.env.AZURE_PRIVATE_PWD;
-  config.env.rsa_known_hosts_key_qa   = process.env.RSA_KNOWN_HOSTS_KEY_QA;
   config.env.grep = process.env.GREP;
   config.env.grepTags = process.env.GREPTAGS;
   config.env.rsa_private_key_qa  = process.env.RSA_PRIVATE_KEY_QA;

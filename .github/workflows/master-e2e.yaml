@@ -44,9 +44,6 @@ on:
       azure_private_pwd:
         description: Azure password for private repo tests
         required: false
-      rsa_known_hosts_key_qa: 
-        description: RSA known hosts key for private repo tests
-        required: false
       rsa_private_key_qa:
         description: RSA private key for private repo tests
         required: false
@@ -290,7 +287,6 @@ jobs:
           GH_PRIVATE_PWD: ${{ secrets.gh_private_pwd }}
           AZURE_PRIVATE_USER: ${{ secrets.azure_private_user }}
           AZURE_PRIVATE_PWD: ${{ secrets.azure_private_pwd }}
-          RSA_KNOWN_HOSTS_KEY_QA: ${{ secrets.rsa_known_hosts_key_qa }}
           RSA_PRIVATE_KEY_QA: ${{ secrets.rsa_private_key_qa }}
           RSA_PUBLIC_KEY_QA: ${{ secrets.rsa_public_key_qa }}
           GREPTAGS: ${{ inputs.grep_test_by_tag }}
