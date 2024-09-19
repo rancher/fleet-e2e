@@ -14,7 +14,6 @@ limitations under the License.
 
 import 'cypress/support/commands';
 import { qase } from 'cypress-qase-reporter/dist/mocha';
-import { result } from 'cypress/types/lodash';
 
 export const appName = "nginx-keep";
 export const clusterName = "imported-0";
