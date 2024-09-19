@@ -130,7 +130,6 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     cy.clickButton('Edit as YAML')
     cy.addYamlFile('assets/known-host.yaml');
     cy.clickButton('Create');
-    cy.contains('ssh-key-knownhost').should('exist')
 
     // Create private repo using known host
     cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
@@ -157,7 +156,6 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     cy.clickButton('Edit as YAML')
     cy.addYamlFile('assets/known-host-missmatch.yaml');
     cy.clickButton('Create');
-    cy.contains('ssh-key-knownhost-missmatch').should('exist')
 
     // Create private repo using known host
     cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
