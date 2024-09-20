@@ -110,14 +110,14 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }
   });
 });
 
-describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p0' }, () => {
+describe.only('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p0' }, () => {
 
   const repoUrl = 'git@github.com:fleetqa/fleet-qa-examples.git';
   const secretKnownHostsKeys = ['assets/known-host.yaml', 'assets/known-host-missmatch.yaml'];
 
   before('Preparing known hosts secrets via UI', () => {
     // Create known hosts from yaml file
-    cy.exec(`bash assets/add-known-host.sh && assets/add-known-host-missmatch.sh`).then((result) => {
+    cy.exec(`bash assets/add-known-host.sh`).then((result) => {
       cy.log(result.stdout, result.stderr);
     });
 

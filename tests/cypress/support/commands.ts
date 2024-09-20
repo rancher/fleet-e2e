@@ -31,7 +31,6 @@ Cypress.Commands.add('addPathOnGitRepoCreate', (path, index=0) => {
 Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex ) => {
   cy.contains(`${gitOrHelmAuth} Authentication`).click()
 
-
   // Select the Git auth method
   cy.get('ul.vs__dropdown-menu > li > div', { timeout: 15000 }).contains(gitAuthType, { matchCase: false }).should('be.visible').click();
   
@@ -52,8 +51,7 @@ Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPub
 
   else if (gitAuthType && gitAuthType !== 'http' && gitAuthType !== 'ssh') {    
       cy.contains(gitAuthType).should('be.visible').click();
-    }
-    
+    }    
 });
 
 Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {

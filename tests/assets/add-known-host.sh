@@ -13,3 +13,6 @@ yq eval ".stringData.ssh-privatekey = strenv(RSA_PRIVATE_KEY_QA)" -i assets/know
 
 echo "Adding known host key"
 yq eval ".stringData.known_hosts = strenv(KNOWN_HOSTS)" -i assets/known-host.yaml
+
+echo "Adding private key to missmatched yaml"
+yq eval ".stringData.ssh-privatekey = strenv(RSA_PRIVATE_KEY_QA)" -i assets/known-host-missmatch.yaml
