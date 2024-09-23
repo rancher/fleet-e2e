@@ -117,25 +117,8 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
       .should('be.visible')
       .click();
 
-    if (tlsOption = 'Specify additional certificates') {
-      cy.log('LOG 1')
-      // cy.get('textarea[placeholder="Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"]').click().then(() => {
-      //   cy.log('LOG 2')
-      //   // cy.addYamlFile(tlsCertificate);
-      //   cy.readFile(tlsCertificate).then((content) => {
-
-
-      //     cy.type(content);
-      //   })
-      
-      // cy.readFile(tlsCertificate).then((content) => {
-      //   cy.get('textarea[placeholder="Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"]')
-      //   cy.log('LOG 2')      
-      //   cy.type(content);
-      // });
-
-      cy.get('textarea[placeholder="Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"]').attachFile(tlsCertificate);
-      cy.pause();
+    if ((tlsOption = 'Specify additional certificates')) {
+      cy.get('textarea[placeholder="Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"]').type(tlsCertificate);
     }
   }
 
