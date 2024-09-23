@@ -163,3 +163,20 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
   });
 });
 
+qase(142,
+  it.only("Fleet-142: Test Fleet can create cabundle secrets", { tags: '@fleet-142' }, () => {;
+    const repoName = 'local-142-test-bundle-secrets'
+    const repoUrl = 'https://github.com/rancher/fleet-examples'
+    const branch = 'master'
+    const path = 'simple'
+    const tlsOption = "Specify additional certificates to be accepted"
+    const tlsCertificate = "assets/ca-certificate-sample.pem"
+
+    cy.fleetNamespaceToggle('fleet-local');
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path, tlsOption, tlsCertificate });
+
+
+    // cy.clickButton('Create');
+
+  })
+)  

@@ -83,7 +83,7 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
 
 // Command add and edit Fleet Git Repository
 // TODO: Rename this command name to 'addEditFleetGitRepo'
-Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget }) => {
+Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, tlsOption, tlsCertificate, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget }) => {
   cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
   if (editConfig === true) {
     cy.fleetNamespaceToggle(fleetNamespace);
@@ -108,6 +108,37 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
   if (gitAuthType) {
     cy.gitRepoAuth(gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex);
   }
+
+  if (tlsOption) {
+    cy.contains(`TLS Certificate Verification`).click();
+    // Select the TLS option
+    cy.get('ul.vs__dropdown-menu > li > div', { timeout: 15000 })
+      .contains(tlsOption, { matchCase: false })
+      .should('be.visible')
+      .click();
+
+    if (tlsOption = 'Specify additional certificates') {
+      cy.log('LOG 1')
+      // cy.get('textarea[placeholder="Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"]').click().then(() => {
+      //   cy.log('LOG 2')
+      //   // cy.addYamlFile(tlsCertificate);
+      //   cy.readFile(tlsCertificate).then((content) => {
+
+
+      //     cy.type(content);
+      //   })
+      
+      // cy.readFile(tlsCertificate).then((content) => {
+      //   cy.get('textarea[placeholder="Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"]')
+      //   cy.log('LOG 2')      
+      //   cy.type(content);
+      // });
+
+      cy.get('textarea[placeholder="Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"]').attachFile(tlsCertificate);
+      cy.pause();
+    }
+  }
+
   // Check the checkbox of keepResources if option 'yes' is given.
   // After checked check-box, `keepResources: true` is set
   // in the GitRepo YAML.
@@ -124,6 +155,8 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
     cy.deployToClusterOrClusterGroup(deployToTarget);
   }
 });
+
+
 
 // Deploy To target functionality used in addGitRepo
 Cypress.Commands.add('deployToClusterOrClusterGroup', (deployToTarget) => {
