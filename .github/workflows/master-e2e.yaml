@@ -91,6 +91,9 @@ on:
         description: GCP zone to host the runner
         default: us-east4-a
         type: string
+      proxy:
+        description: Install Rancher behind proxy
+        type: string
 
 jobs:
   create-runner:
@@ -241,10 +244,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 16
+      - name: Install proxy
+        if: ${{ inputs.proxy == 'rancher' }}
+        run: |
+          docker run -d --name squid_proxy -v $(pwd)/.github/scripts/squid.conf:/etc/squid/squid.conf -p 3128:3128 wernight/squid
       - name: Install prerequisite components
         env:
           PUBLIC_DNS: ${{ needs.create-runner.outputs.public_dns }}
           PUBLIC_DOMAIN: bc.googleusercontent.com
+          PROXY: ${{ inputs.proxy }}
         run: cd tests && make e2e-install-rancher
       - name: Extract component versions/informations
         id: component
