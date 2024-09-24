@@ -164,7 +164,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
 });
 
 qase(142,
-  it("Fleet-142: Test Fleet can create cabundle secrets", { tags: '@fleet-142' }, () => {;
+  it("Fleet-142: Test Fleet can create cabundle secrets", { tags: ['@p0','@fleet-142'] }, () => {;
     
     const repoName = 'local-142-test-bundle-secrets'
     const repoUrl = 'https://github.com/rancher/fleet-examples'
