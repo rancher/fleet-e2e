@@ -117,8 +117,10 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
       .should('be.visible')
       .click();
 
-    if ((tlsOption = 'Specify additional certificates')) {
-      cy.get('textarea[placeholder="Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"]').type(tlsCertificate);
+    if (tlsOption = 'Specify additional certificates') {
+      cy.readFile(tlsCertificate).then((content) => {
+        cy.get('textarea[placeholder="Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"]').type(content);
+      });
     }
   }
 
@@ -138,8 +140,6 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
     cy.deployToClusterOrClusterGroup(deployToTarget);
   }
 });
-
-
 
 // Deploy To target functionality used in addGitRepo
 Cypress.Commands.add('deployToClusterOrClusterGroup', (deployToTarget) => {
