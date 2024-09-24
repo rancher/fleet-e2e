@@ -15,7 +15,6 @@ docker run --init -v $PWD:/workdir -w /workdir              \
     -e RANCHER_PASSWORD=$RANCHER_PASSWORD                   \
     -e RANCHER_URL=$RANCHER_URL                             \
     -e RANCHER_USER=$RANCHER_USER                           \
-    -e PROXY=$PROXY                                         \
     -e GITLAB_PRIVATE_USER=$GITLAB_PRIVATE_USER             \
     -e GITLAB_PRIVATE_PWD=$GITLAB_PRIVATE_PWD               \
     -e BITBUCKET_PRIVATE_USER=$BITBUCKET_PRIVATE_USER       \

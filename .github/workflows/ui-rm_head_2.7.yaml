@@ -1,28 +1,32 @@
 # This workflow calls the master E2E workflow with custom variables
-name: UI-RM_head_2.7
+name: UI-RM_Upgrade_Proxy
 run-name: ${{ github.event_name == 'workflow_dispatch' && format('`{0}` on `{1}` - `{2}` destroy={3}', inputs.rancher_version, inputs.upstream_cluster_version, inputs.grep_test_by_tag, inputs.destroy_runner) || github.workflow }}
 
 on:
   workflow_dispatch:
     inputs:
       qase_run_id:
-        description: Qase run ID where the results will be reported
-        default: auto
+        description: Qase run ID where the results will be reported. (Please update with custom run ID.)
+        default: none
         type: string
       destroy_runner:
         description: Destroy the auto-generated self-hosted runner
         default: true
         type: boolean
       rancher_version:
-        description: Rancher version channel/version/head_version latest/latest, latest/2.7.10[-rc2], prime/2.7.12, prime/devel/2.7, prime-optimus/2.7.13-rc4
-        default: latest/devel/2.7
+        description: Rancher version channel/version/head_version latest/2.9.x[-rc1], prime/2.9.x, prime/devel/2.9, alpha/2.x.x-alphaX, prime-optimus-alpha/2.x.x-alphaX
+        default: latest/devel/2.9
         type: string
         required: true
       upstream_cluster_version:
         description: K3s upstream cluster version where to install Rancher
-        default: v1.26.10+k3s2
+        default: 'v1.28.8+k3s1'
         type: string
         required: true
+      proxy:
+        description: Creates proxy server and pass proxy server address to Rancher.
+        default: rancher
+        type: string
       grep_test_by_tag:
         description: Grep tags. For multiple selection separate with spaces. Keep always @login
         required: false
@@ -51,8 +55,10 @@ jobs:
       test_description: "CI/Manual - UI - Deployment test with Standard K3s"
       cluster_name: cluster-k3s
       # WARNING, VALUES BELOW ARE HARDCODED FOR RUNS SCHEDULED BY CRON
-      destroy_runner: ${{ github.event_name == 'schedule' && true || inputs.destroy_runner }}
-      upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.26.10+k3s2' }}
-      rancher_version: ${{ inputs.rancher_version || 'latest/devel/2.7' }}
-      qase_run_id: ${{ inputs.qase_run_id || 'auto' }}
-      grep_test_by_tag: ${{ inputs.grep_test_by_tag || '@login @p0 @p1 @rbac' }}
+      destroy_runner: ${{ inputs.destroy_runner }}
+      upstream_cluster_version: ${{ inputs.upstream_cluster_version }}
+      rancher_version: ${{ inputs.rancher_version }}
+      # QASE RUN ID, 'auto' WILL CREATE RANDOM RUN ID.
+      qase_run_id: ${{ inputs.qase_run_id }}
+      grep_test_by_tag: ${{ inputs.grep_test_by_tag }}
+      proxy: ${{ inputs.proxy }}

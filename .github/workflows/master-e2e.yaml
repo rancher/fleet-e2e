@@ -244,15 +244,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 16
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.credentials }}
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
       - name: Install proxy
         if: ${{ inputs.proxy == 'rancher' }}
         run: |
-          docker run -d --name squid_proxy -v $(pwd)/.github/scripts/squid.conf:/etc/squid/squid.conf -p 3128:3128 wernight/squid
+          docker run -d --name squid_proxy -v $(pwd)/.github/scripts/squid.conf:/etc/squid/squid.conf -p 3128:3128 ubuntu/squid
+          echo "PROXY_HOST=$(gcloud compute instances describe ${{ needs.create-runner.outputs.runner }} \
+            --format='get(networkInterfaces[0].accessConfigs[0].natIP)' --zone ${{ inputs.zone }}):3128" >> ${GITHUB_ENV}
       - name: Install prerequisite components
         env:
           PUBLIC_DNS: ${{ needs.create-runner.outputs.public_dns }}
           PUBLIC_DOMAIN: bc.googleusercontent.com
           PROXY: ${{ inputs.proxy }}
+          PROXY_HOST: ${{ env.PROXY_HOST }}
         run: cd tests && make e2e-install-rancher
       - name: Extract component versions/informations
         id: component
@@ -312,6 +321,11 @@ jobs:
             # QASE_RUN_ID is empty string already
           fi
           cd tests && make start-cypress-tests
+      - name: Proxy Logs
+        env:
+          PROXY: ${{ inputs.proxy }}
+        shell: bash
+        run: cd tests && make e2e-proxy-logs
       - name: Upload Cypress screenshots (Basics)
         if: failure() 
         uses: actions/upload-artifact@v4
