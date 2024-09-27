@@ -23,7 +23,8 @@ export const path  = "nginx"
 beforeEach(() => {
   cy.login();
   cy.visit('/');
-  cy.deleteAllFleetRepos();
+  cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+  // cy.deleteAllFleetRepos();
 });
 
 
@@ -51,6 +52,87 @@ describe('Test Fleet deployment on PUBLIC repos',  { tags: '@p0' }, () => {
     })
   );
 });
+
+
+  it('FLEET-: Test multiple repos NGINX', { tags: '@fleet-multiple' }, () => {
+
+    const testNumber = Array.from({ length: 70 }, (v, k) => k + 60)
+    const branch = "master"
+    const repoUrl = "https://github.com/mmartin24/test-fleet"
+
+    cy.fleetNamespaceToggle('fleet-default');
+
+    testNumber.forEach(testNumber => {
+
+      const repoName = `default-cluster-fleet-${testNumber}`
+      const path = `multiple-gitrepos/gitrepo-${testNumber}`
+
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      
+      cy.clickButton('Create')
+      // cy.get('tr.main-row').last().should('contain.text', repoName).and('contain.text', 'Active');
+    })
+  })
+
+  it('FLEET-: Test multiple bad-path NGINX', { tags: '@fleet-multiple' }, () => {
+
+    const testNumber = Array.from({ length: 30 }, (v, k) => k + 1)
+    const branch = "master"
+    const repoUrl = "https://github.com/mmartin24/test-fleet"
+
+    cy.fleetNamespaceToggle('fleet-default');
+
+    testNumber.forEach(testNumber => {
+
+      const repoName = `default-bad-path-${testNumber}`
+      const path = `bad-path/gitrepo-${testNumber}/bad-path`
+
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      
+      cy.clickButton('Create')
+      // cy.get('tr.main-row').last().should('contain.text', repoName).and('contain.text', 'Active');
+    })
+  })
+
+  it('FLEET-: Test multiple bad-images NGINX', { tags: '@fleet-multiple' }, () => {
+
+    const testNumber = Array.from({ length: 30 }, (v, k) => k + 1)
+    const branch = "master"
+    const repoUrl = "https://github.com/mmartin24/test-fleet"
+
+    cy.fleetNamespaceToggle('fleet-default');
+
+    testNumber.forEach(testNumber => {
+
+      const repoName = `default-bad-image-${testNumber}`
+      const path = `bad-image/gitrepo-${testNumber}`
+
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      
+      cy.clickButton('Create')
+      // cy.get('tr.main-row').last().should('contain.text', repoName).and('contain.text', 'Active');
+    })
+  })
+
+  it.only('FLEET-: Test multiple gitrepo REDS', { tags: '@fleet-multiple' }, () => {
+
+    const testNumber = Array.from({ length: 50 }, (v, k) => k + 1)
+    const branch = "master"
+    const repoUrl = "https://github.com/mmartin24/test-fleet"
+
+    cy.fleetNamespaceToggle('fleet-default');
+
+    testNumber.forEach(testNumber => {
+
+      const repoName = `default-redis-multiple-resources-${testNumber}`
+      const path = `multiple-resources-redis/gitrepo-${testNumber}`
+
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.clickButton('Create')
+      // cy.get('tr.main-row').last().should('contain.text', repoName).and('contain.text', 'Active');
+    })
+  })
+
 
 describe('Test Fleet deployment on PRIVATE repos with HTTP auth', { tags: '@p0' }, () => {
 
@@ -150,7 +232,8 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
   qase(143,
     it('FLEET-143  Test apps cannot be installed when using missmatched "KNOWN HOSTS" auth on PRIVATE repository',
       { tags: '@fleet-143' }, () => {
-        const repoName = 'local-cluster-fleet-143';
+        // const repoName = 'local-cluster-fleet-143';
+        const repoName = 'known-host-missmatch-1';
         const gitAuthType = 'ssh-key-knownhost-missmatch';
 
         // Create private repo using known host
