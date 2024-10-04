@@ -483,7 +483,7 @@ describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled'
 });
 
 if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
-  describe.only('Tests with disablePolling', { tags: '@p1' }, () => {
+  describe('Tests with disablePolling', { tags: '@p1' }, () => {
     const gh_private_pwd = Cypress.env('gh_private_pwd');
     const repoName = 'test-disable-polling';
 
