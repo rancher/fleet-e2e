@@ -557,6 +557,9 @@ Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
   cy.wait(500);
   cy.clickButton('Save');
   cy.contains('Save').should('not.exist');
+  // After label removal from cluster, it says 409 (conflict error) while saving.
+  // TO avoid this, navigate back to all clusters page.
+  cy.clickNavMenu(['Clusters']);
 
   // Ensure label is removed.
   cy.contains('.title', 'Clusters').should('be.visible');
