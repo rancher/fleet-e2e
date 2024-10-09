@@ -682,7 +682,7 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
           }
 
           // Remove labels from the clusters.
-          dsFirstTwoClusterList.forEach(
+          dsAllClusterList.forEach(
             (dsCluster) => {
               // Adding wait to load page correctly to avoid interference with hamburger-menu.
               cy.wait(500);

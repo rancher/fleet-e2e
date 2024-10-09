@@ -562,12 +562,35 @@ Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
   cy.contains('.title', 'Clusters').should('be.visible');
   cy.filterInSearchBox(clusterName);
   cy.open3dotsMenu(clusterName, 'Edit Config');
-  cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
+  // TODO: Remove below label remove logic after 
+  // issue: # https://github.com/rancher/dashboard/issues/9563
+  // Below code will work for 3 labels on the cluster, 2 with disabled labels,
+  // 1 with actual removable label.
+  cy.get('body').then((body) => {
+    if (body.find('span[class="switch hand"]')) {
+      cy.get('span[name="label-system-toggle"]').click();
+      let disabled_button = cy.get('div[class="row"] div[class="key-value"] button.role-link')
+      if (disabled_button < 3) {
+        cy.log("There is no new label for remove. Only 2 default labels present.");
+        return true
+      }
+      else {
+        cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
+      }
+    }
+    else {
+      cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
+    }
+  })
   cy.wait(500);
   cy.clickButton('Save');
   cy.contains('Save').should('not.exist');
+  // After label removal from cluster, it says 409 (conflict error) while saving.
+  // TO avoid this, navigate back to all clusters page.
+  cy.clickNavMenu(['Clusters']);
 
   // Ensure label is removed.
+  cy.wait(500);
   cy.contains('.title', 'Clusters').should('be.visible');
   cy.filterInSearchBox(clusterName);
   cy.get('td.col-link-detail > span').contains(clusterName).click();
