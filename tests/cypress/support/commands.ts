@@ -551,10 +551,21 @@ Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
   cy.contains('.title', 'Clusters').should('be.visible');
   cy.filterInSearchBox(clusterName);
   cy.open3dotsMenu(clusterName, 'Edit Config');
-  cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
+  cy.get('body').then((body) => {
+    if (body.find('span[class="switch hand"]')) {
+      cy.get('span[name="label-system-toggle"]').click();
+      cy.get('div[class="row"] div[class="key-value"] button.role-link').last().click();
+    }
+    else {
+      cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
+    }
+  })
   cy.wait(500);
   cy.clickButton('Save');
   cy.contains('Save').should('not.exist');
+  // After label removal from cluster, it says 409 (conflict error) while saving.
+  // TO avoid this, navigate back to all clusters page.
+  cy.clickNavMenu(['Clusters']);
 
   // Ensure label is removed.
   cy.contains('.title', 'Clusters').should('be.visible');
