@@ -11,8 +11,11 @@ delete-qase-run: deps
 publish-qase-run: deps
 	@go run qase/qase_cmd.go -publish
 
-e2e-install-rancher: deps
-	ginkgo --label-filter install -r -v ./e2e
+# e2e-install-rancher: deps
+# 	ginkgo --label-filter install -r -v ./e2e
+
+e2e-install-rancher: ## Install Rancher via Helm
+	@./scripts/install_rancher.sh
 
 start-cypress-tests:
 	@./scripts/start-cypress-tests
