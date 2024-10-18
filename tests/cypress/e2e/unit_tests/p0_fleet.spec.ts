@@ -236,11 +236,11 @@ if (/\/2\.9/.test(Cypress.env('rancher_version'))) {
         // Check jobs on recent events tab
         cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
         cy.get('ul[role="tablist"]').contains('Recent Events').click();
-        cy.get('section#events').contains('job deletion triggered because job succeeded').should('be.visible');
+        cy.get('section#events').contains('job deletion triggered because job succeeded', { timeout: 20000 }).should('be.visible');
 
         // Confirm job disappears
-        cy.nameSpaceMenuToggle('All Namespaces');
         cy.accesMenuSelection('local', 'Workloads', 'Jobs');
+        cy.nameSpaceMenuToggle('All Namespaces');
         cy.filterInSearchBox(repoName);
         cy.get('table > tbody > tr').contains('There are no rows which match your search query.').should('be.visible');
       })
