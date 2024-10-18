@@ -14,5 +14,8 @@ publish-qase-run: deps
 e2e-install-rancher: deps
 	ginkgo --label-filter install -r -v ./e2e
 
+e2e-proxy-logs: deps
+	ginkgo --label-filter logs -r -v ./e2e
+
 start-cypress-tests:
 	@./scripts/start-cypress-tests

@@ -159,7 +159,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 		})
 
 		By("Installing Rancher Manager", func() {
-			err := rancher.DeployRancherManager(rancherHostname, rancherChannel, rancherVersion, rancherHeadVersion, "none", "none")
+			err := rancher.DeployRancherManager(rancherHostname, rancherChannel, rancherVersion, rancherHeadVersion, "none", proxy)
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Wait for all pods to be started
