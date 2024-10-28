@@ -304,7 +304,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
 
 // RepoURLRegex is supported on v2.8 but error reporting is not working correctly there
 // Ref. https://github.com/rancher/fleet/issues/2462 but it wont be fixed in v2.8
-if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.9/.test(Cypress.env('rancher_version'))) {
+if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env('rancher_version'))) {
   describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () => {
 
     const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public.git'
