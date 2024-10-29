@@ -19,21 +19,33 @@ sleep 8
 
 # Rancher env vars
 export MY_IP=$(kubectl get svc -A -o jsonpath="{.items[*].status.loadBalancer.ingress[*].ip}")
-export RANCHER_VERSION=2.9.3-alpha6
+# export RANCHER_VERSION=2.9.3-alpha6
 export SYSTEM_DOMAIN="${MY_IP}.nip.io"
 export RANCHER_USER=admin RANCHER_PASSWORD=password
 export RANCHER_URL=https://${MY_IP}.nip.io/dashboard
 
 
-helm repo add rancher-alpha "https://releases.rancher.com/server-charts/alpha"
+# helm repo add rancher-alpha "https://releases.rancher.com/server-charts/alpha"
+# helm repo update
+
+# helm upgrade --install rancher rancher-alpha/rancher \
+#  --version $RANCHER_VERSION \
+#  --namespace cattle-system --create-namespace \
+#  --set hostname=$SYSTEM_DOMAIN  \
+#  --set global.cattle.psp.enabled=false \
+#  --set rancherImageTag=v$RANCHER_VERSION  \
+#  --set bootstrapPassword=$RANCHER_PASSWORD \
+#  --set replicas=1 \
+#  --wait
+
+helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
 helm repo update
 
-helm upgrade --install rancher rancher-alpha/rancher \
- --version $RANCHER_VERSION \
- --namespace cattle-system --create-namespace \
- --set hostname=$SYSTEM_DOMAIN  \
- --set global.cattle.psp.enabled=false \
- --set rancherImageTag=v$RANCHER_VERSION  \
- --set bootstrapPassword=$RANCHER_PASSWORD \
- --set replicas=1 \
- --wait
+helm upgrade --install rancher rancher-latest/rancher \
+  --namespace cattle-system --create-namespace \
+  --set rancherImageTag=head \
+  --set hostname=$SYSTEM_DOMAIN \
+  --set bootstrapPassword=password \
+  --set agentTLSMode=system-store \
+  --set replicas=1 \
+  --wait
