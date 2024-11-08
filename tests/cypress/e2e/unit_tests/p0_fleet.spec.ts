@@ -325,3 +325,47 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
   )});
 };
 
+qase(152,
+  it('Fleet-: Test Fleet with Webhook and disable polling ', { tags: '@fleet-152' }, () => {
+
+    const repoName = 'webhook-test-disable-polling';
+    const gh_private_pwd = Cypress.env('gh_private_pwd');
+
+    // Prepare webhook
+    cy.exec('bash assets/webhook_setup.sh', { env: { gh_private_pwd } }).then((result) => {
+      cy.log(result.stdout, result.stderr);
+    })
+
+    // Ensure webhook repo starts with 2 replicas
+    cy.exec('bash assets/webhook-tests/webhook_test_2_replicas.sh', { env: { gh_private_pwd } }).then((result) => {
+      cy.log(result.stdout, result.stderr);
+    });
+
+    // Gitrepo adddition via YAML
+    cy.fleetNamespaceToggle('fleet-local');
+    cy.clickButton('Add Repository');
+    cy.clickButton('Edit as YAML');
+    cy.addYamlFile('assets/webhook-tests/webhook_test_disable_polling.yaml');
+    cy.clickButton('Create');
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1'); 
+
+    // Give extra time for job to finsih
+    // TODO: remove this wait
+    cy.wait(7000)
+
+    // Verify deployments has 2 replicas only
+    cy.accesMenuSelection('local', 'Workloads', 'Deployments');
+    cy.filterInSearchBox(repoName);
+    cy.wait(500);
+    cy.contains('tr.main-row', repoName, { timeout: 20000 }).should('be.visible');
+    cy.verifyTableRow(0, 'Active', '2/2');
+
+    // Change replicas to 5
+    cy.exec('bash assets/webhook-tests/webhook_test_5_replicas.sh').then((result) => {
+      cy.log(result.stdout, result.stderr);
+    });
+
+    // Verify deployments has 5 replicas
+    cy.verifyTableRow(0, 'Active', '5/5');
+  })
+);
