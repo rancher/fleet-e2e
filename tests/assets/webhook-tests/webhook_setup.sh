@@ -2,8 +2,6 @@
 
 set -exo pipefail
 
-sudo -i -u gh-runner
-
 # Set the environment variables
 export REPO_OWNER="fleetqa"
 export REPO_NAME="webhook-github-test"
