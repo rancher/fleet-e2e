@@ -9,13 +9,14 @@ export SECRET_VALUE="webhooksecretvalue"
 # Get the external IP of the Google Cloud instance
 export EXTERNAL_IP=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip)
 
+sleep 2
+echo "External IP: ${EXTERNAL_IP}"
+
 # Confirm the external IP is not empty
 if [ -z "$EXTERNAL_IP" ]; then
   echo "Failed to get external IP"
   exit 1
 fi
-
-echo "External IP: ${EXTERNAL_IP}"
 
 # Delete any previous webhook
 # 1 - Get all webhooks
