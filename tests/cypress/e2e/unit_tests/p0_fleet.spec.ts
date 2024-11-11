@@ -332,7 +332,7 @@ qase(152,
     const gh_private_pwd = Cypress.env('gh_private_pwd');
 
     // Prepare webhook
-    cy.exec('bash assets/webhook_setup.sh', { env: { gh_private_pwd } }).then((result) => {
+    cy.exec('bash assets/webhook-tests/webhook_setup.sh', { env: { gh_private_pwd } }).then((result) => {
       cy.log(result.stdout, result.stderr);
     })
 
