@@ -916,6 +916,12 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
       test_explanation: "multiple-apps",
       bundle_count: '2 / 2',
     },
+    {
+      qase_id: 32,
+      app: 'single-app',
+      test_explanation: "single-app to the third cluster",
+      bundle_count: '1 / 1',
+    },
   ]
 
   clusterSelector.forEach(({ qase_id, app, test_explanation, bundle_count }) => {
@@ -938,7 +944,7 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
         cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert, true, clusterGroupLabelKey, clusterGroupLabelValue);
 
         // Get GitRepo YAML file according to test.
-        if (qase_id === 30) {
+        if (qase_id === 30 || qase_id === 32) {
           clusterGroupSelectorFile = 'assets/gitrepo-single-app-cluster-group-selector.yaml'
         }
         else if (qase_id === 31){
@@ -964,6 +970,23 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
             cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
           }
         )
+
+        // Add same label on third cluster
+        if (qase_id === 32) {
+          cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+          cy.contains('.title', 'Clusters').should('be.visible');
+
+          // Add label to the third cluster
+          cy.assignClusterLabel(dsThirdClusterName, key, value);
+
+          // Check application deployed to third cluster
+          cy.wait(500);
+          cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
+
+          // Remove label from the third cluster.
+          cy.wait(500);
+          cy.removeClusterLabels(dsThirdClusterName, key, value);
+        }
 
         // Check another application on each cluster.
         // This check is valid for deploy muilple application
