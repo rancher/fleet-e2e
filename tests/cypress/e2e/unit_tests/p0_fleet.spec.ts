@@ -101,6 +101,7 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }
         cy.fleetNamespaceToggle('fleet-default')
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
         cy.clickButton('Create');
+        cy.verifyTableRow(0, 'Active', '1/1'); // Implicit wait due to https://github.corancher/dashboard/issues/12502
         cy.checkGitRepoStatus(repoName, '1 / 1');
         cy.checkApplicationStatus(appName, clusterName);
         cy.deleteAllFleetRepos();
