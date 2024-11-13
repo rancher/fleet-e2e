@@ -3,7 +3,7 @@
 set -exo pipefail
 
 # Redirect all output to a log file
-exec > >(tee -i webhook_setup.log)
+exec > >(tee -i $PWD/assets/webhook-tests/webhook_setup.log)
 exec 2>&1
 
 # Set the environment variables
@@ -12,10 +12,10 @@ export REPO_NAME="webhook-github-test"
 export SECRET_VALUE="webhooksecretvalue"
 # Get the external IP of the Google Cloud instance
 ## Troubleshooting: see if the curl command responds:
-curl -s -v -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip ## Delete this when done
+wget --quiet --header="Metadata-Flavor: Google" -O - http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip ## Delete this when done
 
-export EXTERNAL_IP=$(curl -s -v -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip)
 
+export EXTERNAL_IP=$(wget --quiet --header="Metadata-Flavor: Google" -O - http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip) 
 sleep 5
 echo "External IP: ${EXTERNAL_IP}"
 
