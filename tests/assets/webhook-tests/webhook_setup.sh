@@ -2,14 +2,21 @@
 
 set -exo pipefail
 
+# Redirect all output to a log file
+exec > >(tee -i webhook_setup.log)
+exec 2>&1
+
 # Set the environment variables
 export REPO_OWNER="fleetqa"
 export REPO_NAME="webhook-github-test"
 export SECRET_VALUE="webhooksecretvalue"
 # Get the external IP of the Google Cloud instance
-export EXTERNAL_IP=$(curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip)
+## Troubleshooting: see if the curl command responds:
+curl -s -v -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip ## Delete this when done
 
-sleep 2
+export EXTERNAL_IP=$(curl -s -v -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip)
+
+sleep 5
 echo "External IP: ${EXTERNAL_IP}"
 
 # Confirm the external IP is not empty
