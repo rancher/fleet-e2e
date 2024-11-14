@@ -20,13 +20,17 @@ if [ -z "$EXTERNAL_IP" ]; then
   exit 1
 fi
 
+# Log the current directory and PATH
+echo "Current directory: $(pwd)"
+echo "PATH: $PATH"
+
 # Delete any previous webhook
 # 1 - Get all webhooks
 webhooks=$(wget --quiet --header="Authorization: Bearer ${GH_PRIVATE_PWD}" \
  -O - https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/hooks)
 
 # 2- Extract webhook IDs and delete each one
-echo $webhooks | jq -r '.[].id' | while read webhook_id; do
+echo "$webhooks" | grep -o '"id": *[0-9]*' | awk -F ': ' '{print $2}' | while read webhook_id; do
   echo "Deleting webhook ID: $webhook_id"
   wget --quiet --method=DELETE --header="Authorization: Bearer ${GH_PRIVATE_PWD}" \
   -O - https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/hooks/${webhook_id}
@@ -67,7 +71,6 @@ spec:
                 number: 80
 EOF
 
-echo "$PWD" # echo the current path
 kubectl apply -f webhook-ingress.yaml
 
 # Validate the ingress response (manually use: curl -kv https://${EXTERNAL_IP}.nip.io)
