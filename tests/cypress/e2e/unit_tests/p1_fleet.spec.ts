@@ -635,6 +635,10 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
       qase_id: 27,
       test_explanation: "install existing application to the third cluster by adding it to the existing 'clusterGroup'",
     },
+    {
+      qase_id: 28,
+      test_explanation: "remove existing application from cluster-2 by removing it from an existing 'clusterGroup'",
+    },
   ]
 
   clusterGroup.forEach(({ qase_id, test_explanation }) => {
@@ -687,6 +691,19 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
             // Remove label from the third cluster.
             cy.wait(500);
             cy.removeClusterLabels(dsThirdClusterName, key, value);
+          }
+
+          if (qase_id === 28) {
+            const dsSecondClusterName = dsAllClusterList[1]
+            cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+            cy.contains('.title', 'Clusters').should('be.visible');
+
+            // Remove label from the Second cluster.
+            cy.wait(500);
+            cy.removeClusterLabels(dsSecondClusterName, key, value);
+
+            // Check application is absent i.e. removed from second cluster.
+            cy.checkApplicationStatus(appName, dsSecondClusterName, 'All Namespaces', false);
           }
 
           // Remove labels from the clusters.
@@ -751,6 +768,83 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
           cy.removeClusterLabels(dsCluster, key, value);
         }
       )
+    })
+  )
+
+  qase(29,
+    it.only("Fleet-29: Test install app to new set of clusters from old set of clusters using 'clusterGroup'", { tags: '@fleet-29' }, () => {
+      const repoName = 'default-single-app-cluster-group-29'
+      const new_key = 'key_third_cluster'
+      const new_value = 'value_third_cluster'
+      const newClusterGroupName = 'cluster-group-env-third-cluster'
+
+      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+      cy.contains('.title', 'Clusters').should('be.visible');
+
+      // Assign label to the clusters 
+      dsFirstTwoClusterList.forEach(
+        (dsCluster) => {
+          cy.assignClusterLabel(dsCluster, key, value);
+        }
+      )
+
+      // Create group of cluster consists of same label.
+      cy.clickNavMenu(['Cluster Groups']);
+      cy.contains('.title', 'Cluster Groups').should('be.visible');
+      cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
+
+      // Create a GitRepo targeting cluster group created.
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, deployToTarget: clusterGroupName });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1');
+
+      // Check first application status on both clusters.
+      dsFirstTwoClusterList.forEach((dsCluster) => {
+        cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+      })
+
+      // Add label to the third cluster
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.clickNavMenu(['Clusters']);
+      cy.contains('.title', 'Clusters').should('be.visible');
+      cy.assignClusterLabel(dsThirdClusterName, new_key, new_value);
+
+      // Create another clusterGroup using third cluster.
+      const newBannerMessageToAssert = /Matches 1 of 3 existing clusters: "imported-\d"/
+      cy.clickNavMenu(['Cluster Groups']);
+      cy.contains('.title', 'Cluster Groups').should('be.visible');
+      cy.createClusterGroup(newClusterGroupName, new_key, new_value, newBannerMessageToAssert);
+
+      // Update GitRepo with newly created clusterGroup.
+      cy.addFleetGitRepo({ repoName, deployToTarget: newClusterGroupName, editConfig: true });
+      cy.clickButton('Save');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+      // Check application status on first 2 clusters.
+      // Application should be removed from first 2 clusters.
+      dsFirstTwoClusterList.forEach(
+        (dsCluster) => {
+          cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces', false);
+        }
+      )
+
+      // Check application is present on third cluster.
+      cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
+
+      // Remove labels from the clusters.
+      dsFirstTwoClusterList.forEach(
+        (dsCluster) => {
+          // Adding wait to load page correctly to avoid interference with hamburger-menu.
+          cy.wait(500);
+          cy.removeClusterLabels(dsCluster, key, value);
+        }
+      )
+
+      // Remove labels from third cluster.
+      cy.removeClusterLabels(dsThirdClusterName, new_key, new_value);
+
+      // Delete clusterGroups.
+      cy.deleteClusterGroups();
     })
   )
 });
