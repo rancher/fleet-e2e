@@ -17,6 +17,7 @@ limitations under the License.
 import 'cypress-file-upload';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 
+export const noRowsMessages = ['There are no rows to show.', 'There are no rows which match your search query.']
 // Generic commands
 
 // Fleet commands
@@ -267,7 +268,6 @@ Cypress.Commands.add('fleetNamespaceToggle', (toggleOption='local') => {
 // Note: This function may be substituted by 'cypressLib.deleteAllResources' 
 // when hardcoded texts present can be parameterized
 Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
-  const noRowsMessages = ['There are no rows to show.', 'There are no rows which match your search query.']
   cy.get('body').then(($body) => {
     if ($body.text().includes('Delete')) {
       cy.wait(250) // Add small wait to give time for things to settle
@@ -317,14 +317,19 @@ Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
 });
 
 // Check deployed application status (present or not)
-Cypress.Commands.add('checkApplicationStatus', (appName, clusterName='local', appNamespace='Only User Namespaces') => {
+Cypress.Commands.add('checkApplicationStatus', (appName, clusterName='local', appNamespace='Only User Namespaces', present=true) => {
   cy.accesMenuSelection(clusterName, 'Workloads', 'Pods');
   cy.nameSpaceMenuToggle(appNamespace);
   cy.filterInSearchBox(appName);
-  cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
-  cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-0-row"]`)
-    .children({ timeout: 60000 })
-    .should('contain.text', appName);
+  if (present === true) {
+    cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
+    cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-0-row"]`)
+      .children({ timeout: 60000 })
+      .should('contain.text', appName);
+  }
+  else {
+    cy.get('td > span, td.text-center > span').invoke('text').should('be.oneOf', noRowsMessages)
+  }
 });
 
 // Delete the leftover applications
@@ -549,29 +554,55 @@ Cypress.Commands.add('deleteClusterGroups', () => {
 
 // Remove added labels from the cluster(s)
 Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
-  // Navigate to Clusters page when other navigation is present.
-  cy.get('body').then((body) => {
-    if (body.find('.title').text().includes('Clusters')) {
-      return true
-    }
-    else {
-      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-    }
-  })
-
+  cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+  cy.clickNavMenu(['Clusters']);
   cy.contains('.title', 'Clusters').should('be.visible');
   cy.filterInSearchBox(clusterName);
   cy.open3dotsMenu(clusterName, 'Edit Config');
-  cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
+  cy.contains('.title', 'Cluster:').should('be.visible');
+  // TODO: Remove below label remove logic after
+  // After label removal from cluster, it says 409 (conflict error) while saving.
+  // issue: # https://github.com/rancher/dashboard/issues/9563
+  // Below code will work for 3 labels on the cluster, 2 with disabled labels,
+  // 1 with actual removable label.
+  if (/\/2\.8/.test(Cypress.env('rancher_version'))) {
+    cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
+  }
+  else {
+    cy.get('body').then((body) => {
+      if (body.find('span[class="switch hand"]')) {
+        cy.get('span[name="label-system-toggle"]').click();
+        cy.get('div[class="row"] div[class="key-value"] button.role-link').then(($el) => {
+          if ($el.length === 2) {
+            cy.log("There is no new label for remove. Only 2 default labels present.");
+          }
+          else {
+            cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
+          }
+        })
+      }
+    })
+  }
+
   cy.wait(500);
   cy.clickButton('Save');
   cy.contains('Save').should('not.exist');
+  // Navigate back to all clusters page.
+  cy.clickNavMenu(['Clusters']);
 
   // Ensure label is removed.
+  cy.wait(500);
   cy.contains('.title', 'Clusters').should('be.visible');
   cy.filterInSearchBox(clusterName);
   cy.get('td.col-link-detail > span').contains(clusterName).click();
-  cy.get('div.tags > span').should("not.contain", `${key} : ${value}`);
+  cy.get('div.tags > span').then(($el) =>{
+    if ($el.length === 2) {
+      cy.log("Cluster Label get removed successfully.")
+    }
+    else {
+      cy.removeClusterLabels(clusterName, key, value)
+    }
+  })
 
   // Navigate back to all clusters page.
   cy.clickNavMenu(['Clusters']);
