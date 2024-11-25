@@ -325,7 +325,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: webhook-setup-log-${{ inputs.cluster_name }}
-          path: assets/webhook-tests/webhook_setup.log
+          path: tests/assets/webhook-tests/webhook_setup.log
       - name: Add summary
         if: ${{ always() }}
         run: |

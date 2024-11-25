@@ -331,7 +331,7 @@ qase(152,
     const repoName = 'webhook-test-disable-polling';
     const gh_private_pwd = Cypress.env('gh_private_pwd');
 
-    // Prepare webhook
+    // Prepare webhook in Github
     cy.exec('bash assets/webhook-tests/webhook_setup.sh', { env: { gh_private_pwd } }).then((result) => {
       cy.log(result.stdout, result.stderr);
     })
@@ -341,13 +341,13 @@ qase(152,
     cy.get('#btn-kubectl').click();
     cy.contains('Connected').should('be.visible');
 
-    // Add yaml file to the terminal
+    // Add yaml file to the terminal to create ad-hoc ingress
     cy.get('button[data-testid="header-action-import-yaml"]').click();
     cy.addYamlFile('assets/webhook-tests/webhook_ingress.yaml');
     cy.clickButton('Import');
     cy.clickButton('Close');
 
-    // kubectl apply -f webhook_ingress.yaml{enter}'
+    // Create webhook secret via terminal to be used in webhook
     cy.typeIntoCanvasTermnal('\
       kubectl create secret generic gitjob-webhook -n cattle-fleet-system --from-literal=github=webhooksecretvalue{enter}');
 
@@ -356,7 +356,7 @@ qase(152,
       cy.log(result.stdout, result.stderr);
     });
 
-    // Gitrepo adddition via YAML
+    // Gitrepo creation via YAML
     cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
     cy.fleetNamespaceToggle('fleet-local');
     cy.clickButton('Add Repository');
@@ -365,8 +365,9 @@ qase(152,
     cy.clickButton('Create');
     cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1'); 
 
-    // Give extra time for job to finsih
-    // TODO: remove this wait
+    // Give extra time for job to finsih. 
+    // TODO: remove this wait once https://github.com/rancher/fleet/issues/3067  is fixed
+    // or find a way to wait for the job to finish
     cy.wait(7000)
 
     // Verify deployments has 2 replicas only
