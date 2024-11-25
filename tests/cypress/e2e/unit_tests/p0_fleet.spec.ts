@@ -336,6 +336,18 @@ qase(152,
       cy.log(result.stdout, result.stderr);
     })
 
+    // Open local terminal in Rancher UI
+    cy.accesMenuSelection('local');
+    cy.get('#btn-kubectl').click();
+    cy.contains('Connected').should('be.visible');
+
+    // Add yaml file to the terminal
+    cy.addYamlFile('assets/webhook-tests/webhook_ingress.yaml');
+
+    cy.typeIntoCanvasTermnal('\
+      kubectl create secret generic gitjob-webhook -n cattle-fleet-system --from-literal=github=$SECRET_VALUE{enter}\
+      kubectl apply -f webhook-ingress.yaml{enter}');
+
     // Ensure webhook repo starts with 2 replicas
     cy.exec('bash assets/webhook-tests/webhook_test_2_replicas.sh', { env: { gh_private_pwd } }).then((result) => {
       cy.log(result.stdout, result.stderr);

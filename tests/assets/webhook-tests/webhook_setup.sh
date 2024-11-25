@@ -47,36 +47,36 @@ wget --quiet \
      -O - https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/hooks
 
 # Add webhook secret 
-kubectl create secret generic gitjob-webhook -n cattle-fleet-system --from-literal=github=$SECRET_VALUE
+# kubectl create secret generic gitjob-webhook -n cattle-fleet-system --from-literal=github=$SECRET_VALUE
 
 ## Create an ingress for the webhook service
 ## It will use the External IP of the Google Cloud instance + nip.io domain
-cat <<EOF > webhook-ingress.yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: webhook-ingress
-  namespace: cattle-fleet-system
-spec:
-  rules:
-  - host: ${EXTERNAL_IP}.nip.io
-    http:
-      paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: gitjob
-              port:
-                number: 80
-EOF
+# cat <<EOF > webhook-ingress.yaml
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: webhook-ingress
+#   namespace: cattle-fleet-system
+# spec:
+#   rules:
+#   - host: ${EXTERNAL_IP}.nip.io
+#     http:
+#       paths:
+#         - path: /
+#           pathType: Prefix
+#           backend:
+#             service:
+#               name: gitjob
+#               port:
+#                 number: 80
+# EOF
 
-kubectl apply -f webhook-ingress.yaml
+# kubectl apply -f webhook-ingress.yaml
 
 # Validate the ingress response (manually use: curl -kv https://${EXTERNAL_IP}.nip.io)
-HTTP_STATUS=$(wget --server-response --spider --no-check-certificate https://${EXTERNAL_IP}.nip.io 2>&1 | awk '/^  HTTP/{print $2}')
-if [ "$HTTP_STATUS" -eq 200 ]; then
-    echo "## Webhook ingress correctly created. All good! ##"
-else
-    echo "## Error status is $HTTP_STATUS ##"
-fi
+# HTTP_STATUS=$(wget --server-response --spider --no-check-certificate https://${EXTERNAL_IP}.nip.io 2>&1 | awk '/^  HTTP/{print $2}')
+# if [ "$HTTP_STATUS" -eq 200 ]; then
+#     echo "## Webhook ingress correctly created. All good! ##"
+# else
+#     echo "## Error status is $HTTP_STATUS ##"
+# fi
