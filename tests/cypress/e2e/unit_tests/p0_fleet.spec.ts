@@ -349,7 +349,7 @@ qase(152,
 
     // kubectl apply -f webhook_ingress.yaml{enter}'
     cy.typeIntoCanvasTermnal('\
-      kubectl create secret generic gitjob-webhook -n cattle-fleet-system --from-literal=github=$SECRET_VALUE{enter}');
+      kubectl create secret generic gitjob-webhook -n cattle-fleet-system --from-literal=github=webhooksecretvalue{enter}');
 
     // Ensure webhook repo starts with 2 replicas
     cy.exec('bash assets/webhook-tests/webhook_test_2_replicas.sh', { env: { gh_private_pwd } }).then((result) => {
@@ -357,6 +357,7 @@ qase(152,
     });
 
     // Gitrepo adddition via YAML
+    cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
     cy.fleetNamespaceToggle('fleet-local');
     cy.clickButton('Add Repository');
     cy.clickButton('Edit as YAML');
