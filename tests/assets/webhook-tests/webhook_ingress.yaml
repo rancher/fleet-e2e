@@ -5,7 +5,7 @@ metadata:
   namespace: cattle-fleet-system
 spec:
   rules:
-  - host: ${EXTERNAL_IP}.nip.io
+  - host: "{{EXTERNAL_IP}}.nip.io"
     http:
       paths:
         - path: /

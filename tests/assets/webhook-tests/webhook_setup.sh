@@ -20,6 +20,9 @@ if [ -z "$EXTERNAL_IP" ]; then
   exit 1
 fi
 
+# Replace placeholder in webhook_ingress.yaml with the actual EXTERNAL_IP
+sed -i "s/{{EXTERNAL_IP}}/${EXTERNAL_IP}/g" assets/webhook-tests/webhook_ingress.yaml
+
 # Log the current directory and PATH
 echo "Current directory: $(pwd)"
 echo "PATH: $PATH"

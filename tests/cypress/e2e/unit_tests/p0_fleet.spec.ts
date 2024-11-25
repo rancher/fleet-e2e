@@ -342,11 +342,14 @@ qase(152,
     cy.contains('Connected').should('be.visible');
 
     // Add yaml file to the terminal
+    cy.get('button[data-testid="header-action-import-yaml"]').click();
     cy.addYamlFile('assets/webhook-tests/webhook_ingress.yaml');
+    cy.clickButton('Import');
+    cy.clickButton('Close');
 
+    // kubectl apply -f webhook_ingress.yaml{enter}'
     cy.typeIntoCanvasTermnal('\
-      kubectl create secret generic gitjob-webhook -n cattle-fleet-system --from-literal=github=$SECRET_VALUE{enter}\
-      kubectl apply -f webhook-ingress.yaml{enter}');
+      kubectl create secret generic gitjob-webhook -n cattle-fleet-system --from-literal=github=$SECRET_VALUE{enter}');
 
     // Ensure webhook repo starts with 2 replicas
     cy.exec('bash assets/webhook-tests/webhook_test_2_replicas.sh', { env: { gh_private_pwd } }).then((result) => {
