@@ -366,12 +366,9 @@ describe('Test Fleet with Webhook', { tags: '@p0' }, () => {
       cy.clickButton('Edit as YAML');
       cy.addYamlFile('assets/webhook-tests/webhook_test_disable_polling.yaml');
       cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active', '1/1');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-
-      // Give extra time for job to finsih. 
-      // TODO: remove this wait once https://github.com/rancher/fleet/issues/3067  is fixed
-      // or find a way to wait for the job to finish
-      cy.wait(10000)
+      cy.verifyJobDeleted(repoName, false);
 
       // Verify deployments has 2 replicas only
       cy.accesMenuSelection('local', 'Workloads', 'Deployments');
@@ -379,6 +376,11 @@ describe('Test Fleet with Webhook', { tags: '@p0' }, () => {
       cy.wait(500);
       cy.contains('tr.main-row', repoName, { timeout: 20000 }).should('be.visible');
       cy.verifyTableRow(0, 'Active', '2/2');
+
+      // Give extra time for job to finsih. 
+      // TODO: remove this wait once https://github.com/rancher/fleet/issues/3067  is fixed
+      // or find a way to wait for the job to finish
+      cy.wait(10000);
 
       // Change replicas to 5
       cy.exec('bash assets/webhook-tests/webhook_test_5_replicas.sh').then((result) => {
