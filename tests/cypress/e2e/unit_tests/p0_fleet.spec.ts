@@ -371,7 +371,7 @@ describe('Test Fleet with Webhook', { tags: '@p0' }, () => {
       // Give extra time for job to finsih. 
       // TODO: remove this wait once https://github.com/rancher/fleet/issues/3067  is fixed
       // or find a way to wait for the job to finish
-      cy.wait(7000)
+      cy.wait(10000)
 
       // Verify deployments has 2 replicas only
       cy.accesMenuSelection('local', 'Workloads', 'Deployments');
