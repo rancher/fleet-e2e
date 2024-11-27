@@ -345,7 +345,7 @@ describe('Test Fleet with Webhook', { tags: '@p0' }, () => {
       cy.contains('Connected').should('be.visible');
 
       // Add yaml file to the terminal to create ad-hoc ingress
-      cy.get('button[data-testid="header-action-import-yaml"]').click();
+      cy.get('button > i.icon.icon-upload.icon-lg').click();
       cy.addYamlFile('assets/webhook-tests/webhook_ingress.yaml');
       cy.clickButton('Import');
       cy.clickButton('Close');
