@@ -333,7 +333,7 @@ describe('Test Fleet with Webhook', { tags: '@p0' }, () => {
 
       const repoName = 'webhook-test-disable-polling';
       const gh_private_pwd = Cypress.env('gh_private_pwd');
-
+      
       // Prepare webhook in Github
       cy.exec('bash assets/webhook-tests/webhook_setup.sh', { env: { gh_private_pwd } }).then((result) => {
         cy.log(result.stdout, result.stderr);
@@ -351,8 +351,17 @@ describe('Test Fleet with Webhook', { tags: '@p0' }, () => {
       cy.clickButton('Close');
 
       // Create webhook secret via terminal to be used in webhook
-      cy.typeIntoCanvasTermnal('\
-        kubectl create secret generic gitjob-webhook -n cattle-fleet-system --from-literal=github=webhooksecretvalue{enter}');
+      // Workaround for 2.7 and 2.8. TODO: remove once decommissioned.
+      if (/\/2\.7/.test(Cypress.env('rancher_version')) && /\/2\.8/.test(Cypress.env('rancher_version'))) {
+        cy.get('.xterm-rows').then(() => {
+          cy.type('kubectl create secret generic gitjob-webhook -n fleet-local --from-literal=github=webhooksecretvalue{enter}');
+        });
+      }
+
+      else {
+        cy.typeIntoCanvasTermnal('\
+          kubectl create secret generic gitjob-webhook -n cattle-fleet-system --from-literal=github=webhooksecretvalue{enter}');
+      };
 
       // Ensure webhook repo starts with 2 replicas
       cy.exec('bash assets/webhook-tests/webhook_test_2_replicas.sh', { env: { gh_private_pwd } }).then((result) => {
