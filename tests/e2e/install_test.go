@@ -87,7 +87,16 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 
 			// Set command and arguments
 			installCmd := exec.Command("sh", fileName)
+
 			// installCmd.Env = append(os.Environ(), "INSTALL_K3S_EXEC=--disable metrics-server")
+			// Only set proxy environment variables if proxyHost is provided
+			if proxyHost != "" {
+				installCmd.Env = append(os.Environ(),
+					"HTTP_PROXY="+proxyHost,
+					"HTTPS_PROXY="+proxyHost,
+					"NO_PROXY=127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16",
+				)
+			}
 
 			// Retry in case of (sporadic) failure...
 			count := 1
@@ -142,8 +151,16 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				"upgrade", "--install", "cert-manager", "jetstack/cert-manager",
 				"--namespace", "cert-manager",
 				"--create-namespace",
-				"--set", "installCRDs=true",
+				"--set", "crds.enabled=true",
 				"--wait", "--wait-for-jobs",
+			}
+
+			// Update flags based on Proxy Host availability
+			if proxyHost != "" {
+				flags = append(flags,
+					"--set", "proxy="+proxyHost,
+					"--set", "noProxy=127.0.0.0/8\\,10.0.0.0/8\\,cattle-system.svc\\,172.16.0.0/12\\,192.168.0.0/16\\,.svc\\,.cluster.local",
+				)
 			}
 
 			RunHelmCmdWithRetry(flags...)
@@ -159,7 +176,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 		})
 
 		By("Installing Rancher Manager", func() {
-			err := rancher.DeployRancherManager(rancherHostname, rancherChannel, rancherVersion, rancherHeadVersion, "none", "none")
+			err := rancher.DeployRancherManager(rancherHostname, rancherChannel, rancherVersion, rancherHeadVersion, "none", proxy)
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Wait for all pods to be started
