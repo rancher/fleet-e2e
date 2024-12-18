@@ -215,7 +215,7 @@ Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2)
 Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   cy.get('.top > .ns-filter').should('be.visible');
 
-    // For some reason I don't understand, click force doesn't work
+  // For some reason I don't understand, click force doesn't work
   // in 2.10 an onwards, but it is mandatory for earlier versions
   // To be improved in the future
 
