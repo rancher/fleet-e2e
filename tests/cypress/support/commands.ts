@@ -34,7 +34,7 @@ Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPub
 
   // Select the Git auth method
   cy.get('ul.vs__dropdown-menu > li > div', { timeout: 15000 }).contains(gitAuthType, { matchCase: false }).should('be.visible').click();
-  
+
   if (helmUrlRegex) {
     cy.typeValue('Helm Repos (URL Regex)', helmUrlRegex, false,  false );
   }
@@ -43,16 +43,16 @@ Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPub
     cy.typeValue('Username', userOrPublicKey, false,  false );
     cy.typeValue('Password', pwdOrPrivateKey, false,  false );
   }
-  
+
   else if (gitAuthType === 'ssh') {
     // Ugly implementation needed because 'typeValue' does not work here
     cy.get('textarea.no-resize.no-ease').eq(0).focus().clear().type(userOrPublicKey, {log: false}).blur();
     cy.get('textarea.no-resize.no-ease').eq(1).focus().clear().type(pwdOrPrivateKey, {log: false}).blur();
   }
 
-  else if (gitAuthType && gitAuthType !== 'http' && gitAuthType !== 'ssh') {    
-      cy.contains(gitAuthType).should('be.visible').click();
-    }    
+  else if (gitAuthType && gitAuthType !== 'http' && gitAuthType !== 'ssh') {
+    cy.contains(gitAuthType).should('be.visible').click();
+  }
 });
 
 Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
@@ -91,7 +91,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
     cy.verifyTableRow(0, /Active|Modified/, repoName);
     cy.open3dotsMenu(repoName, 'Edit Config');
     cy.contains('Git Repo:').should('be.visible');
-  } 
+  }
   else {
     cy.clickButton('Add Repository');
     cy.contains('Git Repo:').should('be.visible');
@@ -160,15 +160,15 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
 
   if (checkNotInMenu === true) {
     cy.get('.list-unstyled.menu > li').each(($el) => {
-        if ($el.text() != selection) {
+      if ($el.text() != selection) {
         cy.log(`Cannot perform action with specified value "${selection}" since it is not present. Current Menu is: "${$el.text()}"`);
         cy.get('ul.list-unstyled.menu').contains(selection).should('not.exist')
-      }        
+      }
     });
     // Close 3 dots button menu
     cy.get('.background').should('exist').click({ force: true });
   }
-  
+
   else if (selection) {
     // Open edit config and select option
     cy.get('.list-unstyled.menu > li > span', { timeout: 15000 }).contains(selection).should('be.visible');
@@ -216,14 +216,20 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   cy.get('.top > .ns-filter').should('be.visible');
 
   // For some reason I don't understand, click force doesn't work
-  // in 2.10, but it is mandatory for earlier versions
-  // TODO: this is a workaround. Please improve it.
-  if (/\/2\.10/.test(Cypress.env('rancher_version'))) {
-    cy.get('.top > .ns-filter').click();  
-  }
-  else {
+  // in 2.10 an onwards, but it is mandatory for earlier versions
+  
+  const rancherVersion = Cypress.env('rancher_version');
+  const old_versions = ["2.7-head", "2.8-head", "2.9-head"];
+
+  if (old_versions.includes(rancherVersion)) {
+    cy.log('Rancher version is: ' + rancherVersion , 'Clicking WITH force:true');
     cy.get('.top > .ns-filter').click({ force: true });
   }
+  else  {
+    cy.log('Rancher version is: ' + rancherVersion, 'Clicking WITHOUT force:true');
+    cy.get('.top > .ns-filter').click();
+  }
+
   cy.get('div.ns-item').contains(namespaceName).scrollIntoView()
   cy.get('div.ns-item').contains(namespaceName).click()
   cy.get('div.ns-dropdown.ns-open > i.icon.icon-chevron-up').click({ force: true });
@@ -303,7 +309,7 @@ Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
   }
   // Ensure this check is performed only for tests in 'fleet-local' namespace.
   if (resources) {
-      cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(` ${resources} Resources ready `, { timeout: 30000 }).should('be.visible')
+    cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(` ${resources} Resources ready `, { timeout: 30000 }).should('be.visible')
   } else {
     // On downstream clusters (v2.9+), resources are affected by cluster count.
     // Avoid specifying 'resources' for tests in 'fleet-default' to allow automatic verification.
@@ -371,20 +377,20 @@ Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUse
   if (newUserDefault === 'yes') {
     cy.get('span[aria-label="Yes: Default role for new users"]').click();
   }
-  
-    // Addition of resources and verbs linked to resources
-    // Each rule is an object with 2 keys: resource and verbs
-    rules.forEach((rule: { resource: string, verbs: string[] }, i) => {
-      // Iterate over Resource cells and add 1 resource
-      cy.get(`input.vs__search`).eq(2 * i + 1).click();
-      cy.contains(rule.resource, { matchCase: false }).should("exist").click();
-      cy.clickButton("Add Resource");
 
-        rule.verbs.forEach((verb) => {
-          cy.get(`input.vs__search`).eq(2 * i).click();
-          cy.get(`ul.vs__dropdown-menu > li`).contains(verb).should("exist").click();
-        });
+  // Addition of resources and verbs linked to resources
+  // Each rule is an object with 2 keys: resource and verbs
+  rules.forEach((rule: { resource: string, verbs: string[] }, i) => {
+    // Iterate over Resource cells and add 1 resource
+    cy.get(`input.vs__search`).eq(2 * i + 1).click();
+    cy.contains(rule.resource, { matchCase: false }).should("exist").click();
+    cy.clickButton("Add Resource");
+
+    rule.verbs.forEach((verb) => {
+      cy.get(`input.vs__search`).eq(2 * i).click();
+      cy.get(`ul.vs__dropdown-menu > li`).contains(verb).should("exist").click();
     });
+  });
 
   // "Hack" to get the button to be clickable
   cy.get('button.role-link').last().click()
@@ -439,7 +445,7 @@ Cypress.Commands.add('deleteAllUsers', (userName) => {
 Cypress.Commands.add('deleteRole', (roleName, roleTypeTemplate) => {
   cy.accesMenuSelection('Users & Authentication', 'Role Templates');
   cy.contains('.title', 'Role Templates').should('be.visible');
-  
+
   // Filter role by it's name and roleTypeTemplate.
   cy.get(`section[id="${roleTypeTemplate}"]`).within(() => {
     cy.get("input[placeholder='Filter']").should('exist').clear({ force: true}).type(roleName)
@@ -474,7 +480,7 @@ Cypress.Commands.add('upgradeFleet', () => {
   cy.verifyTableRow(1, 'Active', 'Rancher');
   cy.open3dotsMenu('Rancher', 'Refresh');
   cy.verifyTableRow(1, 'Active', 'Rancher');
-  
+
   // Update Fleet
   cy.visit('c/local/apps/catalog.cattle.io.app');
   cy.get('h1', { timeout: 20000 }).contains('Installed Apps').should('be.visible')
@@ -538,13 +544,13 @@ Cypress.Commands.add('clusterCountClusterGroup', (clusterGroupName, clusterCount
       cy.accesMenuSelection('Continuous Delivery', 'Cluster Groups');
     }
   })
-cy.contains('.title', 'Cluster Groups').should('be.visible');
-cy.fleetNamespaceToggle('fleet-default');
-cy.get('td.col-link-detail > span').contains(clusterGroupName).click();
-cy.get('.details').contains(`Clusters Ready: ${clusterCount} of ${clusterCount}`);
+  cy.contains('.title', 'Cluster Groups').should('be.visible');
+  cy.fleetNamespaceToggle('fleet-default');
+  cy.get('td.col-link-detail > span').contains(clusterGroupName).click();
+  cy.get('.details').contains(`Clusters Ready: ${clusterCount} of ${clusterCount}`);
 
-// Navigate back to all clusters page.
-cy.clickNavMenu(['Clusters']);
+  // Navigate back to all clusters page.
+  cy.clickNavMenu(['Clusters']);
 })
 
 // Delete Cluster Group
@@ -641,19 +647,19 @@ Cypress.Commands.add('verifyJobDeleted', (repoName, verifyJobDeletedEvent = true
 
 // Simulate typing on the canvas terminal
 Cypress.Commands.add('typeIntoCanvasTermnal', (textToType) => {
-    // Simulate typing on the canvas terminal
-    cy.get('canvas').then(($canvas) => {
-      const canvas = $canvas[0];
-      const rect = canvas.getBoundingClientRect();
-    
-      // Simulate a click on the canvas
-      cy.wrap(canvas)
-        .trigger('mousedown', { clientX: rect.left + 10, clientY: rect.top + 10 })
-        .trigger('mouseup', { clientX: rect.left + 10, clientY: rect.top + 10 });
-    
-      // Simulate typing on the canvas
-      cy.wrap(canvas)
-        .trigger('keydown', { key: 'k' })
-        .type(textToType);
-    });
+  // Simulate typing on the canvas terminal
+  cy.get('canvas').then(($canvas) => {
+    const canvas = $canvas[0];
+    const rect = canvas.getBoundingClientRect();
+
+    // Simulate a click on the canvas
+    cy.wrap(canvas)
+      .trigger('mousedown', { clientX: rect.left + 10, clientY: rect.top + 10 })
+      .trigger('mouseup', { clientX: rect.left + 10, clientY: rect.top + 10 });
+
+    // Simulate typing on the canvas
+    cy.wrap(canvas)
+      .trigger('keydown', { key: 'k' })
+      .type(textToType);
+  });
 });
