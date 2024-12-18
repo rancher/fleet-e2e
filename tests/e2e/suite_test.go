@@ -43,6 +43,8 @@ var (
 	rancherHeadVersion   string
 	rancherVersion       string
 	dsClusterCountStr    string
+	proxy                string
+	proxyHost            string
 )
 
 /**
@@ -77,6 +79,10 @@ var _ = BeforeSuite(func() {
 
 	// Convert k3s version to a tag usable by k3d
 	k8sDownstreamVersion = strings.Replace(k8sDownstreamVersion, "+", "-", 1)
+
+	// Proxy server information
+	proxy = os.Getenv("PROXY")
+	proxyHost = os.Getenv("PROXY_HOST")
 
 	// Extract Rancher Manager channel/version to install
 	if rancherVersion != "" {
