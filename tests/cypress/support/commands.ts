@@ -217,10 +217,11 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
 
   // For some reason I don't understand, click force doesn't work
   // in 2.10 an onwards, but it is mandatory for earlier versions
+  // To be improvd in the future
   
   const rancherVersion = Cypress.env('rancher_version');
-  const old_versions = ["2.7-head", "2.8-head", "2.9-head"];
-
+  const old_versions = ["latest/devel/2.7", "latest/devel/2.8", "latest/devel/2.9"];
+  
   if (old_versions.includes(rancherVersion)) {
     cy.log('Rancher version is: ' + rancherVersion , 'Clicking WITH force:true');
     cy.get('.top > .ns-filter').click({ force: true });
