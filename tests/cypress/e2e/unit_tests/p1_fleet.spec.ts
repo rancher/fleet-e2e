@@ -479,7 +479,17 @@ describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled'
           // Adding more wait for 30seconds to capture the error if occurred after modifying the resources.
           cy.wait(30000);
           cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-          cy.verifyTableRow(0, 'Active', repoName);
+
+          // As per comment in the issue: https://github.com/rancher/fleet/issues/2609#issuecomment-2504051729
+          // Moving ahead with the test cases to show GitRepo as Not Ready as it cannot restore
+          // changes made to service ports.
+          if (Cypress.env('rancher_version').includes('2.9')) {
+            cy.log("FOR RANCHER 2.9, Updated SERVICE ports are not restored back to it's ORIGINAL state. HENCE CONTINUE TEST")
+            cy.verifyTableRow(0, 'Not Ready', repoName);
+          }
+          else {
+            cy.verifyTableRow(0, 'Active', repoName);
+          }
 
           // Check All clusters are in healthy state after performing any modification to the resources.
           dsAllClusterList.forEach((dsCluster) => {
