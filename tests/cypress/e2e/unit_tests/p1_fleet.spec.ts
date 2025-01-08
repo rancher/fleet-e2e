@@ -420,8 +420,8 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
     )  
   });
 
-// Skipping test as per comment in the issue:
-// https://github.com/rancher/fleet/issues/2609#issuecomment-2504051729
+// Error will occur when use ForceUpdate.
+// In 2.9 we are skipping due flakiness in the test.
 if (!/\/2\.9/.test(Cypress.env('rancher_version'))) {
   describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled', { tags: '@p1'}, () => {
     const correctDriftTestData: testData[] = [
@@ -442,13 +442,13 @@ if (!/\/2\.9/.test(Cypress.env('rancher_version'))) {
         dataToAssert: "6341 ",
       },
     ]
-
+  
     correctDriftTestData.forEach(
       ({qase_id, repoName, resourceType, resourceName, resourceLocation, resourceNamespace, dataToAssert}) => {
         qase(qase_id,
           it(`Fleet-${qase_id}: Test IMMUTABLE resource "${resourceType}" will NOT be self-healed when correctDrift is set to true.`, { tags: `@fleet-${qase_id}` }, () => {
             const path = "multiple-paths"
-
+  
             // Add GitRepo by enabling 'correctDrift'
             cy.fleetNamespaceToggle('fleet-default')
             cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift: 'yes' });
@@ -459,7 +459,7 @@ if (!/\/2\.9/.test(Cypress.env('rancher_version'))) {
             cy.filterInSearchBox(resourceName);
             cy.get('.col-link-detail').contains(resourceName).should('be.visible');
             cy.open3dotsMenu(resourceName, 'Edit Config');
-
+  
             if (resourceType === 'ConfigMaps') {
               cy.clickButton('Add');
               cy.get('[data-testid="input-kv-item-key-1"]').eq(0).focus().type('test_key');
@@ -469,6 +469,7 @@ if (!/\/2\.9/.test(Cypress.env('rancher_version'))) {
             else if (resourceType === 'Services') {
               cy.get("input[type=number]").clear().type("6341");
             }
+  
             else  {
               throw new Error(`Resource "${resourceType}" is invalid  / not implemented yet`);
             }
