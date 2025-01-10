@@ -309,6 +309,63 @@ jobs:
             # QASE_RUN_ID is empty string already
           fi
           cd tests && make start-cypress-tests
+      - name: Upgrade Rancher Manager
+        id: rancher_upgrade
+        if: ${{ inputs.rancher_upgrade != '' }}
+        env:
+          PUBLIC_DNS: ${{ needs.create-runner.outputs.public_dns }}
+          PUBLIC_DOMAIN: bc.googleusercontent.com
+          RANCHER_UPGRADE: ${{ inputs.rancher_upgrade }}
+        run: |
+          cd tests
+
+          if make e2e-upgrade-rancher-manager; then
+            # Extract Rancher Manager version
+            RANCHER_VERSION=$(kubectl get pod \
+                                --namespace cattle-system \
+                                -l app=rancher \
+                                -o jsonpath={.items[*].status.containerStatuses[*].image} 2> /dev/null || true)
+
+            # Export values
+            echo "rancher_image_version=${RANCHER_VERSION}" >> ${GITHUB_OUTPUT}
+
+            # Check application
+            make e2e-check-app
+          else
+            # Needed to be sure that Github Action will see the failure
+            false
+          fi
+      - name: Cypress tests - On Upgraded Rancher
+        id: rancher_upgrade
+        if: ${{ inputs.rancher_upgrade != '' }}
+        env:
+          BROWSER: chrome
+          CYPRESS_DOCKER: 'cypress/included:13.16.0'
+          RANCHER_URL: https://${{ needs.create-runner.outputs.public_dns }}/dashboard
+          RANCHER_USER: admin
+          RANCHER_PASSWORD: ${{ secrets.rancher_password }}
+          GITLAB_PRIVATE_USER: ${{ secrets.gitlab_private_user }}
+          GITLAB_PRIVATE_PWD: ${{ secrets.gitlab_private_pwd }}
+          BITBUCKET_PRIVATE_USER: ${{ secrets.bitbucket_private_user }}
+          BITBUCKET_PRIVATE_PWD: ${{ secrets.bitbucket_private_pwd }}
+          GH_PRIVATE_USER: ${{ secrets.gh_private_user }}
+          GH_PRIVATE_PWD: ${{ secrets.gh_private_pwd }}
+          AZURE_PRIVATE_USER: ${{ secrets.azure_private_user }}
+          AZURE_PRIVATE_PWD: ${{ secrets.azure_private_pwd }}
+          RSA_PRIVATE_KEY_QA: ${{ secrets.rsa_private_key_qa }}
+          RSA_PUBLIC_KEY_QA: ${{ secrets.rsa_public_key_qa }}
+          GREPTAGS: ${{ inputs.grep_test_by_tag }}
+          SPEC: |
+            cypress/e2e/unit_tests/first_login_rancher.spec.ts
+            cypress/e2e/unit_tests/p0_fleet.spec.ts
+        run: |
+          if ${{ inputs.qase_run_id == 'none' }}; then
+            # Unset default QASE_* variables when reporting is disabled
+            unset QASE_REPORT
+            unset QASE_API_TOKEN
+            # QASE_RUN_ID is empty string already
+          fi
+          cd tests && make start-cypress-tests
       - name: Upload Cypress screenshots (Basics)
         if: failure() 
         uses: actions/upload-artifact@v4
@@ -348,6 +405,10 @@ jobs:
           echo "### Kubernetes" >> ${GITHUB_STEP_SUMMARY}
           echo "K3s version for Rancher Manager: ${{ env.INSTALL_K3S_VERSION }}" >> ${GITHUB_STEP_SUMMARY}
           echo "K3d version for downstream cluster: ${{ env.INSTALL_K3S_VERSION }}" >> ${GITHUB_STEP_SUMMARY}
+          if ${{ inputs.rancher_upgrade != '' }}; then
+            echo "# Rancher Manager Upgrade Information" >> ${GITHUB_STEP_SUMMARY}
+            echo "Rancher Manager Upgraded Version: ${{ inputs.rancher_upgrade }}" >> ${GITHUB_STEP_SUMMARY}
+          fi
 
   delete-runner:
     if: ${{ always() && inputs.destroy_runner == true }}
