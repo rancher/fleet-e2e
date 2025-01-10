@@ -68,6 +68,9 @@ on:
         description: Rancher Manager channel/version/head_version to use for installation
         default: stable/latest/none
         type: string
+      rancher_upgrade:
+        description: Rancher Manager channel/version to upgrade to
+        type: string
       grep_test_by_tag:
         description: Grep tags. For multiple selection separate with spaces
         required: false
@@ -214,6 +217,8 @@ jobs:
       K3S_KUBECONFIG_MODE: 0644
       # For Rancher Manager
       RANCHER_VERSION: ${{ inputs.rancher_version }}
+      # For Rancher Manager Upgrade
+      RANCHER_UPGRADE: ${{ inputs.rancher_upgrade }}
       TIMEOUT_SCALE: 3
       # QASE variables
       QASE_API_TOKEN: ${{ secrets.qase_api_token }}
