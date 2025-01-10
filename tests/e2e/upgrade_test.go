@@ -15,6 +15,7 @@ limitations under the License.
 package e2e_test
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -45,6 +46,16 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 		}
 		versionBeforeUpgrade, err := kubectl.RunWithoutErr(getImageVersion...)
 		Expect(err).To(Not(HaveOccurred()))
+
+		// Get Fleet Version before-upgrade
+		getFleetImageVersion := []string{"get", "pod",
+		"--namespace", "cattle-fleet-system",
+		"-l", "app=fleet-controller",
+		"-o", "jsonpath={.items[*].status.containerStatuses[*].image}",
+		}
+
+		// Execute the shell command to get version before upgrade
+		fleetVersionBeforeUpgrade, err := kubectl.RunWithoutErr(getFleetImageVersion...)
 
 		// Upgrade Rancher Manager
 		// NOTE: Don't check the status, we can have false-positive here...
@@ -90,5 +101,40 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 		versionAfterUpgrade, err := kubectl.RunWithoutErr(getImageVersion...)
 		Expect(err).To(Not(HaveOccurred()))
 		Expect(versionAfterUpgrade).To(Not(Equal(versionBeforeUpgrade)))
+
+		// Function to check if all Fleet pods are updated and running the new version
+		isFleetControllerUpgradeComplete := func() bool {
+			// Check the rollout status of Fleet pods to ensure they are updated
+			rolloutStatus, err := kubectl.RunWithoutErr(
+				"rollout",
+				"--namespace", "cattle-fleet-system",
+				"status", "deployment/fleet-controller",
+			)
+			if err != nil {
+					return false
+			}
+
+			// Check if the rollout has completed successfully
+			return strings.Contains(rolloutStatus, `deployment "fleet-controller" successfully rolled out`)
+		}
+
+		// Wait for the upgrade to complete by checking if the Fleet rollout is complete
+		Eventually(isFleetControllerUpgradeComplete, tools.SetTimeout(10*time.Minute), 20*time.Second).Should(BeTrue())
+
+		// Get after-upgrade Fleet version
+		// and check that it's different to the before-upgrade version
+		Eventually(func() int {
+			fleetCmdOut, _ := kubectl.RunWithoutErr(getFleetImageVersion...)
+			return len(strings.Fields(fleetCmdOut))
+		}, tools.SetTimeout(5*time.Minute), 10*time.Second).Should(Equal(3))
+
+		// Get Fleet version after upgrade
+		// and check that it's different to the version before upgrade
+		Eventually(func() string {
+			fleetVersionAfterUpgrade, err := kubectl.RunWithoutErr(getFleetImageVersion...)
+			Expect(err).To(Not(HaveOccurred()))
+			fmt.Println("Current Fleet version after upgrade:", fleetVersionAfterUpgrade) // Debugging output
+			return fleetVersionAfterUpgrade
+		}, 10*time.Minute, 5*time.Second).Should(Not(Equal(fleetVersionBeforeUpgrade)))
 	})
 })

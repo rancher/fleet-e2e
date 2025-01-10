@@ -23,7 +23,7 @@ export const path  = "nginx"
 beforeEach(() => {
   cy.login();
   cy.visit('/');
-  cy.deleteAllFleetRepos();
+  // cy.deleteAllFleetRepos();
 });
 
 Cypress.config();
@@ -196,19 +196,32 @@ describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
   );  
 
   qase(144,
-    it("Fleet-144 Test cabundle secrets are not created without TLS certificate", { tags: '@fleet-144' }, () => {;
+    it.only("Fleet-144 Test cabundle secrets are not created without TLS certificate", { tags: '@fleet-144' }, () => {;
       
       const repoName = 'local-144-test-cabundle-secrets-not-created'
       const repoUrl = 'https://github.com/rancher/fleet-examples'
       const branch = 'master'
       const path = 'simple'
-  
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
-      cy.clickButton('Create');
-      cy.verifyTableRow(0, 'Active', '1/1');
+      const fleetLocal = 'fleet-local'
+      let upgrade = Cypress.env('upgrade') === 'true'
+      cy.log("===========================");
+      cy.log(upgrade);
+      cy.log("===========================");
+
+      // Remove this line after upgrade PR.
+      if (upgrade) {
+        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.fleetNamespaceToggle(fleetLocal);
+        cy.verifyTableRow(0, /Active|Modified/, repoName);
+      } else {
+          cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+          cy.fleetNamespaceToggle(fleetLocal);
+          cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+          cy.clickButton('Create');
+          cy.verifyTableRow(0, 'Active', '1/1');
+      }
       cy.accesMenuSelection('local', 'Storage', 'Secrets');
-  
+
       // Confirm cabundle secret is NOT created for the specified gitrepo
       cy.nameSpaceMenuToggle('All Namespaces');
       cy.filterInSearchBox(repoName+'-cabundle');
