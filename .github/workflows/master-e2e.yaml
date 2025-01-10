@@ -336,7 +336,7 @@ jobs:
             false
           fi
       - name: Cypress tests - On Upgraded Rancher
-        id: rancher_upgrade
+        id: cypress_result_after_rancher_upgrade
         if: ${{ inputs.rancher_upgrade != '' }}
         env:
           BROWSER: chrome

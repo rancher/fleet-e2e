@@ -1,5 +1,5 @@
 # This workflow calls the master E2E workflow with custom variables
-name: UI-RM_head_2.7
+name: UI-RM_head_upgrade
 run-name: ${{ github.event_name == 'workflow_dispatch' && format('`{0}` on `{1}` - `{2}` destroy={3}', inputs.rancher_version, inputs.upstream_cluster_version, inputs.grep_test_by_tag, inputs.destroy_runner) || github.workflow }}
 
 on:
@@ -14,13 +14,18 @@ on:
         default: true
         type: boolean
       rancher_version:
-        description: Rancher version channel/version/head_version latest/latest, latest/2.7.10[-rc2], prime/2.7.12, prime/devel/2.7, prime-optimus/2.7.13-rc4
-        default: latest/devel/2.7
+        description: Rancher version channel/version/head_version latest/latest, latest/2.y.x[-rc1], prime/2.y.x, prime/devel/2.y, alpha/2.y.0-alphaZ
+        default: latest/devel/2.9
         type: string
         required: true
+      rancher_upgrade:
+        description: Rancher Manager channel/version to upgrade to
+        default: latest/devel/2.10
+        required: true
+        type: string
       upstream_cluster_version:
         description: K3s upstream cluster version where to install Rancher
-        default: v1.26.10+k3s2
+        default: v1.28.8+k3s1
         type: string
         required: true
       grep_test_by_tag:
@@ -52,7 +57,8 @@ jobs:
       cluster_name: cluster-k3s
       # WARNING, VALUES BELOW ARE HARDCODED FOR RUNS SCHEDULED BY CRON
       destroy_runner: ${{ github.event_name == 'schedule' && true || inputs.destroy_runner }}
-      upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.26.10+k3s2' }}
-      rancher_version: ${{ inputs.rancher_version || 'latest/devel/2.7' }}
+      upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.28.8+k3s1' }}
+      rancher_version: ${{ inputs.rancher_version || 'latest/devel/2.9' }}
+      rancher_upgrade: ${{ inputs.rancher_upgrade || 'latest/devel/2.10' }}
       qase_run_id: ${{ inputs.qase_run_id || 'auto' }}
       grep_test_by_tag: ${{ inputs.grep_test_by_tag || '@login @p0 @p1 @rbac' }}
