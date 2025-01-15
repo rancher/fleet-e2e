@@ -220,7 +220,12 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   // To be improved in the future
 
   const rancherVersion = Cypress.env('rancher_version');
-  const old_versions = ["latest/devel/2.7", "latest/devel/2.8", "latest/devel/2.9"];
+  const old_versions = [
+    "latest/devel/2.7",
+    "latest/devel/2.8",
+    "alpha/2.9",
+    "prime-optimus-alpha/2.9",
+  ];
 
   if (old_versions.includes(rancherVersion)) {
     cy.log('Rancher version is: ' + rancherVersion , 'Clicking WITH force:true');
