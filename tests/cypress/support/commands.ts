@@ -233,7 +233,7 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   }
   else  {
     cy.log('Rancher version is: ' + rancherVersion, 'Clicking WITHOUT force:true');
-    cy.get('.top > .ns-filter').click();
+    cy.get('.top > .ns-filter').click({ force: true });
   }
   cy.get('div.ns-item').contains(namespaceName).scrollIntoView()
   cy.get('div.ns-item').contains(namespaceName).click()
