@@ -8,6 +8,8 @@ export default defineConfig({
   defaultCommandTimeout: 10000,
   video: true,
   videoCompression: true,
+  numTestsKeptInMemory: 3,
+  experimentalMemoryManagement: true,
   reporter: 'cypress-multi-reporters',
   reporterOptions: {
     reporterEnabled: 'cypress-mochawesome-reporter, cypress-qase-reporter',
