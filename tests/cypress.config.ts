@@ -9,7 +9,7 @@ export default defineConfig({
   defaultCommandTimeout: 10000,
   video: true,
   videoCompression: true,
-  numTestsKeptInMemory: 3,
+  numTestsKeptInMemory: 0,
   experimentalMemoryManagement: true,
   reporter: 'cypress-multi-reporters',
   reporterOptions: {
