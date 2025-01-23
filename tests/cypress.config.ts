@@ -45,12 +45,12 @@ export default defineConfig({
       // Ref: https://www.bigbinary.com/blog/how-we-fixed-the-cypress-out-of-memory-error-in-chromium-browsers
       on("before:browser:launch", (browser, launchOptions) => {
         
+        launchOptions.args.push("--js-flags=--max-old-space-size=3500");
         if (["chrome", "edge"].includes(browser.name)) {
           if (browser.isHeadless) {
             launchOptions.args.push("--no-sandbox");
             launchOptions.args.push("--disable-gl-drawing-for-tests");
             launchOptions.args.push("--disable-gpu");
-            launchOptions.args.push("--js-flags=--max-old-space-size=3500");
           }
         }
         return launchOptions;
