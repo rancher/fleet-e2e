@@ -1176,3 +1176,35 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
     )
   })
 });
+
+// Note: to be executed after the above test cases.
+// to avoid any interference if continuous-delivery feature is not correctly enabled.
+if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env('rancher_version')) && !/\/2\.9/.test(Cypress.env('rancher_version'))) {
+  qase(156,
+    it("Fleet-156: Test gitrepoJobsCleanup is disabled when continuous-delivery feature is off", { tags: '@fleet-156' }, () => {
+      // Verify is gitrepoJobsCleanup is enabled by default.
+      cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
+      cy.nameSpaceMenuToggle('All Namespaces');
+      cy.verifyTableRow(0, 'Active', 'fleet-cleanup-gitrepo-jobs');
+      
+      // Disable continuous-delivery feature flag and wait for restart.
+      cy.accesMenuSelection('Global Settings', 'Feature Flags');
+      cy.open3dotsMenu('continuous-delivery', 'Deactivate' )
+      cy.clickButton('Deactivate');
+      cy.contains('Waiting for Restart', { timeout: 180000 }).should('not.exist');
+      // Verify is gitrepoJobsCleanup job is not present
+      cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
+      cy.contains('fleet-cleanup-gitrepo-jobs').should('not.exist');
+
+      // Re-enable continuous-delivery feature flag and wait for restart.
+      cy.accesMenuSelection('Global Settings', 'Feature Flags');
+      cy.open3dotsMenu('continuous-delivery', 'Activate' )
+      cy.clickButton('Activate');
+      cy.contains('Waiting for Restart', { timeout: 180000 }).should('not.exist');
+
+      cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
+      cy.contains('fleet-cleanup-gitrepo-jobs').should('exist');
+    })
+  )
+};
+
