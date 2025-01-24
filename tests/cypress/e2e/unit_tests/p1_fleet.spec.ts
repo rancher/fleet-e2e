@@ -1181,7 +1181,7 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
 // to avoid any interference if continuous-delivery feature is not correctly enabled.
 if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env('rancher_version')) && !/\/2\.9/.test(Cypress.env('rancher_version'))) {
   qase(156,
-    it("Fleet-156: Test gitrepoJobsCleanup is disabled when continuous-delivery feature is off", { tags: ['@p0', '@fleet-156'] }, () => {
+    it("Fleet-156: Test gitrepoJobsCleanup is disabled when continuous-delivery feature is off", { tags: ['@p1', '@fleet-156'] }, () => {
       // Verify is gitrepoJobsCleanup is enabled by default.
       cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
       cy.nameSpaceMenuToggle('All Namespaces');
