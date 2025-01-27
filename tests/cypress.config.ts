@@ -9,7 +9,7 @@ export default defineConfig({
   defaultCommandTimeout: 10000,
   video: true,
   videoCompression: true,
-  numTestsKeptInMemory: 0,
+  // numTestsKeptInMemory: 0, //This flag causes sporadic erros. Avoid using it.
   experimentalMemoryManagement: true,
   reporter: 'cypress-multi-reporters',
   reporterOptions: {
