@@ -230,7 +230,7 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
     cy.get('.top > .ns-filter').click();
   }
   cy.get('div.ns-item').contains(namespaceName).scrollIntoView()
-  cy.get('div.ns-item').contains(namespaceName).click({ force: true })
+  cy.get('div.ns-item').contains(namespaceName).click()
   cy.get('div.ns-dropdown.ns-open > i.icon.icon-chevron-up').click({ force: true });
 })
 

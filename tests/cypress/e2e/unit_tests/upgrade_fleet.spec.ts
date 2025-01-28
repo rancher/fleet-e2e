@@ -16,7 +16,6 @@ import 'cypress/support/commands';
 import { qase } from 'cypress-qase-reporter/dist/mocha';
 
 export const branch = "master";
-export const fleetLocal = 'fleet-local'
 export let upgrade = Cypress.env('upgrade') === 'true'
 
 beforeEach(() => {
@@ -66,11 +65,11 @@ describe('Test Fleet deployment on PUBLIC repos',  { tags: '@upgrade' }, () => {
       cy.log("===========================");
 
       if (upgrade) {
-        cy.checkGitRepoAfterUpgrade(repoName, fleetLocal);
+        cy.checkGitRepoAfterUpgrade(repoName, 'fleet-local');
       }
       else {
         cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-        cy.fleetNamespaceToggle(fleetLocal);
+        cy.fleetNamespaceToggle('fleet-local');
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         // Adding check validate "Edit as Yaml" works
         cy.clickButton('Edit as YAML');
@@ -97,11 +96,11 @@ describe('Test gitrepos with cabundle', { tags: '@upgrade' }, () => {
 
       // Remove this line after upgrade PR.
       if (upgrade) {
-        cy.checkGitRepoAfterUpgrade(repoName, fleetLocal);
+        cy.checkGitRepoAfterUpgrade(repoName, 'fleet-local');
       }
       else {
           cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-          cy.fleetNamespaceToggle(fleetLocal);
+          cy.fleetNamespaceToggle('fleet-local');
           cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
           cy.clickButton('Create');
           cy.verifyTableRow(0, 'Active', '1/1');
