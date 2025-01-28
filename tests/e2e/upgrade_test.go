@@ -35,7 +35,7 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 		PollInterval: 500 * time.Millisecond,
 	}
 
-	It("Upgrade Rancher Manager", func() {
+	It("Upgrades Rancher Manager", func() {
 
 		// Get before-upgrade Rancher Manager version
 		getImageVersion := []string{
@@ -78,7 +78,7 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 				"status", "deployment/rancher",
 			)
 			return status
-		}, tools.SetTimeout(4*time.Minute), 30*time.Second).Should(ContainSubstring("successfully rolled out"))
+		}, tools.SetTimeout(4*time.Minute), 10*time.Second).Should(ContainSubstring("successfully rolled out"))
 
 		// Check that all Rancher Manager pods are running
 		Eventually(func() error {
@@ -103,38 +103,27 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 		Expect(versionAfterUpgrade).To(Not(Equal(versionBeforeUpgrade)))
 
 		// Function to check if all Fleet pods are updated and running the new version
-		isFleetControllerUpgradeComplete := func() bool {
+		Eventually(func(g Gomega) {
 			// Check the rollout status of Fleet pods to ensure they are updated
 			rolloutStatus, err := kubectl.RunWithoutErr(
-				"rollout",
-				"--namespace", "cattle-fleet-system",
-				"status", "deployment/fleet-controller",
+					"rollout",
+					"--namespace", "cattle-fleet-system",
+					"status", "deployment/fleet-controller",
 			)
-			if err != nil {
-					return false
-			}
+			g.Expect(err).To(Not(HaveOccurred()))
+			g.Expect(rolloutStatus).To(ContainSubstring(`deployment "fleet-controller" successfully rolled out`))
 
-			// Check if the rollout has completed successfully
-			return strings.Contains(rolloutStatus, `deployment "fleet-controller" successfully rolled out`)
-		}
-
-		// Wait for the upgrade to complete by checking if the Fleet rollout is complete
-		Eventually(isFleetControllerUpgradeComplete, tools.SetTimeout(10*time.Minute), 20*time.Second).Should(BeTrue())
-
-		// Get after-upgrade Fleet version
-		// and check that it's different to the before-upgrade version
-		Eventually(func() int {
-			fleetCmdOut, _ := kubectl.RunWithoutErr(getFleetImageVersion...)
-			return len(strings.Fields(fleetCmdOut))
-		}, tools.SetTimeout(5*time.Minute), 10*time.Second).Should(Equal(3))
-
-		// Get Fleet version after upgrade
-		// and check that it's different to the version before upgrade
-		Eventually(func() string {
+			// Get Fleet version after upgrade
+			// and check that it's different to the version before upgrade
 			fleetVersionAfterUpgrade, err := kubectl.RunWithoutErr(getFleetImageVersion...)
-			Expect(err).To(Not(HaveOccurred()))
+
+			// Get after-upgrade Fleet version and check that it's different from the before-upgrade version
+			// getFleetImageVersion output consists of 3 fleet images,
+			// so we're checking 3 images must be present there.
+			g.Expect(err).To(Not(HaveOccurred()))
+			g.Expect(len(strings.Fields(fleetVersionAfterUpgrade))).To(Equal(3))
 			fmt.Println("Current Fleet version after upgrade:", fleetVersionAfterUpgrade) // Debugging output
-			return fleetVersionAfterUpgrade
-		}, 10*time.Minute, 5*time.Second).Should(Not(Equal(fleetVersionBeforeUpgrade)))
+			g.Expect(fleetVersionAfterUpgrade).To(Not(Equal(fleetVersionBeforeUpgrade)))
+	}, tools.SetTimeout(10*time.Minute), 20*time.Second).Should(Succeed())
 	})
 })
