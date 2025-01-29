@@ -349,11 +349,7 @@ jobs:
             -l app=rancher \
             -o jsonpath={.items[*].status.containerStatuses[*].image} 2> /dev/null || true)
           # Extract Fleet App version and images from local cluster
-          FLEET_APP_UPGRADED_VERSION="$(helm list -n cattle-fleet-system -o json 2> /dev/null \
-            | jq -r '.[] | .chart' \
-            | sort -V \
-            | uniq \
-            | tail -n 1)"
+          FLEET_APP_UPGRADED_VERSION="$(helm list -n cattle-fleet-system -o json 2> /dev/null | jq -r '.[0] | .chart')"
           for ns in {cattle-fleet-system,cattle-fleet-local-system}; do
             FLEET_UPGRADED_IMAGES+="$(kubectl get pods -n $ns -o jsonpath='{.items[*].spec.containers[*].image}' 2> /dev/null) "
           done

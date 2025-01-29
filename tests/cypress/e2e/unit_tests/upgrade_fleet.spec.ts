@@ -25,9 +25,9 @@ beforeEach(() => {
 
 Cypress.config();
 describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@upgrade' }, () => {
-  qase(2,
-    it(`FLEET-2: Test to install "NGINX" app using "SSH" auth on "GitLab" PRIVATE repository`, { tags: '@fleet-2', retries: 1 }, () => {
-      const repoName = 'default-cluster-fleet-2'
+  qase(157,
+    it(`FLEET-157: Test to install "NGINX" app using "SSH" auth on "GitLab" PRIVATE repository`, { tags: '@fleet-157', retries: 1 }, () => {
+      const repoName = 'default-cluster-fleet-157'
       const gitAuthType = "ssh"
       const userOrPublicKey = Cypress.env("rsa_public_key_qa")
       const pwdOrPrivateKey = Cypress.env("rsa_private_key_qa")
@@ -55,11 +55,11 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@upgra
 });
 
 describe('Test Fleet deployment on PUBLIC repos',  { tags: '@upgrade' }, () => {
-  qase(62,
-    it('FLEET-62: Deploy application to local cluster', { tags: '@fleet-62' }, () => {
+  qase(158,
+    it('FLEET-158: Deploy application to local cluster', { tags: '@fleet-158' }, () => {
       const path = "simple"
       const repoUrl = 'https://github.com/rancher/fleet-examples'
-      const repoName = "local-cluster-fleet-62"
+      const repoName = "local-cluster-fleet-158"
       cy.log("===========================");
       cy.log(upgrade);
       cy.log("===========================");
@@ -85,9 +85,9 @@ describe('Test Fleet deployment on PUBLIC repos',  { tags: '@upgrade' }, () => {
 });
 
 describe('Test gitrepos with cabundle', { tags: '@upgrade' }, () => {
-  qase(144,
-    it("Fleet-144 Test cabundle secrets are not created without TLS certificate", { tags: '@fleet-144' }, () => {;
-      const repoName = 'default-144-test-cabundle-secrets-not-created'
+  qase(159,
+    it("Fleet-159 Test cabundle secrets are not created without TLS certificate", { tags: '@fleet-159' }, () => {;
+      const repoName = 'default-159-test-cabundle-secrets-not-created'
       const path = "qa-test-apps/nginx-app"
       const repoUrl = "https://github.com/rancher/fleet-test-data/"
       cy.log("===========================");
