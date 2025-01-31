@@ -408,6 +408,7 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version')) && !/\/2\.9/.test(Cypress.env
           .find('.side-tabs ul.tabs li')
           .eq(3)
           .should('have.id', 'securityContext')
+          .contains('Security Context')
           .should("be.visible")
           .click()
 
