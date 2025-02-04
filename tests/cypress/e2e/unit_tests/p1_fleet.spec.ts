@@ -1208,8 +1208,8 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
       })
     )
 
-    qase(131,
-      it("Fleet-131: Test NAMESPACE will be DELETED after main NESTED GitRepo is deleted.", { tags: '@fleet-131' }, () => {
+    qase(164,
+      it("Fleet-164: Test NAMESPACE will be DELETED after main NESTED GitRepo is deleted.", { tags: '@fleet-164' }, () => {
         const repoName = 'test-ns-deleted-with-nested-bundle'
         const repoName2= 'my-gitrepo'
         const namespaceName = 'my-custom-namespace'
@@ -1237,7 +1237,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         cy.fleetNamespaceToggle('fleet-local');
         cy.filterInSearchBox(repoName); // this is the main one
         
-        // Since whe expeect that the deletion of the main one als
+        // Since whe expeect that the deletion of the main one also
         // deletes the nested one, the 'deleteAll' function will check this
         cy.deleteAll();
 
