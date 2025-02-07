@@ -30,7 +30,7 @@ declare global {
       accesMenuSelection(firstAccessMenu: string, secondAccessMenu?: string, clickOption?: string): Chainable<Element>;
       filterInSearchBox(filterText: string): Chainable<Element>;
       deleteAll(fleetCheck?: boolean): Chainable<Element>;
-      deleteAllFleetRepos(): Chainable<Element>;
+      deleteAllFleetRepos(namespaceName?: string): Chainable<Element>;
       checkGitRepoStatus(repoName: string, bundles?: string, resources?: string): Chainable<Element>;
       checkApplicationStatus(appName: string, clusterName?: string, appNamespace?: string, present?: boolean): Chainable<Element>;
       deleteApplicationDeployment(clusterName?: string): Chainable<Element>;
@@ -57,6 +57,11 @@ declare global {
       compareClusterResourceCount(clusterName: string): Chainable<Element>;
       createNewUser(username: string, password: string, role: string, uncheckStandardUser?: boolean): Chainable<Element>;
       addFleetGitRepoNew(repoName: string, repoUrl?: string, branch?: string, path?: string, path2?: string, fleetNamespace?: string, editConfig?: boolean, helmUrlRegex?: string, deployToTarget?: string, tlsOption?: string, tlsCertificate?: string, allowedTargetNamespace?: string): Chainable<Element>;
+      enableFeatureFlag(flagName: string): Chainable<Element>;
+      checkModalCardTitle(expectedText: string, waitForRestart?: boolean, shouldHaveText?: boolean): Chainable<Element>;
+      moveClusterToWorkspace(clusterName: string, workspaceName: string): Chainable<Element>;
+      restoreClusterToDefaultWorkspace(clusterName: string, defaultWorkspaceName?: string): Chainable<Element>;
+      createNewFleetWorkspace(newWorkspaceName: string): Chainable<Element>;
     }
   }
 }
