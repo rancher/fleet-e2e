@@ -30,7 +30,7 @@ declare global {
       accesMenuSelection(firstAccessMenu: string, secondAccessMenu?: string, clickOption?: string): Chainable<Element>;
       filterInSearchBox(filterText: string): Chainable<Element>;
       deleteAll(fleetCheck?: boolean): Chainable<Element>;
-      deleteAllFleetRepos(): Chainable<Element>;
+      deleteAllFleetRepos(namespaceName?: string): Chainable<Element>;
       checkGitRepoStatus(repoName: string, bundles?: string, resources?: string): Chainable<Element>;
       checkApplicationStatus(appName: string, clusterName?: string, appNamespace?: string, present?: boolean): Chainable<Element>;
       deleteApplicationDeployment(clusterName?: string): Chainable<Element>;
@@ -55,6 +55,11 @@ declare global {
       checkGitRepoAfterUpgrade(repoName: string, fleetNamespace?: string): Chainable<Element>;
       gitRepoResourceCountAsInteger(repoName: string, fleetNamespace?: string): Chainable<Element>;
       compareClusterResourceCount(clusterName: string): Chainable<Element>;
+      enableFeatureFlag(flagName: string): Chainable<Element>;
+      checkModalCardTitle(expectedText: string, shouldHaveText: boolean, waitForRestart?: boolean): Chainable<Element>;
+      moveClusterToWorkspace(clusterName: string, workspaceName: string): Chainable<Element>;
+      restoreClusterToDefaultWorkspace(clusterName: string, defaultWorkspaceName?: string): Chainable<Element>;
+      createNewFleetWorkspace(newWorkspaceName: string): Chainable<Element>;
     }
   }
 }

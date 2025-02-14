@@ -1277,3 +1277,48 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
     )
   });
 }
+
+describe('Test move cluster to newly created workspace and deploy application to it.', { tags: '@p1'}, () => {
+  qase(51,
+    it("Fleet-51: Test move cluster to newly created workspace and deploy application to it.", { tags: '@fleet-51' }, () => {
+      const repoName = 'default-cluster-new-workspace-51'
+      const branch = "master"
+      const path = "simple"
+      const repoUrl = "https://github.com/rancher/fleet-examples"
+      const flagName = "provisioningv2-fleet-workspace-back-population"
+      const newWorkspaceName = "new-fleet-workspace"
+      const fleetDefault = "fleet-default"
+
+      // Enable cluster can move to another Fleet workspace feature flag.
+      cy.enableFeatureFlag(flagName);
+
+      // Create new workspace.
+      cy.createNewFleetWorkspace(newWorkspaceName);
+
+      // Switch to 'fleet-default' workspace
+      cy.fleetNamespaceToggle(fleetDefault);
+      cy.clickNavMenu(['Clusters']);
+
+      // Move first cluster i.e. 'imported-0' to newly created workspace.
+      cy.moveClusterToWorkspace(dsFirstClusterName, newWorkspaceName);
+
+      // Create a GitRepo targeting to cluster available in newly created workspace.
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
+
+      // Delete GitRepo
+      // In Fleet Workspace, namespace name similarly treated as namespace.
+      cy.deleteAllFleetRepos(newWorkspaceName);
+
+      // Move cluster back to 'fleet-default' workspace
+      cy.fleetNamespaceToggle(newWorkspaceName);
+      cy.restoreClusterToDefaultWorkspace(dsFirstClusterName);
+
+      // Delete the newly created workspace
+      cy.clickNavMenu(['Advanced', 'Workspaces']);
+      cy.filterInSearchBox(newWorkspaceName)
+      cy.deleteAll(false);
+    })
+  )
+});
