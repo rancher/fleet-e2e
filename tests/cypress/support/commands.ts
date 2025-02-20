@@ -159,20 +159,20 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
   });
 
   if (checkNotInMenu === true) {
-    cy.get('.list-unstyled.menu > li').each(($el) => {
+    cy.get('.list-unstyled.menu > li, div.dropdownTarget').each(($el) => {
         if ($el.text() != selection) {
         cy.log(`Cannot perform action with specified value "${selection}" since it is not present. Current Menu is: "${$el.text()}"`);
-        cy.get('ul.list-unstyled.menu').contains(selection).should('not.exist')
+        cy.get('ul.list-unstyled.menu, div.dropdownTarget').contains(selection).should('not.exist')
       }        
     });
     // Close 3 dots button menu
-    cy.get('.background').should('exist').click({ force: true });
+    // cy.get('.background').should('exist').click({ force: true });
   }
   
   else if (selection) {
     // Open edit config and select option
-    cy.get('.list-unstyled.menu > li > span', { timeout: 15000 }).contains(selection).should('be.visible');
-    cy.get('.list-unstyled.menu > li > span', { timeout: 15000 }).contains(selection).click({ force: true });
+    cy.get('.list-unstyled.menu > li > span, div.dropdownTarget', { timeout: 15000 }).contains(selection).should('be.visible');
+    cy.get('.list-unstyled.menu > li > span, div.dropdownTarget', { timeout: 15000 }).contains(selection).click({ force: true });
     // Ensure dropdown is not present
     cy.contains('Edit Config').should('not.exist')
   }
