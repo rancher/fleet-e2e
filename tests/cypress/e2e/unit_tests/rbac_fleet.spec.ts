@@ -53,7 +53,7 @@ describe('Test Fleet access with RBAC with custom roles using all verbs for User
       const customRoleName = "fleetworkspaces-bundles-gitrepos-all-verbs-role"
       // Create 'base-user' User using "User-Base"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(baseUser, uiPassword, "User-Base", true);
+      cy.createNewUser(baseUser, uiPassword, "User-Base", true);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -97,7 +97,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
 
       //  Create "Standard User"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(stduser, uiPassword);
+      cy.createNewUser(stduser, uiPassword);
       
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -140,7 +140,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
 
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(stduser, uiPassword);
+      cy.createNewUser(stduser, uiPassword);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -184,7 +184,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
 
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(stduser, uiPassword);
+      cy.createNewUser(stduser, uiPassword);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -223,7 +223,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
 
       // Create 'base-user' User using "Standard User"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(baseUser, uiPassword, "Standard User", true);
+      cy.createNewUser(baseUser, uiPassword, "Standard User", true);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -286,7 +286,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(stduser, uiPassword);
+      cy.createNewUser(stduser, uiPassword);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -332,7 +332,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(stduser, uiPassword);
+      cy.createNewUser(stduser, uiPassword);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -380,7 +380,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(stduser, uiPassword);
+      cy.createNewUser(stduser, uiPassword);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -431,7 +431,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(stduser, uiPassword);
+      cy.createNewUser(stduser, uiPassword);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -503,7 +503,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       
       // Create "Base User"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(baseUser, uiPassword, "User-Base", true);
+      cy.createNewUser(baseUser, uiPassword, "User-Base", true);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -549,7 +549,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       
       // Create "Base User"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(baseUser, uiPassword, "User-Base", true);
+      cy.createNewUser(baseUser, uiPassword, "User-Base", true);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -597,7 +597,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       
       // Create "Base User"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(baseUser, uiPassword, "User-Base", true);
+      cy.createNewUser(baseUser, uiPassword, "User-Base", true);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -648,7 +648,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       
       // Create "Base User"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(baseUser, uiPassword, "User-Base", true);
+      cy.createNewUser(baseUser, uiPassword, "User-Base", true);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -701,7 +701,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       
       // Create "Base User"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(baseUser, uiPassword, "User-Base", true);
+      cy.createNewUser(baseUser, uiPassword, "User-Base", true);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -743,7 +743,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       
       // Create "Base User"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(baseUser, uiPassword, "User-Base", true);
+      cy.createNewUser(baseUser, uiPassword, "User-Base", true);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -786,7 +786,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       
       // Create "Base User"
       cypressLib.burgerMenuToggle();
-      cypressLib.createUser(baseUser, uiPassword, "User-Base", true);
+      cy.createNewUser(baseUser, uiPassword, "User-Base", true);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,

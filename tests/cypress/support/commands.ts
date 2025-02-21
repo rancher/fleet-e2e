@@ -152,9 +152,11 @@ Cypress.Commands.add('deployToClusterOrClusterGroup', (deployToTarget) => {
 
 // 3 dots menu selection
 Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) => {
+  // Let cy.filterInSearchBox() operation finish and wait before opening Edit Menu.
+  cy.wait(500);
   // Open 3 dots button
   cy.contains('tr.main-row', name).should('exist').within(() => {
-    cy.get('.icon.icon-actions').click({ force: true });
+    cy.get('.icon.icon-actions', { timeout: 500 }).click({ force: true });
     cy.wait(250)
   });
 
@@ -709,3 +711,38 @@ Cypress.Commands.add('compareClusterResourceCount', (clusterName) => {
     })
   })
 })
+
+Cypress.Commands.add('createNewUser', (username, password, role, uncheckStandardUser=false) => {
+  cy.contains('Users & Authentication')
+    .click();
+  cy.contains('.title', 'Users')
+    .should('exist');
+  cy.clickButton('Create');
+  cy.typeValue('Username', username);
+  cy.typeValue('New Password', password);
+  cy.typeValue('Confirm Password', password);
+  if (role) {
+    cy.contains(role)
+    .click();
+  } 
+  if (uncheckStandardUser === true) {
+    cy.get('body').then((body) => {
+      if (body.find('span[aria-label="Standard User"]').length) {
+        cy.get('span[aria-label="Standard User"]')
+          .scrollIntoView()
+          .should('exist')
+          .click();
+      }
+      else if (body.find('div[data-testid="grb-checkbox-user"] > .checkbox-container').length) {
+        cy.get('div[data-testid="grb-checkbox-user"] > .checkbox-container')
+          .contains('Standard User')
+          .scrollIntoView()
+          .click();
+      }
+    })    
+  }
+  cy.getBySel('form-save')
+    .contains('Create')
+    .click();
+  cy.contains(username).should('exist');
+  })

@@ -55,6 +55,7 @@ declare global {
       checkGitRepoAfterUpgrade(repoName: string, fleetNamespace?: string): Chainable<Element>;
       gitRepoResourceCountAsInteger(repoName: string, fleetNamespace?: string): Chainable<Element>;
       compareClusterResourceCount(clusterName: string): Chainable<Element>;
+      createNewUser(username: string, password: string, role: string, uncheckStandardUser?: boolean): Chainable<Element>;
     }
   }
 }
