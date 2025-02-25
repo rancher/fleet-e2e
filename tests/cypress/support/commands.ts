@@ -157,14 +157,14 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
   // Open 3 dots button
   cy.contains('tr.main-row', name).should('exist').within(() => {
     cy.get('.icon.icon-actions', { timeout: 500 }).click({ force: true });
-    cy.wait(250)
+    // cy.wait(250)
   });
 
   if (checkNotInMenu === true) {
-    cy.get('.list-unstyled.menu > li, div.dropdownTarget').each(($el) => {
+    cy.get('.list-unstyled.menu > li, [role="menuitem"]').each(($el) => {
         if ($el.text() != selection) {
         cy.log(`Cannot perform action with specified value "${selection}" since it is not present. Current Menu is: "${$el.text()}"`);
-        cy.get('ul.list-unstyled.menu, div.dropdownTarget').contains(selection).should('not.exist')
+        cy.get('ul.list-unstyled.menu, [role="menuitem"]').contains(selection).should('not.exist')
       }        
     });
     // Close 3 dots button menu
@@ -405,8 +405,8 @@ Cypress.Commands.add('assignRoleToUser', (userName, roleName) => {
   cy.contains('.title', 'Users').should('be.visible');
   cy.filterInSearchBox(userName);
   cy.open3dotsMenu(userName, 'Edit Config');
-  cy.get(`span[aria-label='${roleName}']`).scrollIntoView();
-  cy.get(`span[aria-label='${roleName}']`).should('be.visible').click();
+  cy.get(`span[aria-label='${roleName}'], div[class='checkbox-section checkbox-section--custom'] span[role='checkbox']`).scrollIntoView();
+  cy.get(`span[aria-label='${roleName}'], div[class='checkbox-section checkbox-section--custom'] span[role='checkbox']`).should('be.visible').click();
 
   cy.clickButton('Save');
   // Sortering by Age so first row is the desired user
