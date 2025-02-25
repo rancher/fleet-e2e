@@ -132,7 +132,10 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
     cy.get('.checkbox-outer-container.check').contains('Always Keep Resources').click();
   }
   if (correctDrift === 'yes') {
-    cy.get('[data-testid="GitRepo-correctDrift-checkbox"] > .checkbox-container > .checkbox-custom').click();
+    cy.get(
+      `[data-testid="GitRepo-correctDrift-checkbox"] > .checkbox-container > .checkbox-custom, 
+      div[data-testid="gitRepo-correctDrift-checkbox"] label[class='checkbox-container']`
+    ).click();
   }
   cy.clickButton('Next');
   cy.get('button.btn').contains('Previous').should('be.visible');
@@ -163,12 +166,13 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
   if (checkNotInMenu === true) {
     cy.get('.list-unstyled.menu > li, [role="menuitem"]').each(($el) => {
         if ($el.text() != selection) {
-        cy.log(`Cannot perform action with specified value "${selection}" since it is not present. Current Menu is: "${$el.text()}"`);
-        cy.get('ul.list-unstyled.menu, [role="menuitem"]').contains(selection).should('not.exist')
-      }        
+          cy.log(`Cannot perform action with specified value "${selection}" since it is not present. Current Menu is: "${$el.text()}"`);
+          cy.get('ul.list-unstyled.menu, [role="menuitem"]')
+            .contains(selection).should('not.exist');
+        }
     });
     // Close 3 dots button menu
-    // cy.get('.background').should('exist').click({ force: true });
+    cy.get('[class="main-layout"]').should('exist').click({ force: true });
   }
   
   else if (selection) {
