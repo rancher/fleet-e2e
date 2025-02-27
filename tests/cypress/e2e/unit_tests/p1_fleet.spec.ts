@@ -1260,6 +1260,9 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         const path = "simple"
         const repoUrl = "https://github.com/rancher/fleet-examples"
 
+        // Get Resource count from the cluster for better calculations.
+        cy.currentClusterResourceCount(dsFirstClusterName);
+
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         cy.clickButton('Create');
         cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');

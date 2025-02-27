@@ -56,6 +56,7 @@ declare global {
       gitRepoResourceCountAsInteger(repoName: string, fleetNamespace?: string): Chainable<Element>;
       compareClusterResourceCount(clusterName: string): Chainable<Element>;
       createNewUser(username: string, password: string, role: string, uncheckStandardUser?: boolean): Chainable<Element>;
+      currentClusterResourceCount(clusterName: string): Chainable<Element>;
     }
   }
 }
