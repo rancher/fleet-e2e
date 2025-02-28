@@ -84,7 +84,7 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
 
 // Command add and edit Fleet Git Repository
 // TODO: Rename this command name to 'addEditFleetGitRepo'
-Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, tlsOption, tlsCertificate, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget }) => {
+Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, tlsOption, tlsCertificate, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget, allowedTargetNamespace="" }) => {
   cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
   if (editConfig === true) {
     cy.fleetNamespaceToggle(fleetNamespace);
@@ -128,6 +128,11 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
       if (deployToTarget) {
         cy.deployToClusterOrClusterGroup(deployToTarget);
       }
+
+      // Type allowed namespace name in the Target Namespace while creating GitRepo.
+      if (allowedTargetNamespace !== "") {
+        cy.get('input[placeholder="Optional: Require all resources to be in this namespace"]').type(allowedTargetNamespace);
+      }
       cy.clickButton('Next');
     }
   });
@@ -154,13 +159,16 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
   // After checked check-box, `keepResources: true` is set
   // in the GitRepo YAML.
   if (keepResources === 'yes') {
-    cy.get('.checkbox-outer-container.check').contains('Always Keep Resources').click();
+    cy.get('.checkbox-outer-container.check').contains('Always Keep Resources', { matchCase: false }).click();
   }
   if (correctDrift === 'yes') {
-    cy.get(
-      `[data-testid="GitRepo-correctDrift-checkbox"] > .checkbox-container > .checkbox-custom, 
-      div[data-testid="gitRepo-correctDrift-checkbox"] label[class='checkbox-container']`
-    ).click();
+    cy.getBySel("GitRepo-correctDrift-checkbox")
+      .contains('Enable self-healing', { matchCase: false })
+      .click();
+
+    // cy.get(
+    //   `[data-testid="GitRepo-correctDrift-checkbox"] > .checkbox-container > .checkbox-custom, label[class='checkbox-container']`
+    // ).contains('Enable self-healing', { matchCase: false }).click();
   }
 
   cy.get('body', { timeout: 10000 }).then(($body) => {
@@ -168,13 +176,20 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
       cy.clickButton('Next');
     }
   });
-
+  
   // Target to any cluster or group or no cluster.
   // On Old UI On 'Create: Step 2', there is Deploy To available.
   cy.get('body', { timeout: 10000 }).then(($body) => {
-    cy.get('button.btn').contains('Previous').should('be.visible');
-    if ($body.text().includes('Create: Step 2') && deployToTarget) {
-      cy.deployToClusterOrClusterGroup(deployToTarget);
+    if ($body.text().includes('Create: Step 2')) {
+      cy.get('button.btn').contains('Previous').should('be.visible');
+      if (deployToTarget) {
+        cy.deployToClusterOrClusterGroup(deployToTarget);
+      }
+
+      // Type allowed namespace name in the Target Namespace while creating GitRepo.
+      if (allowedTargetNamespace !== "") {
+        cy.get('input[placeholder="Optional: Require all resources to be in this namespace"]').type(allowedTargetNamespace);
+      }
     }
   });  
 });
@@ -213,6 +228,9 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
     // Open edit config and select option
     cy.get('.list-unstyled.menu > li > span, div.dropdownTarget', { timeout: 15000 }).contains(selection).should('be.visible');
     cy.get('.list-unstyled.menu > li > span, div.dropdownTarget', { timeout: 15000 }).contains(selection).click({ force: true });
+    if (selection === 'Force Update') {
+      cy.get('[data-testid="deactivate-driver-confirm"] > span').should('be.visible').click();
+    }
     // Ensure dropdown is not present
     cy.contains('Edit Config').should('not.exist')
   }
@@ -306,8 +324,9 @@ Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery
 
 // Fleet namespace toggle
 Cypress.Commands.add('fleetNamespaceToggle', (toggleOption='local') => {
-  cy.contains('fleet-').click();
-  cy.contains(toggleOption).should('be.visible').click();
+  cy.get('[data-testid="workspace-switcher"] span').click();
+  cy.get('ul.vs__dropdown-menu > li > div', { timeout: 15000 }).contains(toggleOption, { matchCase: false }).should('be.visible').click();
+  // cy.contains(toggleOption).should('be.visible').click();
 });
 
 // Command to delete all rows if check box and delete button are present
@@ -770,38 +789,3 @@ Cypress.Commands.add('compareClusterResourceCount', (clusterName) => {
     })
   })
 })
-
-Cypress.Commands.add('createNewUser', (username, password, role, uncheckStandardUser=false) => {
-  cy.contains('Users & Authentication')
-    .click();
-  cy.contains('.title', 'Users')
-    .should('exist');
-  cy.clickButton('Create');
-  cy.typeValue('Username', username);
-  cy.typeValue('New Password', password);
-  cy.typeValue('Confirm Password', password);
-  if (role) {
-    cy.contains(role)
-    .click();
-  } 
-  if (uncheckStandardUser === true) {
-    cy.get('body').then((body) => {
-      if (body.find('span[aria-label="Standard User"]').length) {
-        cy.get('span[aria-label="Standard User"]')
-          .scrollIntoView()
-          .should('exist')
-          .click();
-      }
-      else if (body.find('div[data-testid="grb-checkbox-user"] > .checkbox-container').length) {
-        cy.get('div[data-testid="grb-checkbox-user"] > .checkbox-container')
-          .contains('Standard User')
-          .scrollIntoView()
-          .click();
-      }
-    })    
-  }
-  cy.getBySel('form-save')
-    .contains('Create')
-    .click();
-  cy.contains(username).should('exist');
-  })
