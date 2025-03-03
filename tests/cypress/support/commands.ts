@@ -91,6 +91,12 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
     cy.verifyTableRow(0, /Active|Modified/, repoName);
     cy.open3dotsMenu(repoName, 'Edit Config');
     cy.contains('Git Repo:').should('be.visible');
+    // This new 'Create: Step 1' is present on new UI 2.11 onwards
+    cy.get('body', { timeout: 10000 }).then(($body) => {
+      if ($body.text().includes('Edit: Step 1') && !$body.text().includes('Source')) {
+        cy.clickButton('Next');
+      }
+    });
   } 
   else {
     cy.clickButton('Add Repository');
@@ -117,14 +123,14 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
 
   // This new 'Create: Step 2' is present on new UI 2.11 onwards
   cy.get('body', { timeout: 10000 }).then(($body) => {
-    if ($body.text().includes('Create: Step 2')) {
+    if (/Create: Step 2|Edit: Step 2/.test($body.text())) {
       cy.clickButton('Next');
     }
   });
 
   // This new 'Create: Step 3' is present on new UI 2.11 onwards
   cy.get('body', { timeout: 10000 }).then(($body) => {
-    if ($body.text().includes('Create: Step 3') && !$body.text().includes('Labels')) {
+    if (/Create: Step 3|Edit: Step 3/.test($body.text()) && !$body.text().includes('Labels')) {
       if (deployToTarget) {
         cy.deployToClusterOrClusterGroup(deployToTarget);
       }
@@ -162,21 +168,16 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
     cy.get('.checkbox-outer-container.check').contains('Always Keep Resources', { matchCase: false }).click();
   }
   if (correctDrift === 'yes') {
-    cy.getBySel("GitRepo-correctDrift-checkbox")
-      .contains('Enable self-healing', { matchCase: false })
-      .click();
-
-    // cy.get(
-    //   `[data-testid="GitRepo-correctDrift-checkbox"] > .checkbox-container > .checkbox-custom, label[class='checkbox-container']`
-    // ).contains('Enable self-healing', { matchCase: false }).click();
+    cy.get('.checkbox-outer-container.check').contains('Enable self-healing', { matchCase: false }).click();
   }
 
-  cy.get('body', { timeout: 10000 }).then(($body) => {
-    if ($body.text().includes('Create: Step 1') && $body.text().includes('Resource')) {
+  cy.get('body', { timeout: 20000 }).then(($body) => {
+    // if (/Create: Step 1|Edit: Step 1/.test($body.text()) && $body.text().includes('Resource Handling')) {
+    if (cy.contains(/Create: Step 1|Edit: Step 1/)) {
       cy.clickButton('Next');
     }
   });
-  
+
   // Target to any cluster or group or no cluster.
   // On Old UI On 'Create: Step 2', there is Deploy To available.
   cy.get('body', { timeout: 10000 }).then(($body) => {
@@ -209,7 +210,7 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
   // Open 3 dots button
   cy.contains('tr.main-row', name).should('exist').within(() => {
     cy.get('.icon.icon-actions', { timeout: 500 }).click({ force: true });
-    // cy.wait(250)
+    cy.wait(250)
   });
 
   if (checkNotInMenu === true) {
@@ -223,19 +224,20 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
     // Close 3 dots button menu
     cy.get('body').should('exist').click({ force: true });
   }
-  
+
   else if (selection) {
     // Open edit config and select option
     cy.get('.list-unstyled.menu > li > span, div.dropdownTarget', { timeout: 15000 }).contains(selection).should('be.visible');
     cy.get('.list-unstyled.menu > li > span, div.dropdownTarget', { timeout: 15000 }).contains(selection).click({ force: true });
-    cy.get('body', { timeout: 10000 }).then(($body) => {
-      if ($body.text().includes('Force Update')) {
-        if (selection === 'Force Update') {
-          cy.wait(500);
+    if (selection === 'Force Update') {
+      // Wait for the 'Force Update' pop-up box open.
+      cy.wait(500);
+      cy.get('body', { timeout: 10000 }).then(($body) => {
+        if ($body.find('.card-title > h4').text().includes('Force Update')) {
           cy.get('[data-testid="deactivate-driver-confirm"] > span').should('be.visible').click();
         }    
-      }
-    });
+      })
+    };
     // Ensure dropdown is not present
     cy.contains('Edit Config').should('not.exist')
   }
@@ -735,22 +737,6 @@ Cypress.Commands.add('checkGitRepoAfterUpgrade', (repoName, fleetNamespace='flee
   cy.verifyTableRow(0, /Active|Modified/, repoName);
 });
 
-Cypress.Commands.add('currentClusterResourceCount', (clusterName) => {
-  cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-  cy.contains('.title', 'Clusters').should('be.visible');
-  cy.filterInSearchBox(clusterName);
-  cy.verifyTableRow(0, 'Active', clusterName);
-  cy.get('td.col-link-detail > span').contains(clusterName).click();
-  cy.get("div[primary-color-var='--sizzle-success'] div[class='data compact'] > h1")
-  .invoke('text')
-  .then((clusterResourceCountText) => {
-    // Convert to integer
-    const resourceCountBeforeGitRepo = parseInt(clusterResourceCountText.trim(), 10);
-    cy.log("Resource count on each cluster is: " + resourceCountBeforeGitRepo);
-    cy.wrap(resourceCountBeforeGitRepo).as('resourceCountBeforeGitRepo');
-  })
-})
-
 Cypress.Commands.add('gitRepoResourceCountAsInteger', (repoName, fleetNamespace='fleet-local') => {
   cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
   cy.fleetNamespaceToggle(fleetNamespace);
@@ -759,18 +745,13 @@ Cypress.Commands.add('gitRepoResourceCountAsInteger', (repoName, fleetNamespace=
   cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
 
   // Get the Resource count text from UI and convert it into integer.
-  cy.get('@resourceCountBeforeGitRepo').then((value) => {
-    const resourceCountOnClusterBeforeGitRepo = parseInt(value, 10);
-
-    cy.get("div[data-testid='gitrepo-deployment-summary'] div[class='count']")
-    .invoke('text')
-    .then((gitRepoResourceCountText) => {
-      // Add default 'resourceCountOnClusterBeforeGitRepo' resource count available on each cluster.
-      const gitRepoResourceCountTextToInteger = parseInt(gitRepoResourceCountText.trim(), 10);
-      const gitRepoTotalResourceCount = gitRepoResourceCountTextToInteger + resourceCountOnClusterBeforeGitRepo;
-      cy.log("GitRepo Resource count is: " + gitRepoTotalResourceCount);
-      cy.wrap(gitRepoTotalResourceCount).as('gitRepoTotalResourceCount');
-    })
+  cy.get("div[data-testid='gitrepo-deployment-summary'] div[class='count']")
+  .invoke('text')
+  .then((countText) => {
+    // Add '7' default resource count available on each cluster.
+    const gitRepoResourceCount = parseInt(countText.trim(), 10) + 7;
+    cy.log("GitRepo Resource count is: " + gitRepoResourceCount);
+    cy.wrap(gitRepoResourceCount).as('gitRepoResourceCount');
   })
 })
 
@@ -784,14 +765,14 @@ Cypress.Commands.add('compareClusterResourceCount', (clusterName) => {
 
   // Get the stored 'gitRepoResourceCount' value and
   // compare with existing resource count from cluster.
-  cy.get('@gitRepoTotalResourceCount').then((gitRepoTotalResourceCount) => {
+  cy.get('@gitRepoResourceCount').then((gitRepoResourceCount) => {
     cy.get("div[primary-color-var='--sizzle-success'] div[class='data compact'] > h1")
     .invoke('text')
     .then((clusterResourceCountText) => {
       // Covert it into integer and then compare with resources created via GitRepo.
       const resourceCountOnCluster = parseInt(clusterResourceCountText.trim(), 10);
       cy.log("Resource count on each cluster is: " + resourceCountOnCluster);
-      expect(gitRepoTotalResourceCount).to.equal(resourceCountOnCluster);
+      expect(gitRepoResourceCount).to.equal(resourceCountOnCluster);
     })
   })
 })

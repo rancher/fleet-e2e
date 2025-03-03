@@ -55,7 +55,6 @@ declare global {
       checkGitRepoAfterUpgrade(repoName: string, fleetNamespace?: string): Chainable<Element>;
       gitRepoResourceCountAsInteger(repoName: string, fleetNamespace?: string): Chainable<Element>;
       compareClusterResourceCount(clusterName: string): Chainable<Element>;
-      currentClusterResourceCount(clusterName: string): Chainable<Element>;
     }
   }
 }
