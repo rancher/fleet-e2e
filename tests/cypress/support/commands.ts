@@ -191,7 +191,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
         cy.get('input[placeholder="Optional: Require all resources to be in this namespace"]').type(allowedTargetNamespace);
       }
     }
-  });  
+  });
 });
 
 // Deploy To target functionality used in addGitRepo
@@ -228,9 +228,14 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
     // Open edit config and select option
     cy.get('.list-unstyled.menu > li > span, div.dropdownTarget', { timeout: 15000 }).contains(selection).should('be.visible');
     cy.get('.list-unstyled.menu > li > span, div.dropdownTarget', { timeout: 15000 }).contains(selection).click({ force: true });
-    if (selection === 'Force Update') {
-      cy.get('[data-testid="deactivate-driver-confirm"] > span').should('be.visible').click();
-    }
+    cy.get('body', { timeout: 10000 }).then(($body) => {
+      if ($body.text().includes('Force Update')) {
+        if (selection === 'Force Update') {
+          cy.wait(500);
+          cy.get('[data-testid="deactivate-driver-confirm"] > span').should('be.visible').click();
+        }    
+      }
+    });
     // Ensure dropdown is not present
     cy.contains('Edit Config').should('not.exist')
   }
@@ -324,9 +329,10 @@ Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery
 
 // Fleet namespace toggle
 Cypress.Commands.add('fleetNamespaceToggle', (toggleOption='local') => {
-  cy.get('[data-testid="workspace-switcher"] span').click();
-  cy.get('ul.vs__dropdown-menu > li > div', { timeout: 15000 }).contains(toggleOption, { matchCase: false }).should('be.visible').click();
-  // cy.contains(toggleOption).should('be.visible').click();
+  cy.get('.vs__selected-options')
+    .contains('fleet-')
+    .click({force: true});
+  cy.contains(toggleOption).should('be.visible').click();
 });
 
 // Command to delete all rows if check box and delete button are present
