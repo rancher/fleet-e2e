@@ -173,7 +173,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
 
   cy.get('body', { timeout: 20000 }).then(($body) => {
     // if (/Create: Step 1|Edit: Step 1/.test($body.text()) && $body.text().includes('Resource Handling')) {
-    if (cy.contains(/Create: Step 1|Edit: Step 1/)) {
+    if (cy.contains(/Create: Step 1|Edit: Step 1/) && $body.text().includes('Resource Handling')) {
       cy.clickButton('Next');
     }
   });
@@ -775,4 +775,40 @@ Cypress.Commands.add('compareClusterResourceCount', (clusterName) => {
       expect(gitRepoResourceCount).to.equal(resourceCountOnCluster);
     })
   })
+})
+
+Cypress.Commands.add('createNewUser', (username, password, role, uncheckStandardUser=false) => {
+  cy.contains('Users & Authentication')
+    .click();
+  cy.contains('.title', 'Users')
+    .should('exist');
+  cy.clickButton('Create');
+  cy.typeValue('Username', username);
+  cy.typeValue('New Password', password);
+  cy.typeValue('Confirm Password', password);
+  if (role) {
+    cy.contains(role)
+    .click();
+  } 
+  if (uncheckStandardUser === true) {
+    cy.get('body').then((body) => {
+      if (body.find('span[aria-label="Standard User"]').length) {
+        cy.get('span[aria-label="Standard User"]').scrollIntoView();
+        cy.get('span[aria-label="Standard User"]')
+          .should('be.visible')        
+          .click();
+      }
+      else if (body.find('div[data-testid="grb-checkbox-user"] > .checkbox-container').length) {
+        cy.get('div[data-testid="grb-checkbox-user"] > .checkbox-container').scrollIntoView();
+        cy.get('div[data-testid="grb-checkbox-user"] > .checkbox-container')
+          .contains('Standard User')
+          .should('be.visible')
+          .click();
+      }
+    })    
+  }
+  cy.getBySel('form-save')
+    .contains('Create')
+    .click();
+  cy.contains(username).should('exist');
 })
