@@ -172,8 +172,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
   }
 
   cy.get('body', { timeout: 20000 }).then(($body) => {
-    // if (/Create: Step 1|Edit: Step 1/.test($body.text()) && $body.text().includes('Resource Handling')) {
-    if (cy.contains(/Create: Step 1|Edit: Step 1/) && $body.text().includes('Resource Handling')) {
+    if (/Create: Step 1/.test($body.text().trim()) || /Edit: Step 1/.test($body.text().trim())) {
       cy.clickButton('Next');
     }
   });
