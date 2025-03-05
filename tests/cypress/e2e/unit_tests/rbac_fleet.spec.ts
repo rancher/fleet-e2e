@@ -865,6 +865,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
       cy.clickButton('Create');
 
       // Add Fleet repository and create it
+      cy.wait(200);
       cy.fleetNamespaceToggle('fleet-local');
       cy.addFleetGitRepo({repoName, repoUrl, branch, path, allowedTargetNamespace});
 
@@ -904,6 +905,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
       cy.clickButton('Create');
 
       // Add Fleet repository and create it
+      cy.wait(200);
       cy.fleetNamespaceToggle('fleet-local');
       cy.addFleetGitRepo({repoName, repoUrl, branch, path});
       cy.clickButton('Create');
@@ -912,18 +914,8 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
         .contains("Empty targetNamespace denied, because allowedTargetNamespaces restriction is present");
 
       // Edit GitRepo by adding allowed target namespace.
-      cy.open3dotsMenu(repoName, 'Edit Config');
-      cy.contains('Git Repo:').should('be.visible');
-      cy.clickButton('Next');
-
-      // Update Target Namespace to GitRepo.
-      cy.get('body', { timeout: 10000 }).then(($body) => {
-        if ($body.text().includes('Create: Step 3') && $body.text().includes('Deploy With')) {
-          cy.get('input[placeholder="Optional: Require all resources to be in this namespace"]').type(allowedTargetNamespace);
-          cy.clickButton('Next');
-        }
-      });
-      cy.get('input[placeholder="Optional: Require all resources to be in this namespace"]').type(allowedTargetNamespace);
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.addFleetGitRepo({repoName, allowedTargetNamespace, editConfig: true})
       cy.clickButton('Save');
       cy.verifyTableRow(0, 'Active', repoName);
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');

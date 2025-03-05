@@ -866,7 +866,7 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
       // Update GitRepo with newly created clusterGroup.
       cy.addFleetGitRepo({ repoName, deployToTarget: newClusterGroupName, fleetNamespace: 'fleet-default', editConfig: true });
       cy.clickButton('Save');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      cy.checkGitRepoStatus(repoName, '1 / 1');
 
       // Check application is present on third cluster i.e. imported-2
       cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');

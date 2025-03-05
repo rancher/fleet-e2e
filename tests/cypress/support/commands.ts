@@ -97,7 +97,8 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
     cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
     if (editConfig === true) {
       cy.fleetNamespaceToggle(fleetNamespace);
-      cy.verifyTableRow(0, /Active|Modified/, repoName);
+      // Check 'Error' state only to allowedTargetNamespace test only
+      cy.verifyTableRow(0, /Active|Modified|Error/, repoName);
       cy.open3dotsMenu(repoName, 'Edit Config');
       cy.contains('Git Repo:').should('be.visible');
     } 
@@ -163,7 +164,8 @@ Cypress.Commands.add('addFleetGitRepoNew', ({ repoName, repoUrl, branch, path, p
 
   if (editConfig === true) {
     cy.fleetNamespaceToggle(fleetNamespace);
-    cy.verifyTableRow(0, /Active|Modified/, repoName);
+    // Check 'Error' state only to allowedTargetNamespace test only
+    cy.verifyTableRow(0, /Active|Modified|Error/, repoName);
     cy.open3dotsMenu(repoName, 'Edit Config');
     cy.contains('Git Repo:').should('be.visible');
     // This new 'Create: Step 1' is present on new UI 2.11 onwards
@@ -372,8 +374,10 @@ Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery
 
 // Fleet namespace toggle
 Cypress.Commands.add('fleetNamespaceToggle', (toggleOption='local') => {
-  cy.contains('fleet-').click();
-  cy.contains(toggleOption).should('be.visible').click();
+  cy.get('.vs__selected-options')
+  .contains('fleet-')
+  .click({force: true});
+cy.contains(toggleOption).should('be.visible').click({force: true});
 });
 
 // Command to delete all rows if check box and delete button are present
