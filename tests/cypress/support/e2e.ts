@@ -56,6 +56,7 @@ declare global {
       gitRepoResourceCountAsInteger(repoName: string, fleetNamespace?: string): Chainable<Element>;
       compareClusterResourceCount(clusterName: string): Chainable<Element>;
       createNewUser(username: string, password: string, role: string, uncheckStandardUser?: boolean): Chainable<Element>;
+      addFleetGitRepoNew(repoName: string, repoUrl?: string, branch?: string, path?: string, path2?: string, fleetNamespace?: string, editConfig?: boolean, helmUrlRegex?: string, deployToTarget?: string, tlsOption?: string, tlsCertificate?: string, allowedTargetNamespace?: string): Chainable<Element>;
     }
   }
 }

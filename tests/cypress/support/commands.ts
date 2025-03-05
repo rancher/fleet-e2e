@@ -18,6 +18,7 @@ import 'cypress-file-upload';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 
 export const noRowsMessages = ['There are no rows to show.', 'There are no rows which match your search query.']
+export const rancherVersion = Cypress.env('rancher_version');
 // Generic commands
 
 // Fleet commands
@@ -85,35 +86,104 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
 // Command add and edit Fleet Git Repository
 // TODO: Rename this command name to 'addEditFleetGitRepo'
 Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, tlsOption, tlsCertificate, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget, allowedTargetNamespace="" }) => {
+
+  //Version check for 2.11 (head) onwards
+  const head_versions = ["latest/devel/head", "prime/2.11.0", "alpha/2.11.0"];
+
+  if (head_versions.includes(rancherVersion)){
+    cy.addFleetGitRepoNew({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, tlsOption, tlsCertificate, keepResources, correctDrift, fleetNamespace, editConfig, helmUrlRegex, deployToTarget, allowedTargetNamespace})
+  }
+  else{
+    cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+    if (editConfig === true) {
+      cy.fleetNamespaceToggle(fleetNamespace);
+      cy.verifyTableRow(0, /Active|Modified/, repoName);
+      cy.open3dotsMenu(repoName, 'Edit Config');
+      cy.contains('Git Repo:').should('be.visible');
+    } 
+    else {
+      cy.clickButton('Add Repository');
+      cy.contains('Git Repo:').should('be.visible');
+      cy.typeValue('Name', repoName);
+      cy.typeValue('Repository URL', repoUrl);
+      cy.typeValue('Branch Name', branch);
+    }
+    // Path is not required when git repo contains 1 application folder only.
+    if (path) {
+      cy.addPathOnGitRepoCreate(path);
+    }
+    if (path2) {
+      cy.addPathOnGitRepoCreate(path2, 1);
+    }
+    if (gitAuthType) {
+      cy.gitRepoAuth(gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex);
+    }
+
+    if (tlsOption) {
+      cy.contains(`TLS Certificate Verification`).click();
+      // Select the TLS option
+      cy.get('ul.vs__dropdown-menu > li > div', { timeout: 15000 })
+        .contains(tlsOption, { matchCase: false })
+        .should('be.visible')
+        .click();
+
+      if (tlsOption = 'Specify additional certificates') {
+        cy.readFile(tlsCertificate).then((content) => {
+          cy.get('textarea[placeholder="Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"]').type(content);
+        });
+      }
+    }
+
+    // Check the checkbox of keepResources if option 'yes' is given.
+    // After checked check-box, `keepResources: true` is set
+    // in the GitRepo YAML.
+    if (keepResources === 'yes') {
+      cy.get('.checkbox-outer-container.check').contains('Always Keep Resources').click();
+    }
+    if (correctDrift === 'yes') {
+      cy.get('[data-testid="GitRepo-correctDrift-checkbox"] > .checkbox-container > .checkbox-custom').click();
+    }
+    cy.clickButton('Next');
+    cy.get('button.btn').contains('Previous').should('be.visible');
+    // Target to any cluster or group or no cluster.
+    if (deployToTarget) {
+      cy.deployToClusterOrClusterGroup(deployToTarget);
+    }
+
+    // Type allowed namespace name in the Target Namespace while creating GitRepo.
+    if (allowedTargetNamespace !== "") {
+      cy.get('input[placeholder="Optional: Require all resources to be in this namespace"]').type(allowedTargetNamespace);
+    }
+  }
+});
+
+Cypress.Commands.add('addFleetGitRepoNew', ({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, tlsOption, tlsCertificate, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget, allowedTargetNamespace="" }) => {
+
   cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+
   if (editConfig === true) {
     cy.fleetNamespaceToggle(fleetNamespace);
     cy.verifyTableRow(0, /Active|Modified/, repoName);
     cy.open3dotsMenu(repoName, 'Edit Config');
     cy.contains('Git Repo:').should('be.visible');
     // This new 'Create: Step 1' is present on new UI 2.11 onwards
-    cy.get('body', { timeout: 10000 }).then(($body) => {
-      if ($body.text().includes('Edit: Step 1') && !$body.text().includes('Source')) {
-        cy.clickButton('Next');
-      }
-    });
+    cy.clickButton('Next');
   } 
+
+  // PART 1 - METADATA + PART 2 REPOSITORY DETAILS (a)
   else {
     cy.clickButton('Add Repository');
     cy.contains('Git Repo:').should('be.visible');
     cy.typeValue('Name', repoName);
 
     // This new 'Create: Step 1' is present on new UI 2.11 onwards
-    cy.get('body', { timeout: 10000 }).then(($body) => {
-      if ($body.text().includes('Create: Step 1') && !$body.text().includes('Source')) {
-        cy.clickButton('Next');
-      }
-    });
+    cy.clickButton('Next');
 
     cy.typeValue('Repository URL', repoUrl);
     cy.typeValue('Branch Name', branch);
   }
-  // Path is not required when git repo contains 1 application folder only.
+
+  // PART 2b - REPOSITORY DETAILS
   if (path) {
     cy.addPathOnGitRepoCreate(path);
   }
@@ -122,27 +192,22 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
   }
 
   // This new 'Create: Step 2' is present on new UI 2.11 onwards
-  cy.get('body', { timeout: 10000 }).then(($body) => {
-    if (/Create: Step 2|Edit: Step 2/.test($body.text())) {
-      cy.clickButton('Next');
-    }
-  });
+  cy.clickButton('Next');
 
+  // PART 3 - TARGET DETAILS
   // This new 'Create: Step 3' is present on new UI 2.11 onwards
-  cy.get('body', { timeout: 10000 }).then(($body) => {
-    if (/Create: Step 3|Edit: Step 3/.test($body.text()) && !$body.text().includes('Labels')) {
-      if (deployToTarget) {
-        cy.deployToClusterOrClusterGroup(deployToTarget);
-      }
+  if (deployToTarget) {
+    cy.deployToClusterOrClusterGroup(deployToTarget);
+  }
 
-      // Type allowed namespace name in the Target Namespace while creating GitRepo.
-      if (allowedTargetNamespace !== "") {
-        cy.get('input[placeholder="Optional: Require all resources to be in this namespace"]').type(allowedTargetNamespace);
-      }
-      cy.clickButton('Next');
-    }
-  });
+  // Type allowed namespace name in the Target Namespace while creating GitRepo.
+  if (allowedTargetNamespace !== "") {
+    cy.get('input[placeholder="Optional: Require all resources to be in this namespace"]').type(allowedTargetNamespace);
+  }
 
+  cy.clickButton('Next');
+
+  // PART 4 -ADVANCED
   if (gitAuthType) {
     cy.gitRepoAuth(gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex);
   }
@@ -170,28 +235,6 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
   if (correctDrift === 'yes') {
     cy.get('.checkbox-outer-container.check').contains('Enable self-healing', { matchCase: false }).click();
   }
-
-  cy.get('body', { timeout: 20000 }).then(($body) => {
-    if (/Create: Step 1/.test($body.text().trim()) || /Edit: Step 1/.test($body.text().trim())) {
-      cy.clickButton('Next');
-    }
-  });
-
-  // Target to any cluster or group or no cluster.
-  // On Old UI On 'Create: Step 2', there is Deploy To available.
-  cy.get('body', { timeout: 10000 }).then(($body) => {
-    if ($body.text().includes('Create: Step 2')) {
-      cy.get('button.btn').contains('Previous').should('be.visible');
-      if (deployToTarget) {
-        cy.deployToClusterOrClusterGroup(deployToTarget);
-      }
-
-      // Type allowed namespace name in the Target Namespace while creating GitRepo.
-      if (allowedTargetNamespace !== "") {
-        cy.get('input[placeholder="Optional: Require all resources to be in this namespace"]').type(allowedTargetNamespace);
-      }
-    }
-  });
 });
 
 // Deploy To target functionality used in addGitRepo
@@ -282,7 +325,6 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   // For some reason I don't understand, click force doesn't work
   // in 2.10 an onwards, but it is mandatory for earlier versions
   // To be improved in the future
-  const rancherVersion = Cypress.env('rancher_version');
   const old_versions = ["latest/devel/2.7", "latest/devel/2.8", "latest/devel/2.9"];
 
   if (old_versions.includes(rancherVersion)) {
@@ -330,9 +372,7 @@ Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery
 
 // Fleet namespace toggle
 Cypress.Commands.add('fleetNamespaceToggle', (toggleOption='local') => {
-  cy.get('.vs__selected-options')
-    .contains('fleet-')
-    .click({force: true});
+  cy.contains('fleet-').click();
   cy.contains(toggleOption).should('be.visible').click();
 });
 
