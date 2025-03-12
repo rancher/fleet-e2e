@@ -837,7 +837,7 @@ Cypress.Commands.add('actualResourceOnCluster', (clusterName) => {
   })
 })
 
-Cypress.Commands.add('compareClusterResourceCount', (sameResourceEachCluster) => {
+Cypress.Commands.add('compareClusterResourceCount', (multipliedResourceCount=true) => {
   // Get the stored 'gitRepoResourceCount' value and
   // Multipy 'actualResourceOnCluster' 3 times because 3 clusters.
   // Compare final result with the 'gitRepoTotalResourceCount'.
@@ -845,11 +845,11 @@ Cypress.Commands.add('compareClusterResourceCount', (sameResourceEachCluster) =>
     cy.get('@gitRepoTotalResourceCount').then((gitRepoTotalResourceCount) => {
       // When 'sameResourceEachCluster' is true then each cluster has 
       // 'actualResourceOnCluster' is equal to 'gitRepoResourceCount'
-      if (sameResourceEachCluster) {
-        expect(gitRepoTotalResourceCount).to.equal(actualResourceOnCluster);
+      if (multipliedResourceCount) {
+        expect(gitRepoTotalResourceCount).to.equal(actualResourceOnCluster * 3);
       }
       else {
-        expect(gitRepoTotalResourceCount).to.equal(actualResourceOnCluster * 3);
+        expect(gitRepoTotalResourceCount).to.equal(actualResourceOnCluster);
       }
     })
   })
