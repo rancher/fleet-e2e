@@ -1264,7 +1264,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         const repoUrl = "https://github.com/rancher/fleet-examples"
         let resourceCount = '18 / 18'
         let sameResourceEachCluster = false
-        if (/\/2\.10/.test(Cypress.env('rancher_version'))) {
+        if (/\/2\.10/.test(Cypress.env('rancher_version')) || /\/2\.9/.test(Cypress.env('rancher_version'))) {
           resourceCount = '6 / 6'
           sameResourceEachCluster = true
         }
