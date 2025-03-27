@@ -963,7 +963,7 @@ Cypress.Commands.add('checkModalCardTitle', (expectedText, waitForRestart=true, 
   });
 })
 
-Cypress.Commands.add('moveClusterToWorkspace', (clusterName, workspaceName) => {
+Cypress.Commands.add('moveClusterToWorkspace', (clusterName, workspaceName, timeout) => {
   // Navigate to Clusters page when other navigation is present.
   cy.get('body').then((body) => {
     if (body.find('.title').text().includes('Clusters')) {
@@ -995,9 +995,12 @@ Cypress.Commands.add('moveClusterToWorkspace', (clusterName, workspaceName) => {
   cy.fleetNamespaceToggle(workspaceName);
   cy.clickNavMenu(['Clusters']);
   cy.filterInSearchBox(clusterName);
+
+  // After move, cluster requires around 60seconds to back in Active state.
+  cy.wait(timeout);
   cy.verifyTableRow(0, 'Active', clusterName);
 })
 
-Cypress.Commands.add('restoreClusterToDefaultWorkspace', (clusterName, defaultWorkspaceName='fleet-default') => {
-  cy.moveClusterToWorkspace(clusterName, defaultWorkspaceName);
+Cypress.Commands.add('restoreClusterToDefaultWorkspace', (clusterName, timeout, defaultWorkspaceName='fleet-default', ) => {
+  cy.moveClusterToWorkspace(clusterName, defaultWorkspaceName, timeout);
 })

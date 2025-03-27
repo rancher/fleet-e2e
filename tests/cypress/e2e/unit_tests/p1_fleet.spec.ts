@@ -1303,6 +1303,11 @@ describe('Test move cluster to newly created workspace and deploy application to
       const flagName = "provisioningv2-fleet-workspace-back-population"
       const newWorkspaceName = "new-fleet-workspace"
       const fleetDefault = "fleet-default"
+      let timeout = 30000
+
+      if (/\/2\.11/.test(Cypress.env('rancher_version'))) {
+        timeout = 60000
+      }
 
       // Enable cluster can move to another Fleet workspace feature flag.
       cy.enableFeatureFlag(flagName);
@@ -1315,7 +1320,7 @@ describe('Test move cluster to newly created workspace and deploy application to
       cy.clickNavMenu(['Clusters']);
 
       // Move first cluster i.e. 'imported-0' to newly created workspace.
-      cy.moveClusterToWorkspace(dsFirstClusterName, newWorkspaceName);
+      cy.moveClusterToWorkspace(dsFirstClusterName, newWorkspaceName, timeout);
 
       // Create a GitRepo targeting to cluster available in newly created workspace.
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
@@ -1328,7 +1333,7 @@ describe('Test move cluster to newly created workspace and deploy application to
 
       // Move cluster back to 'fleet-default' workspace
       cy.fleetNamespaceToggle(newWorkspaceName);
-      cy.restoreClusterToDefaultWorkspace(dsFirstClusterName);
+      cy.restoreClusterToDefaultWorkspace(dsFirstClusterName, timeout);
 
       // Delete the newly created workspace
       cy.clickNavMenu(['Advanced', 'Workspaces']);
