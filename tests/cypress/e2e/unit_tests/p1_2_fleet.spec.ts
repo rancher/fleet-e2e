@@ -591,6 +591,91 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       )
     })
   )
+
+  qase(22,
+    it("Fleet-22: Test install app to new set of clusters from old set of clusters", { tags: '@fleet-22' }, () => {
+      const repoName = 'default-multiple-apps-cluster-selector'
+      const new_key = 'key_third_cluster'
+      const new_value = 'value_third_cluster'
+
+      gitRepoFile = 'assets/git-repo-multiple-app-cluster-selector.yaml'
+
+      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+      cy.contains('.title', 'Clusters').should('be.visible');
+
+      // Assign label to the clusters 
+      dsFirstTwoClusterList.forEach(
+        (dsCluster) => {
+          cy.assignClusterLabel(dsCluster, key, value);
+        }
+      )
+
+      // Create a GitRepo targeting cluster selector created from YAML.
+      cy.clickNavMenu(['Git Repos']);
+      cy.wait(500);
+      cy.clickButton('Add Repository');
+      cy.contains('Git Repo:').should('be.visible');
+      cy.clickButton('Edit as YAML');
+      cy.addYamlFile(gitRepoFile);
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus('default-multiple-apps-cluster-selector', '2 / 2');
+
+      // Check first application status on both clusters.
+      dsFirstTwoClusterList.forEach((dsCluster) => {
+        cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+      })
+
+      // Add label to the third cluster
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.clickNavMenu(['Clusters']);
+      cy.contains('.title', 'Clusters').should('be.visible');
+      cy.assignClusterLabel(dsThirdClusterName, new_key, new_value);
+
+      // Update GitRepo with newly created clusterGroup.
+      cy.addFleetGitRepo({ repoName, deployToTarget: "Advanced", fleetNamespace: 'fleet-default', editConfig: true });
+      cy.clickButton('Save');
+      cy.checkGitRepoStatus(repoName, '2 / 2');
+
+      // Check application is present on third cluster i.e. imported-2
+      cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
+
+      // Application from First 2 clusters are not get removed in time.
+      // There is issue open for the same: https://github.com/rancher/fleet/issues/3091
+      // Till this issue gets fixed, we have to perform "Force Update" on 2 clusters.
+      // This is a work around and not a permanent solution.
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.clickNavMenu(['Clusters']);
+      cy.contains('.title', 'Clusters').should('be.visible');
+      dsFirstTwoClusterList.forEach(
+        (dsCluster) => {
+          cy.filterInSearchBox(dsCluster);
+          cy.open3dotsMenu(dsCluster, 'Force Update');
+          cy.wait(2000); // It take some time to Update.
+          cy.verifyTableRow(0, 'Active');
+        }
+      )
+      // Check application status on first 2 clusters i.e. imported-0 and imported-1
+      // Application should be removed from first 2 clusters i.e. imported-0 and imported-1
+      dsFirstTwoClusterList.forEach(
+        (dsCluster) => {
+          cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces', false);
+        }
+      )
+
+      // Remove labels from the clusters i.e. imported-0 and imported-1
+      dsFirstTwoClusterList.forEach(
+        (dsCluster) => {
+          // Adding wait to load page correctly to avoid interference with hamburger-menu.
+          cy.wait(500);
+          cy.removeClusterLabels(dsCluster, key, value);
+        }
+      )
+
+      // Remove labels from third cluster i.e. imported-2
+      cy.removeClusterLabels(dsThirdClusterName, new_key, new_value);
+    })
+  )
+
 });
 
 describe("Test Application deployment based on 'clusterGroupSelector'", { tags: '@p1_2'}, () => {
