@@ -130,12 +130,15 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 			g.Expect(len(strings.Fields(fleetVersionAfterUpgrade))).To(Equal(3))
 
 			// Check version of the first image
+			fmt.Println("First Fleet image after upgrade:", afterUpgradeImages[0]) // Debugging output
 			g.Expect(beforeUpgradeImages[0]).To(Not(Equal(afterUpgradeImages[0])))
 
 			// Check version of the second image
+			fmt.Println("Second Fleet image after upgrade:", afterUpgradeImages[1]) // Debugging output
 			g.Expect(beforeUpgradeImages[1]).To(Not(Equal(afterUpgradeImages[1])))
 
 			// Check version of the third image
+			fmt.Println("Third Fleet image after upgrade:", afterUpgradeImages[2]) // Debugging output
 			g.Expect(beforeUpgradeImages[2]).To(Not(Equal(afterUpgradeImages[2])))
 
 			fmt.Println("Current Fleet version after upgrade:", fleetVersionAfterUpgrade) // Debugging output
