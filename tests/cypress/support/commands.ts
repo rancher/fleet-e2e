@@ -291,13 +291,13 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
 
 // Verify textvalues in table giving the row number
 // More items can be added with new ".and"
-Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2) => {
+Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2, timeout=60000) => {
   // Adding small wait to give time for things to settle a bit
   // Could not find a better way to wait, but can be improved
   cy.wait(1000)
   // Ensure table is loaded and visible
   cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
-  cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`, { timeout: 60000 }).should(($row) => {
+  cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`, { timeout: timeout }).should(($row) => {
     // Replace whitespaces by a space and trim the string for both expected texts
     const text = $row.text().replace(/\s+/g, ' ').trim();
 
@@ -1050,3 +1050,31 @@ Cypress.Commands.add('closePopWindow', (windowMessage) => {
     }
   })
 })
+
+Cypress.Commands.add('k8sUpgrade', (clusterName) => {
+  const k8s_vesion_upgrade_to = Cypress.env('k8s_version_upgrade_to');
+  const timeout = 300000
+  cy.accesMenuSelection('Cluster Management' , 'Clusters');
+  cy.wait(500);
+  cy.filterInSearchBox(clusterName);
+  cy.verifyTableRow(0, 'Active');
+  cy.reload()
+  cy.filterInSearchBox(clusterName);
+  cy.verifyTableRow(0, 'Active'); 
+  cy.open3dotsMenu('Edit Config');
+
+  cy.wait(10000);
+  cy.get(
+    `[data-testid="cruimported-kubernetesversion"] .vs__dropdown-toggle, 
+    .labeled-select.edit.hoverable [aria-label="Search for option"]`
+  ).click();
+  cy.log(k8s_vesion_upgrade_to)
+  cy.contains(k8s_vesion_upgrade_to)
+    .should('be.visible')
+    .and('not.equal', Cypress.env('k8s_version'))
+    .click();
+  cy.clickButton('Save');
+  cy.filterInSearchBox(clusterName);
+  cy.verifyTableRow(0, 'Upgrading');
+  cy.verifyTableRow(0, 'Active', k8s_vesion_upgrade_to, timeout);
+} )

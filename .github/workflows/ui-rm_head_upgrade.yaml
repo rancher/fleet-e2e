@@ -33,6 +33,15 @@ on:
         default: v1.28.8+k3s1
         type: string
         required: true
+      k8s_version_upgrade:
+        description: Proceed with K8s version Upgrade (True/False)
+        default: false
+        required: false
+        type: boolean
+      k8s_version_to_upgrade:
+        description: K3s version to be upgraded on cluster. Provide version when k8s upgrade option is checked.
+        required: false
+        type: string
       grep_test_by_tag:
         description: Grep tags. For multiple selection separate with spaces. Keep always @login
         required: false
