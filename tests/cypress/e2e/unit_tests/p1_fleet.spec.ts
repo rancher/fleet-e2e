@@ -1127,9 +1127,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1'
       })
 
       // Add label to the third cluster
-      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-      cy.clickNavMenu(['Clusters']);
-      cy.contains('.title', 'Clusters').should('be.visible');
+      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
       cy.assignClusterLabel(dsThirdClusterName, new_key, new_value);
 
       // Update GitRepo with newly created clusterGroup.
