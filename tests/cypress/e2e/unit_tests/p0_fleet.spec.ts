@@ -111,6 +111,8 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }
   });
 });
 
+if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
+
 describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p0' }, () => {
   const repoUrl = 'git@github.com:fleetqa/fleet-qa-examples.git';
   const secretKnownHostsKeys = ['assets/known-host.yaml', 'assets/known-host-missmatch.yaml'];
@@ -274,8 +276,8 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
         // Enrure that apps cannot be installed && error appears
         cy.verifyTableRow(0, /Error|Git Updating/, '0/0');
     })
-  );  
-});
+  )})
+};
 
 describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
   qase(142,
