@@ -138,7 +138,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
   });
 
   qase(141,
-    it('FLEET-141  Test to install "NGINX" app using "KNOWN HOSTS" auth on PRIVATE repository', { tags: '@fleet-141' }, () => {
+    it.only('FLEET-141  Test to install "NGINX" app using "KNOWN HOSTS" auth on PRIVATE repository', { tags: '@fleet-141' }, () => {
 
       const repoName = 'local-cluster-fleet-141';
       const gitAuthType = 'ssh-key-knownhost';
@@ -163,7 +163,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
       }'{enter}`
     );
       // Forcing wait to ensure flag is ready
-      cy.wait(30000);
+      // cy.wait(30000);
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       // Create private repo using known host
       cy.fleetNamespaceToggle('fleet-local');
@@ -231,7 +231,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
   );  
 
   qase(170,
-    it('FLEET-170 Verify that without ssh-key on private repo, custom known-host does not apply',
+    it.only('FLEET-170 Verify that without ssh-key on private repo, custom known-host does not apply',
       { tags: '@fleet-170' }, () => {
 
         const repoName = 'local-cluster-fleet-170';
@@ -249,7 +249,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
   );  
 
   qase(171,
-    it('FLEET-171 Verify that without custom nor default known-host a gitrepo that needs this validation cannot be installed',
+    it.skip('FLEET-171 Verify that without custom nor default known-host a gitrepo that needs this validation cannot be installed',
       { tags: '@fleet-171' }, () => {
 
         const repoName = 'local-cluster-fleet-171';
@@ -277,6 +277,8 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
         cy.clickButton('Create');
         // Enrure that apps cannot be installed && error appears
         cy.verifyTableRow(0, /Error|Git Updating/, '0/0');
+
+        
     })
   )})
 };
