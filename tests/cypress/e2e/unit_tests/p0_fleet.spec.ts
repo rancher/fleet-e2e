@@ -170,6 +170,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
       cy.get('i.closer.icon').click();
     })
 
+  // Custom / no default
   qase(141,
     it('FLEET-141  Test to install "NGINX" app using "KNOWN HOSTS" auth on PRIVATE repository', { tags: '@fleet-141' }, () => {
 
@@ -187,6 +188,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     })
   );
 
+  // Custom error / no default
   qase(143,
     it('FLEET-143  Test apps cannot be installed when using missmatched "KNOWN HOSTS" auth on PRIVATE repository',
       { tags: '@fleet-143' }, () => {
@@ -205,6 +207,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     })
   );
 
+  // Default verify
   qase(168,
     it('FLEET-168 Verify Fleet default known-host is set on configmap',
       { tags: '@fleet-168' }, () => {
@@ -218,6 +221,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     })
   );
 
+  // No custom / yes default
   qase(169,
     it('FLEET-169 Verify that without custom known-host, fleet uses default custom ones from defined in configmap',
       { tags: '@fleet-169' }, () => {
@@ -244,6 +248,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     })
   );  
 
+  // No ssh , then no default
   qase(170,
     it('FLEET-170 Verify that without ssh-key on private repo, custom known-host does not apply',
       { tags: '@fleet-170' }, () => {
@@ -261,6 +266,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     })
   );  
 
+  // No custom + no default -> nothing gets deployed
   // TODO: re-do ensuring that known-host default can be brought up safely
   qase(171,
     it.skip('FLEET-171 Verify that without custom nor default known-host a gitrepo that needs this validation cannot be installed',
