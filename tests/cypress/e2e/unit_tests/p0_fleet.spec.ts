@@ -137,12 +137,12 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     });
   });
 
-  qase(141,
-    it('FLEET-141  Test to install "NGINX" app using "KNOWN HOSTS" auth on PRIVATE repository', { tags: '@fleet-141' }, () => {
-
-      const repoName = 'local-cluster-fleet-141';
-      const gitAuthType = 'ssh-key-knownhost';
-  
+    // Ensure flag `insecureSkipHostKeyChecks: false` is passed
+    // This is not mant to be in QASE
+    // Workaround to type into canvas
+    // It should be nested data under fleet
+    // TODO: remove this once this becomes default behavior
+    it('Add special flag to test default known-hosts', () => {
       // Open local terminal in Rancher UI
       cy.accesMenuSelection('local');
       cy.get('#btn-kubectl').click();
@@ -168,6 +168,14 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
       
       // Close local terminal
       cy.get('i.closer.icon').click();
+    })
+
+  qase(141,
+    it('FLEET-141  Test to install "NGINX" app using "KNOWN HOSTS" auth on PRIVATE repository', { tags: '@fleet-141' }, () => {
+
+      const repoName = 'local-cluster-fleet-141';
+      const gitAuthType = 'ssh-key-knownhost';
+  
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       
       // Create private repo using known host
