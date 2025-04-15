@@ -163,7 +163,9 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
       }'{enter}`
     );
       // Forcing wait to ensure flag is ready
-      // cy.wait(30000);
+      cy.wait(30000);
+      // Close local terminal
+      cy.get('i.closer.icon').click();
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       // Create private repo using known host
       cy.fleetNamespaceToggle('fleet-local');
