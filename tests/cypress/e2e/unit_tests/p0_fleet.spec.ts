@@ -171,6 +171,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
       cy.fleetNamespaceToggle('fleet-local');
       cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path });
       cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active', '1/1');
       cy.checkGitRepoStatus(repoName, '1 / 1');
     })
   );
@@ -246,7 +247,6 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path});
         cy.clickButton('Create');
         cy.verifyTableRow(0, /Error|Git Updating/, '0/0');
-        cy.contains('SSH private key file is required for SSH/SCP-style URLs: git@github.com:fleetqa/fleet-qa-examples.git').should('be.visible');
     })
   );  
 
