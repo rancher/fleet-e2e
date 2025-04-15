@@ -148,25 +148,28 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
       cy.get('#btn-kubectl').click();
       cy.contains('Connected').should('be.visible');
       
-    // Ensure flag `insecureSkipHostKeyChecks: false` is passed
-    // Workaround to type into canvas
-    // It needs nested data under fleet
-    // TODO: remove this once default behavior 
-    cy.typeIntoCanvasTermnal(`\
-      kubectl patch configmap rancher-config \
-      -n cattle-system \
-      --type merge \
-      -p '{
-        "data": {
-          "fleet": "insecureSkipHostKeyChecks: false"
-        }
-      }'{enter}`
-    );
+      // Ensure flag `insecureSkipHostKeyChecks: false` is passed
+      // Workaround to type into canvas
+      // It should be nested data under fleet
+      // TODO: remove this once default behavior 
+      cy.typeIntoCanvasTermnal(`\
+        kubectl patch configmap rancher-config \
+        -n cattle-system \
+        --type merge \
+        -p '{
+          "data": {
+            "fleet": "insecureSkipHostKeyChecks: false"
+          }
+        }'{enter}`
+      );
+
       // Forcing wait to ensure flag is ready
       cy.wait(30000);
+      
       // Close local terminal
       cy.get('i.closer.icon').click();
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      
       // Create private repo using known host
       cy.fleetNamespaceToggle('fleet-local');
       cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path });
@@ -250,6 +253,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     })
   );  
 
+  // TODO: re-do ensuring that known-host default can be brought up safely
   qase(171,
     it.skip('FLEET-171 Verify that without custom nor default known-host a gitrepo that needs this validation cannot be installed',
       { tags: '@fleet-171' }, () => {
@@ -278,9 +282,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
         cy.clickButton('Create');
         // Enrure that apps cannot be installed && error appears
-        cy.verifyTableRow(0, /Error|Git Updating/, '0/0');
-
-        
+        cy.verifyTableRow(0, /Error|Git Updating/, '0/0');        
     })
   )})
 };
@@ -561,7 +563,7 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
     const path = 'simple-chart';
 
     qase(172,
-      it('Test gitjob can store helm values in secret', { tags: '@fleet-172' }, () => {
+      it('Fleet-172 Test gitjob can store helm values in secret', { tags: '@fleet-172' }, () => {
 
         const repoName = 'simple-chart-secret';
   
