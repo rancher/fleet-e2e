@@ -21,7 +21,6 @@ Cypress.config();
 describe('User role testing', () => {
   const stdUser       = "std-user"
   const uiPassword    = "rancherpassword"
-  const clusterName = "imported-0"
 
   beforeEach(() => {
     cy.visit('/');
@@ -29,9 +28,7 @@ describe('User role testing', () => {
 
     it('Create standard user', () => {
       cy.login();
-      // cypressLib.burgerMenuToggle();
-      // cypressLib.createUser(stdUser, uiPassword);
-      cy.accesMenuSelection('Cluster Management' , 'Clusters');
-      cy.filterInSearchBox(clusterName);
+      cypressLib.burgerMenuToggle();
+      cypressLib.createUser(stdUser, uiPassword);
     })
 });

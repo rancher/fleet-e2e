@@ -1061,7 +1061,15 @@ Cypress.Commands.add('k8sUpgrade', (clusterName) => {
   cy.reload()
   cy.filterInSearchBox(clusterName);
   cy.verifyTableRow(0, 'Active'); 
-  cy.open3dotsMenu('Edit Config');
+  cy.get('tr.main-row')
+    .find('span.cluster-link a')
+    .click();
+
+  cy.get('[data-testid="masthead-action-menu"]').should('be.visible').click();
+  cy.get('.list-unstyled.menu > li > span, div.dropdownTarget', { timeout: 15000 }).contains('Edit Config').should('be.visible');
+  cy.get('.list-unstyled.menu > li > span, div.dropdownTarget', { timeout: 15000 }).contains('Edit Config').click({ force: true });
+  // Ensure dropdown is not present
+  cy.contains('Edit Config').should('not.exist')
 
   cy.wait(10000);
   cy.get(
@@ -1077,4 +1085,4 @@ Cypress.Commands.add('k8sUpgrade', (clusterName) => {
   cy.filterInSearchBox(clusterName);
   cy.verifyTableRow(0, 'Upgrading');
   cy.verifyTableRow(0, 'Active', k8s_vesion_upgrade_to, timeout);
-} )
+})

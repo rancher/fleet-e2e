@@ -184,10 +184,10 @@ describe('Test "fleet-agent" image version on each downstream cluster',  { tags:
   );
 });
 
-describe.only('Test Upgrade Kubernetes version of imported cluster support for fleet',  { tags: '@k8supgrade' }, () => {
+describe('Test Upgrade Kubernetes version of imported cluster support for fleet',  { tags: '@k8supgrade' }, () => {
   qase(90,
     it('FLEET-90: Test Upgrade Kubernetes version of imported cluster support for fleet', { tags: '@fleet-90' }, () => {
-      const dsAllClusterList = ['imported-0'] // ,'imported-1', 'imported-2']
+      const dsAllClusterList = ['imported-0','imported-1', 'imported-2']
 
       // Check fleet-agent version of the downstream clusters.
       dsAllClusterList.forEach((dsCluster) => {
