@@ -43,7 +43,8 @@ on:
         required: false
         type: string
       grep_test_by_tag:
-        description: Grep tags. For multiple selection separate with spaces. Keep always @login
+        description: Grep tags. For multiple selection separate with spaces. Keep always @login.
+          Use @k8supgrade to test K8s version upgrade on imported clusters.
         required: false
         type: string
         default: '@login @upgrade'
