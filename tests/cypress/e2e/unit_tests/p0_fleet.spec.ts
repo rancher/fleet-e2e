@@ -115,7 +115,7 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
 
 describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', 
   { tags: '@p0' }, () => {
-    
+
   const repoUrl = 'git@github.com:fleetqa/fleet-qa-examples.git';
   const secretKnownHostsKeys = ['assets/known-host.yaml', 'assets/known-host-missmatch.yaml'];
   const userOrPublicKey = Cypress.env("rsa_public_key_qa")
@@ -260,9 +260,8 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS',
   );  
 
   // No custom + no default -> nothing gets deployed
-  // TODO: re-do ensuring that known-host default can be brought up safely
   qase(171,
-    it.skip('FLEET-171 Verify that without custom nor default known-host a gitrepo that needs this validation cannot be installed',
+    it('FLEET-171 Verify that without custom nor default known-host a gitrepo that needs this validation cannot be installed',
       { tags: '@fleet-171' }, () => {
 
         const repoName = 'local-cluster-fleet-171';
@@ -278,15 +277,28 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS',
         cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
         cy.nameSpaceMenuToggle('All Namespaces');
         cy.filterInSearchBox('known-hosts');
-        cy.deleteAll(false);
+
+        // Remove the given 'known_host' values
+        cy.open3dotsMenu('known-hosts', 'Edit Config')
+        cy.clickButton('Remove')
+
+        // Re-add the key to avoid other girepos to be stalled
+        cy.clickButton('Add')
+        cy.get("section[id='data'] input[placeholder='e.g. foo']").type('known_hosts');
+        cy.wait(250); // Needs time for previous command to finnish
+        cy.clickButton('Save')
+        cy.wait(250); // Needs time for previous command to finnish
                 
         // Verify gitrepo is added using default knownhost
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-        cy.fleetNamespaceToggle('fleet-local');
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
-        cy.clickButton('Create');
-        // Enrure that apps cannot be installed && error appears
-        cy.verifyTableRow(0, /Error|Git Updating/, '0/0');        
+        cy.accesMenuSelection('Continuous Delivery', 'Git Repos')
+        cy.fleetNamespaceToggle('fleet-local')
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey })
+        cy.clickButton('Create')
+
+        // Ensure that apps cannot be installed && error appears
+        cy.wait(500); // Wait to avoid initial 'updating'
+        cy.verifyTableRow(0, /Error|Git Updating/, '0/0');
+        cy.contains('Strict host key checks are enforced, but no known_hosts data was found').should('be.visible')
     })
   )})
 };
