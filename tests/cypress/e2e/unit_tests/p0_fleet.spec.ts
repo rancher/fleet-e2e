@@ -300,7 +300,26 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS',
         cy.verifyTableRow(0, /Error|Git Updating/, '0/0');
         cy.contains('Strict host key checks are enforced, but no known_hosts data was found').should('be.visible')
     })
-  )})
+  );
+
+  after('Returning custom known_host values', () => {
+    
+    cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
+    cy.nameSpaceMenuToggle('All Namespaces');
+    cy.filterInSearchBox('known-hosts');
+    cy.open3dotsMenu('known-hosts', 'Edit Config')
+    cy.clickButton('Remove')
+    
+    // Attach file from 'fixtures' directory since it is native for Cypress
+    cy.get("section[id='data'] input[type='file']").attachFile('known_hosts')
+    cy.contains('bitbucket').should('be.visible')
+    cy.wait(500); // Needs time for previous command to finnish
+    cy.clickButton('Save')
+    cy.wait(500); // Needs time for previous command to finnish
+    cy.log('"known_host" values returned')
+  })
+  
+})
 };
 
 describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
