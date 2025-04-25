@@ -261,7 +261,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS',
 
   // No custom + no default -> nothing gets deployed
   qase(171,
-    it.only('FLEET-171 Verify that without custom nor default known-host a gitrepo that needs this validation cannot be installed',
+    it('FLEET-171 Verify that without custom nor default known-host a gitrepo that needs this validation cannot be installed',
       { tags: '@fleet-171' }, () => {
 
         const repoName = 'local-cluster-fleet-171';
