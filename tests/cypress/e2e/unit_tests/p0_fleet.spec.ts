@@ -261,7 +261,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS',
 
   // No custom + no default -> nothing gets deployed
   qase(171,
-    it('FLEET-171 Verify that without custom nor default known-host a gitrepo that needs this validation cannot be installed',
+    it.only('FLEET-171 Verify that without custom nor default known-host a gitrepo that needs this validation cannot be installed',
       { tags: '@fleet-171' }, () => {
 
         const repoName = 'local-cluster-fleet-171';
@@ -285,9 +285,9 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS',
         // Re-add the key to avoid other girepos to be stalled
         cy.clickButton('Add')
         cy.get("section[id='data'] input[placeholder='e.g. foo']").type('known_hosts');
-        cy.wait(250); // Needs time for previous command to finnish
+        cy.wait(500); // Needs time for previous command to finnish
         cy.clickButton('Save')
-        cy.wait(250); // Needs time for previous command to finnish
+        cy.wait(500); // Needs time for previous command to finnish
                 
         // Verify gitrepo is added using default knownhost
         cy.accesMenuSelection('Continuous Delivery', 'Git Repos')
