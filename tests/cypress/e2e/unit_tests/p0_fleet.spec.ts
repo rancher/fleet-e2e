@@ -113,18 +113,47 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }
 
 if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
 
-describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p0' }, () => {
+describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', 
+  { tags: '@p0' }, () => {
+    
   const repoUrl = 'git@github.com:fleetqa/fleet-qa-examples.git';
   const secretKnownHostsKeys = ['assets/known-host.yaml', 'assets/known-host-missmatch.yaml'];
+  const userOrPublicKey = Cypress.env("rsa_public_key_qa")
+  const pwdOrPrivateKey = Cypress.env("rsa_private_key_qa")
 
   before('Preparing known hosts secrets via UI', () => {
+
     // Create known hosts from yaml file
     cy.exec(`bash assets/add-known-host.sh`).then((result) => {
       cy.log(result.stdout, result.stderr);
     });
 
-    // Create secret via UI
     cy.login();
+
+    // Ensure flag `insecureSkipHostKeyChecks: false` is passed
+    // Workaround to type into canvas
+    // It should be nested data under fleet
+    // TODO: remove this once default behavior 
+    cy.accesMenuSelection('local');
+    cy.get('#btn-kubectl').click();
+    cy.contains('Connected').should('be.visible');    
+    cy.typeIntoCanvasTermnal(`\
+      kubectl patch configmap rancher-config \
+      -n cattle-system \
+      --type merge \
+      -p '{
+        "data": {
+          "fleet": "insecureSkipHostKeyChecks: false"
+        }
+      }'{enter}`
+    );
+    // Forcing wait to ensure flag is ready
+    cy.wait(30000);
+
+    // Close local terminal
+    cy.get('i.closer.icon').click();
+
+    // Create secret via UI
     cy.accesMenuSelection('local', 'Storage', 'Secrets');
 
     // Creating both known host keys in one loop
@@ -137,42 +166,10 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     });
   });
 
-    // Ensure flag `insecureSkipHostKeyChecks: false` is passed
-    // This is not mant to be in QASE
-    // Workaround to type into canvas
-    // It should be nested data under fleet
-    // TODO: remove this once this becomes default behavior
-    it('Add special flag to test default known-hosts', () => {
-      // Open local terminal in Rancher UI
-      cy.accesMenuSelection('local');
-      cy.get('#btn-kubectl').click();
-      cy.contains('Connected').should('be.visible');
-      
-      // Ensure flag `insecureSkipHostKeyChecks: false` is passed
-      // Workaround to type into canvas
-      // It should be nested data under fleet
-      // TODO: remove this once default behavior 
-      cy.typeIntoCanvasTermnal(`\
-        kubectl patch configmap rancher-config \
-        -n cattle-system \
-        --type merge \
-        -p '{
-          "data": {
-            "fleet": "insecureSkipHostKeyChecks: false"
-          }
-        }'{enter}`
-      );
-
-      // Forcing wait to ensure flag is ready
-      cy.wait(30000);
-      
-      // Close local terminal
-      cy.get('i.closer.icon').click();
-    })
-
   // Custom / no default
   qase(141,
-    it('FLEET-141  Test to install "NGINX" app using "KNOWN HOSTS" auth on PRIVATE repository', { tags: '@fleet-141' }, () => {
+    it('FLEET-141  Test to install "NGINX" app using "KNOWN HOSTS" auth on PRIVATE repository', 
+      { tags: '@fleet-141' }, () => {
 
       const repoName = 'local-cluster-fleet-141';
       const gitAuthType = 'ssh-key-knownhost';
@@ -228,9 +225,6 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
 
         const repoName = 'local-cluster-fleet-169';
         const gitAuthType = "ssh"
-        const repoUrl = "git@github.com:fleetqa/fleet-qa-examples.git"
-        const userOrPublicKey = Cypress.env("rsa_public_key_qa")
-        const pwdOrPrivateKey = Cypress.env("rsa_private_key_qa")
 
         // Delete added custom known-hosts
         cy.accesMenuSelection('local', 'Storage', 'Secrets');
@@ -254,7 +248,6 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
       { tags: '@fleet-170' }, () => {
 
         const repoName = 'local-cluster-fleet-170';
-        const repoUrl = "git@github.com:fleetqa/fleet-qa-examples.git"
         
         // Verify gitrepo is canot be added when default knownhost exists
         // since it does not have ssh access
@@ -274,9 +267,6 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
 
         const repoName = 'local-cluster-fleet-171';
         const gitAuthType = "ssh"
-        const repoUrl = "git@github.com:fleetqa/fleet-qa-examples.git"
-        const userOrPublicKey = Cypress.env("rsa_public_key_qa")
-        const pwdOrPrivateKey = Cypress.env("rsa_private_key_qa")
 
         // Delete added custom known-hosts
         cy.accesMenuSelection('local', 'Storage', 'Secrets');
