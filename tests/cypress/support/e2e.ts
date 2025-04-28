@@ -67,7 +67,7 @@ declare global {
       createConfigMap(configMapName: string): Chainable<Element>;
       deleteConfigMap(configMapName: string): Chainable<Element>;
       closePopWindow(windowMessage: string): Chainable<Element>;
-      k8sUpgrade(clusterName: string): Chainable<Element>;
+      k8sUpgradeInRancher(clusterName: string): Chainable<Element>;
     }
   }
 }

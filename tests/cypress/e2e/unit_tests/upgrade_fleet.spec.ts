@@ -191,7 +191,7 @@ describe('Test Upgrade Kubernetes version of imported cluster support for fleet'
 
       // Check fleet-agent version of the downstream clusters.
       dsAllClusterList.forEach((dsCluster) => {
-        cy.k8sUpgrade(dsCluster);
+        cy.k8sUpgradeInRancher(dsCluster);
       })
     })
   );

@@ -33,13 +33,14 @@ on:
         default: v1.28.8+k3s1
         type: string
         required: true
-      k8s_version_upgrade:
+      k8s_version_upgrade_ds_cluster:
         description: Proceed with K8s version Upgrade (True/False)
         default: false
         required: false
         type: boolean
-      k8s_version_to_upgrade:
+      k8s_version_to_upgrade_ds_cluster_to:
         description: K3s version to be upgraded on cluster. Provide version when k8s upgrade option is checked.
+        default: 'v1.30.8+k3s1'
         required: false
         type: string
       grep_test_by_tag:

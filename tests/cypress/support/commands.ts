@@ -1051,8 +1051,8 @@ Cypress.Commands.add('closePopWindow', (windowMessage) => {
   })
 })
 
-Cypress.Commands.add('k8sUpgrade', (clusterName) => {
-  const k8s_vesion_upgrade_to = Cypress.env('k8s_version_upgrade_to');
+Cypress.Commands.add('k8sUpgradeInRancher', (clusterName) => {
+  const k8s_version_upgrade_ds_cluster_to = Cypress.env('k8s_version_upgrade_ds_cluster_to');
   const timeout = 300000
   cy.accesMenuSelection('Cluster Management' , 'Clusters');
   cy.wait(500);
@@ -1076,13 +1076,14 @@ Cypress.Commands.add('k8sUpgrade', (clusterName) => {
     `[data-testid="cruimported-kubernetesversion"] .vs__dropdown-toggle, 
     .labeled-select.edit.hoverable [aria-label="Search for option"]`
   ).click();
-  cy.log(k8s_vesion_upgrade_to)
-  cy.contains(k8s_vesion_upgrade_to)
+  cy.log(`k8s_version_upgrade_ds_cluster_to: ${k8s_version_upgrade_ds_cluster_to}`);
+  expect(k8s_version_upgrade_ds_cluster_to).to.be.a('string');
+  cy.contains(k8s_version_upgrade_ds_cluster_to)
     .should('be.visible')
     .and('not.equal', Cypress.env('k8s_version'))
     .click();
   cy.clickButton('Save');
   cy.filterInSearchBox(clusterName);
   cy.verifyTableRow(0, 'Upgrading');
-  cy.verifyTableRow(0, 'Active', k8s_vesion_upgrade_to, timeout);
+  cy.verifyTableRow(0, 'Active', k8s_version_upgrade_ds_cluster_to, timeout);
 })
