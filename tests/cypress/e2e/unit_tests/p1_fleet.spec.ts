@@ -1414,3 +1414,64 @@ describe('Test move cluster to newly created workspace and deploy application to
     })
   )
 });
+
+describe('Test Helm app with Custom Values', { tags: '@p1' }, () => {
+  const configMapName = "test-map"
+  const repoTestData: testData[] = [
+    {qase_id: 173, message: '`valuesFrom` with empty', path:'qa-test-apps/helm-app/values-from-with-empty-values' },
+    {qase_id: 174, message: '`valuesFrom` with NO', path:'qa-test-apps/helm-app/values-from-with-no-values' },
+    {qase_id: 175, message: '`valuesFiles` with empty', path: 'qa-test-apps/helm-app/values-files-with-empty-values' },
+    {qase_id: 176, message: '`valuesFiles` with NO', path: 'qa-test-apps/helm-app/values-files-with-no-values' }
+  ]
+
+  function createConfigMap() {
+    cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
+    cy.clickButton('Create');
+    cy.clickButton('Edit as YAML');
+    cy.addYamlFile('assets/helm-app-test-map-configmap.yaml');
+    cy.clickButton('Create');
+    cy.filterInSearchBox(configMapName);
+    cy.verifyTableRow(0, configMapName);
+  }
+
+  function deleteConfigMap() {
+    cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
+    cy.filterInSearchBox(configMapName);
+    cy.deleteAll(false);
+  }
+
+  beforeEach('Cleanup leftover GitRepo and ConfigMap if any.', () => {
+    cy.login();
+    cy.visit('/');
+    deleteConfigMap();
+    cy.deleteAllFleetRepos();
+  })
+
+  repoTestData.forEach(({ qase_id, message, path }) => {
+    qase(qase_id,
+      it(`FLEET-${qase_id}: Test helm-app using "${message}" values in the fleet.yaml file.`, { tags: `@fleet-${qase_id}`}, () => {
+        const repoName = `local-cluster-fleet-${qase_id}`
+
+        // Create ConfigMap before create GitRepo
+        if (qase_id === 173 || qase_id === 174) {
+          createConfigMap();
+        }
+
+        // Create GitRepo
+        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.fleetNamespaceToggle('fleet-local')
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+        cy.clickButton('Create');
+        cy.verifyTableRow(0, 'Active', repoName);
+        cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
+
+        // Create ConfigMap before create GitRepo
+        if (qase_id === 173 || qase_id === 174) {
+          deleteConfigMap();
+        }
+        // Delete GitRepo
+        cy.deleteAllFleetRepos();
+      })
+    );
+  });
+});
