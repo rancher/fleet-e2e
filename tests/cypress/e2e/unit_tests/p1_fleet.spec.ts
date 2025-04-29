@@ -521,7 +521,9 @@ if (!/\/2\.9/.test(Cypress.env('rancher_version'))) {
 }
 
 if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env('rancher_version'))) {
+
   describe('Tests with disablePolling', { tags: '@p1' }, () => {
+  
     const gh_private_pwd = Cypress.env('gh_private_pwd');
     const repoName = 'test-disable-polling';
 
@@ -543,6 +545,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
       cy.exec('bash assets/disable_polling_setting_5_replicas.sh').then((result) => {
         cy.log(result.stdout, result.stderr);
       });
+      cy.wait(1000); // I think a bit of time here may make the hook more resilient
     });
 
     if (!/\/2\.9/.test(Cypress.env('rancher_version'))) { 
