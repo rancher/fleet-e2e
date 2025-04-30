@@ -1424,26 +1424,10 @@ describe('Test Helm app with Custom Values', { tags: '@p1' }, () => {
     {qase_id: 176, message: '`valuesFiles` with NO', path: 'qa-test-apps/helm-app/values-files-with-no-values' }
   ]
 
-  function createConfigMap() {
-    cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
-    cy.clickButton('Create');
-    cy.clickButton('Edit as YAML');
-    cy.addYamlFile('assets/helm-app-test-map-configmap.yaml');
-    cy.clickButton('Create');
-    cy.filterInSearchBox(configMapName);
-    cy.verifyTableRow(0, configMapName);
-  }
-
-  function deleteConfigMap() {
-    cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
-    cy.filterInSearchBox(configMapName);
-    cy.deleteAll(false);
-  }
-
   beforeEach('Cleanup leftover GitRepo and ConfigMap if any.', () => {
     cy.login();
     cy.visit('/');
-    deleteConfigMap();
+    cy.deleteConfigMap(configMapName);
     cy.deleteAllFleetRepos();
   })
 
@@ -1454,7 +1438,7 @@ describe('Test Helm app with Custom Values', { tags: '@p1' }, () => {
 
         // Create ConfigMap before create GitRepo
         if (qase_id === 173 || qase_id === 174) {
-          createConfigMap();
+          cy.createConfigMap(configMapName);
         }
 
         // Create GitRepo
@@ -1467,7 +1451,7 @@ describe('Test Helm app with Custom Values', { tags: '@p1' }, () => {
 
         // Create ConfigMap before create GitRepo
         if (qase_id === 173 || qase_id === 174) {
-          deleteConfigMap();
+          cy.deleteConfigMap(configMapName);
         }
         // Delete GitRepo
         cy.deleteAllFleetRepos();
