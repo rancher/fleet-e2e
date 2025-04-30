@@ -1447,7 +1447,7 @@ describe('Test Helm app with Custom Values', { tags: '@p1' }, () => {
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         cy.clickButton('Create');
         cy.verifyTableRow(0, 'Active', repoName);
-        cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
 
         // Create ConfigMap before create GitRepo
         if (qase_id === 173 || qase_id === 174) {

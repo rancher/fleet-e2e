@@ -4,4 +4,6 @@ metadata:
   name: test-map
   namespace: default
 data:
-  values.yaml: 'replicas: 5'
+  values.yaml: |
+    key: mykey,
+    value: values123
