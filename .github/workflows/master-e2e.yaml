@@ -80,6 +80,11 @@ on:
         required: false
         type: string
         default: '@login @p0 @p1 @rbac'
+      hardened:
+        description: If 'true' it will deploy rke2 cluster hardened
+        required: false
+        type: string
+        default: '@login @p0 @p1 @rbac'
       runner_template:
         description: Runner template to use
         # Another template available on GCP: fleet-qa-e2e-ci-runner-spot-leap-15-4-x86-64-template-v1
@@ -255,7 +260,13 @@ jobs:
         env:
           PUBLIC_DNS: ${{ needs.create-runner.outputs.public_dns }}
           PUBLIC_DOMAIN: bc.googleusercontent.com
-        run: cd tests && make e2e-install-rancher
+        run: | 
+          cd tests
+          if ${{ inputs.hardened == true }}; then 
+            make e2e-rke2-hardened
+          else 
+            make e2e-install-rancher
+          fi
       - name: Extract component versions/informations
         id: component
         run: |

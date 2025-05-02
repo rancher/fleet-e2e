@@ -19,3 +19,6 @@ e2e-upgrade-rancher-manager: deps
 
 start-cypress-tests:
 	@./scripts/start-cypress-tests
+
+e2e-rke2-hardened
+	@./scripts/hardened/hardened-rke2.sh
