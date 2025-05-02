@@ -30,9 +30,9 @@ on:
         default: '@login @p0 @p1 @rbac'
       hardened:
         description: If 'true' it will deploy rke2 cluster hardened
-        required: false
-        type: string
-        default: '@login @p0 @p1 @rbac'
+        required: true
+        type: boolean
+        default: false
   schedule:
     - cron: '30 3 * * *'
 
