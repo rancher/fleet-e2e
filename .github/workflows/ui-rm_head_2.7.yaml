@@ -15,7 +15,7 @@ on:
         type: boolean
       upgrade:
         description: Proceed with Rancher Upgrade (True/False)
-        default: true
+        default: false
         required: true
         type: boolean
       rancher_version:
