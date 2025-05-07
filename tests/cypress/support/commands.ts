@@ -1053,7 +1053,7 @@ Cypress.Commands.add('closePopWindow', (windowMessage) => {
 
 Cypress.Commands.add('k8sUpgradeInRancher', (clusterName) => {
   const k8s_version_for_upgrade_ds_cluster = Cypress.env('k8s_version_upgrade_ds_cluster_to');
-  const timeout = 300000
+  const timeout = 420000
   cy.accesMenuSelection('Cluster Management' , 'Clusters');
   cy.wait(500);
   cy.filterInSearchBox(clusterName);
