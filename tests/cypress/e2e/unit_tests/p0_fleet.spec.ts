@@ -259,6 +259,8 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
       })
     );  
 
+    // Skip test on 2.10 until bug https://github.com/rancher/dashboard/issues/14295#issuecomment-2862105017 is fixed
+    if (!/\/2\.10/.test(Cypress.env('rancher_version'))) {
     // No custom + no default -> nothing gets deployed
     qase(171,
       it('FLEET-171 Verify that without custom nor default known-host a gitrepo that needs this validation cannot be installed',
@@ -301,6 +303,7 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
           cy.contains('Strict host key checks are enforced, but no known_hosts data was found').should('be.visible')
       })
     ); 
+  }
   })
 };
 
