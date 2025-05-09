@@ -31,7 +31,7 @@ describe('First login on Rancher', { tags: '@login' }, () => {
       cy.contains('Dashboard').should('be.visible');
       cypressLib.accesMenu('Clusters');
       cy.fleetNamespaceToggle('fleet-local');
-      cy.verifyTableRow(0, 'Active', ' ' );
+      cy.verifyTableRow(0, 'Active');
       cy.get("td[data-testid='sortable-cell-0-2']", { timeout: 300000 }).should("not.contain", '0');
     })
   );

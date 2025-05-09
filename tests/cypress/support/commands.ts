@@ -289,38 +289,29 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
   }
 });
 
-// Verify textvalues in table giving the row number
-// More items can be added with new ".and"
-Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2) => {
-  // Adding small wait to give time for things to settle a bit
-  // Could not find a better way to wait, but can be improved
-  cy.wait(1000)
-  // Ensure table is loaded and visible
-  cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
-  cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`, { timeout: 60000 }).should(($row) => {
-    // Replace whitespaces by a space and trim the string for both expected texts
-    const text = $row.text().replace(/\s+/g, ' ').trim();
+// Verify all elemennts desired in a table, given an specific row
+Cypress.Commands.add('verifyTableRow', (rowNumber, ...expectedTexts) => {
+    // Adding small wait to give time for things to settle a bit
+    // Could not find a better way to wait, but can be improved
+    cy.wait(1000)
 
-    // Check if expectedTextX is a regular expression or a string and perform the assertion
-    if (expectedText1) {
-      // If expectedText1 is provided, perform the check
-      if (expectedText1 instanceof RegExp) {
-        expect(text).to.match(expectedText1);
-      } else {
-        expect(text).to.include(expectedText1);
-      }
-    }
+    cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`, { timeout: 60000 }).should('be.visible').then(($row) => {
 
-    if (expectedText2) {
-      // If expectedText2 is provided, perform the check
-      if (expectedText2 instanceof RegExp) {
-        expect(text).to.match(expectedText2);
-      } else {
-        expect(text).to.include(expectedText2);
-      }
-    }
-  });
+      // Replace whitespaces by a space and trim the string for both expected texts
+      const text = $row.text().replace(/\s+/g, ' ').trim();
+
+      // Check if expectedTextX is a regular expression or a string and perform the assertion
+      expectedTexts.forEach(expectedText => {
+        if (expectedTexts instanceof RegExp) {
+          expect(text).to.match(expectedText);
+        } 
+        else {
+          cy.contains(expectedText, { timeout: 30000 }).should('be.visible');                
+        }
+      });
+    });
 });
+
 
 // Namespace Toggle
 Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
@@ -531,7 +522,7 @@ Cypress.Commands.add('assignRoleToUser', (userName, roleName) => {
   // Sortering by Age so first row is the desired user
   cy.contains('Age').should('be.visible').click();
   // Verifying name only given in 2.9 there is only icon
-  cy.verifyTableRow(0, userName, '');
+  cy.verifyTableRow(0, userName);
 })
 
 // Delete created user
