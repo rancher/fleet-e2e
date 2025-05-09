@@ -641,6 +641,12 @@ Cypress.Commands.add('assignClusterLabel', (clusterName, key, value) => {
 // Create clusterGroup based on label assigned to the cluster
 Cypress.Commands.add('createClusterGroup', (clusterGroupName, key, value, bannerMessageToAssert, assignClusterGroupLabel=false, clusterGroupLabelKey, clusterGroupLabelValue) => {
   cy.fleetNamespaceToggle('fleet-default');
+
+
+  // TODO: remove once this bug is fixed: 
+  // https://github.com/rancher/dashboard/issues/14295#issuecomment-2862105017
+  cy.closePopWindow('Warning')
+
   cy.clickButton('Create');
   cy.get('input[placeholder="A unique name"]').type(clusterGroupName);
   cy.clickButton('Add Rule');
