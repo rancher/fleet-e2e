@@ -1022,3 +1022,15 @@ Cypress.Commands.add('deleteConfigMap', (configMapName) => {
     cy.filterInSearchBox(configMapName);
     cy.deleteAll(false);
   })
+
+// Command to remove pop-ups if they appear
+// Note: this should be MOMENTARY and a bug should be filed
+// Remove them once bug is fixed
+Cypress.Commands.add('closePopWindow', (windowMessage) => {
+  cy.get('body').then(($body) => {
+    if ($body.find('.growl-text-title').text().includes(windowMessage)) {
+      cy.log('POP UP WINDOW FOUND. CLOSING IT. PLEASE INVESTIGATE CAUSE');
+      cy.get('i.close.hand.icon.icon-close').should('be.visible').click();
+    }
+  })
+})

@@ -234,6 +234,11 @@ describe('Test Self-Healing of resource modification when correctDrift option us
       // TODO: remove or rework when possible 
       cy.wait(2000);
       cy.open3dotsMenu(repoName, 'Force Update');
+
+      // TODO: remove once this bug is fixed: 
+      // https://github.com/rancher/dashboard/issues/14295#issuecomment-2862105017
+      cy.closePopWindow('Warning')
+
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
       cy.checkApplicationStatus(appName);
 
@@ -569,6 +574,11 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
           cy.accesMenuSelection('local', 'Workloads', 'Deployments');
           cy.filterInSearchBox('nginx-test-polling');
           cy.wait(500);
+
+          // TODO: remove once this bug is fixed: 
+          // https://github.com/rancher/dashboard/issues/14295#issuecomment-2862105017
+          cy.closePopWindow('Warning')
+
           cy.log('HERE WE SHOULD SEE 2/2');
           cy.contains('tr.main-row', 'nginx-test-polling', { timeout: 20000 }).should('be.visible');
           cy.screenshot('Screenshot BEFORE reloading should be 2/2');
@@ -620,9 +630,19 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
           cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
           cy.fleetNamespaceToggle('fleet-local');
           cy.open3dotsMenu(repoName, 'Pause');
+
+          // TODO: remove once this bug is fixed: 
+          // https://github.com/rancher/dashboard/issues/14295#issuecomment-2862105017
+          cy.closePopWindow('Warning')
+
           cy.verifyTableRow(0, 'Paused');
           cy.wait(2000); // Wait to let time for pause to take effect.
           cy.open3dotsMenu(repoName, 'Unpause');
+
+          // TODO: remove once this bug is fixed: 
+          // https://github.com/rancher/dashboard/issues/14295#issuecomment-2862105017
+          cy.closePopWindow('Warning')
+
           cy.verifyTableRow(0, 'Active');
           // Verify deployment changes to 5?
           cy.accesMenuSelection('local', 'Workloads', 'Deployments');
@@ -678,6 +698,11 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
               cy.assignClusterLabel(dsCluster, key, value);
             }
           )
+          
+
+          // TODO: remove once this bug is fixed: 
+          // https://github.com/rancher/dashboard/issues/14295#issuecomment-2862105017
+          cy.closePopWindow('Warning')
 
           // Create group of cluster consists of same label.
           cy.clickNavMenu(['Cluster Groups']);
@@ -947,6 +972,11 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1'
         cy.removeClusterLabels(dsCluster, key, value);
       }
     )
+    
+    // TODO: remove once this bug is fixed: 
+    // https://github.com/rancher/dashboard/issues/14295#issuecomment-2862105017
+    cy.closePopWindow('Warning')
+
     cy.deleteAllFleetRepos();
   })
 
@@ -1126,6 +1156,11 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
         cy.removeClusterLabels(dsCluster, key, value);
       }
     )
+
+    // TODO: remove once this bug is fixed: 
+    // https://github.com/rancher/dashboard/issues/14295#issuecomment-2862105017
+    cy.closePopWindow('Warning')
+
     cy.deleteClusterGroups();
     cy.deleteAllFleetRepos();
   })
