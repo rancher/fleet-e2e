@@ -698,11 +698,6 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1'}, ()
               cy.assignClusterLabel(dsCluster, key, value);
             }
           )
-          
-
-          // TODO: remove once this bug is fixed: 
-          // https://github.com/rancher/dashboard/issues/14295#issuecomment-2862105017
-          cy.closePopWindow('Warning')
 
           // Create group of cluster consists of same label.
           cy.clickNavMenu(['Cluster Groups']);
@@ -973,9 +968,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1'
       }
     )
     
-    // TODO: remove once this bug is fixed: 
-    // https://github.com/rancher/dashboard/issues/14295#issuecomment-2862105017
-    cy.closePopWindow('Warning')
 
     cy.deleteAllFleetRepos();
   })

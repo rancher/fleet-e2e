@@ -621,6 +621,11 @@ Cypress.Commands.add('upgradeFleet', () => {
 
 // Add label to the imported cluster(s)
 Cypress.Commands.add('assignClusterLabel', (clusterName, key, value) => {
+  
+  // TODO: remove once this bug is fixed: 
+  // https://github.com/rancher/dashboard/issues/14295#issuecomment-2862105017
+  cy.closePopWindow('Warning')
+  
   cy.filterInSearchBox(clusterName);
   cy.open3dotsMenu(clusterName, 'Edit Config');
   cy.clickButton('Add Label');
@@ -685,6 +690,11 @@ Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
   cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
   cy.clickNavMenu(['Clusters']);
   cy.contains('.title', 'Clusters').should('be.visible');
+
+  // TODO: remove once this bug is fixed: 
+  // https://github.com/rancher/dashboard/issues/14295#issuecomment-2862105017
+  cy.closePopWindow('Warning')
+
   cy.filterInSearchBox(clusterName);
   cy.open3dotsMenu(clusterName, 'Edit Config');
   cy.contains('.title', 'Cluster:').should('be.visible');
