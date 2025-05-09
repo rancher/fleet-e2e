@@ -16,7 +16,7 @@ on:
       upgrade:
         description: Proceed with Rancher Upgrade (True/False)
         default: false
-        required: true
+        required: false
         type: boolean
       rancher_version:
         description: Rancher version channel/version/head_version latest/latest, latest/2.y.x[-rc1], prime/2.y.x, prime/devel/2.y, alpha/2.y.0-alphaZ
@@ -40,12 +40,12 @@ on:
         type: boolean
       k8s_version_to_upgrade_ds_cluster_to:
         description: K3s version to be upgraded on cluster. Provide version when k8s upgrade option is checked.
-        default: 'v1.30.8+k3s1'
+        default: 'v1.31.8+k3s1'
         required: false
         type: string
       grep_test_by_tag:
         description: Grep tags. For multiple selection separate with spaces. Keep always @login.
-          Use @k8supgrade to test K8s version upgrade on imported clusters.
+          Use @k8supgrade to test K8s version upgrade on downstream clusters.
         required: false
         type: string
         default: '@login @upgrade'

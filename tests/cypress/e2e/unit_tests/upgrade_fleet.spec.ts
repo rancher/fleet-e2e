@@ -188,11 +188,15 @@ describe('Test Upgrade Kubernetes version of imported cluster support for fleet'
   qase(90,
     it('FLEET-90: Test Upgrade Kubernetes version of imported cluster support for fleet', { tags: '@fleet-90' }, () => {
       const dsAllClusterList = ['imported-0','imported-1', 'imported-2']
-
-      // Check fleet-agent version of the downstream clusters.
-      dsAllClusterList.forEach((dsCluster) => {
-        cy.k8sUpgradeInRancher(dsCluster);
-      })
+      if (upgrade) {
+        cy.log("K8s Version for all downstream cluster upgraded to given K8s version.")
+      }
+      else {
+        // Upgrade K8s version of downstream cluster.
+        dsAllClusterList.forEach((dsCluster) => {
+          cy.k8sUpgradeInRancher(dsCluster);
+        })
+      }
     })
   );
 });
