@@ -626,8 +626,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       })
 
       // Add label to the third cluster
-      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-      cy.clickNavMenu(['Clusters']);
+      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
       cy.contains('.title', 'Clusters').should('be.visible');
       cy.assignClusterLabel(dsThirdClusterName, new_key, new_value);
 
