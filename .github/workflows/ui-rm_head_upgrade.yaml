@@ -34,12 +34,12 @@ on:
         type: string
         required: true
       k8s_version_upgrade_ds_cluster:
-        description: Proceed with K8s version Upgrade (True/False)
+        description: To perform K8s version upgrade for downstream clusters, check the checkbox to proceed with K8s version Upgrade (True/False)
         default: false
         required: false
         type: boolean
       k8s_version_to_upgrade_ds_cluster_to:
-        description: K3s version to be upgraded on cluster. Provide version when k8s upgrade option is checked.
+        description: Provide K8s version to upgrade K8s on downstream clusters, when above k8s upgrade option is checked.
         default: 'v1.31.8+k3s1'
         required: false
         type: string
