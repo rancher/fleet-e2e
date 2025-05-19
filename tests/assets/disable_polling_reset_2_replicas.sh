@@ -31,7 +31,6 @@ git fetch origin
 if ! git diff --quiet origin/main; 
     then
         echo "Changes detected from original repo. Changing replicas to 2"
-
         git commit -m 'Ensuring initial number of replicas is 2' && \
         git push -u origin main || \
         echo "Nothing to commit"
