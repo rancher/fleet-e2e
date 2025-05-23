@@ -348,9 +348,10 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
 // Command to filter text in searchbox
 Cypress.Commands.add('filterInSearchBox', (filterText) => {
   cy.get('input.input-sm.search-box').should('be.visible');
-  // Added 5 seconds of wait, as element is hidden after it gets visible.
+  // Added 1/2 seconds of wait, as element is hidden after it gets visible.
   cy.wait(500);
   cy.get('input.input-sm.search-box').clear().type(filterText);
+  cy.wait(250); // Adding 1/4 second to ensure next action is executed more reliably
 });
 
 // Go to specific Sub Menu from Access Menu
