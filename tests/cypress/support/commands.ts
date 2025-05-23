@@ -256,8 +256,8 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
   cy.wait(500);
   // Open 3 dots button
   cy.contains('tr.main-row', name).should('exist').within(() => {
-    cy.get('.icon.icon-actions', { timeout: 500 }).click({ force: true });
-    cy.wait(250)
+    cy.get('.icon.icon-actions').click({ force: true });
+    cy.wait(500)
   });
 
   if (checkNotInMenu === true) {
