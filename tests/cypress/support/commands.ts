@@ -59,6 +59,7 @@ Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPub
 Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
   cypressLib.burgerMenuToggle();
   cy.get('div.cluster-name').contains(clusterName).click();
+  cy.wait(250);
   cy.get('header').find('button').filter(':has(i.icon-upload)').click();
   cy.get('div.card-container').contains('Import YAML').should('be.visible');
 
@@ -270,6 +271,7 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
 
     // Close 3 dots button menu
     cy.get('body').should('exist').click({ force: true });
+    cy.wait(250);
   }
 
   else if (selection) {
