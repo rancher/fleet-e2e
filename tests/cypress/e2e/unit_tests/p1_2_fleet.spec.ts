@@ -944,3 +944,40 @@ describe('Test Helm app with Custom Values', { tags: '@p1_2' }, () => {
     );
   });
 });
+
+describe('Test GitRepo shows Active state for missing resources when `diff` used in `fleet.yaml`', { tags: '@p1_2' }, () => {
+  beforeEach('Cleanup leftover GitRepo if any.', () => {
+    cy.login();
+    cy.visit('/');
+    cy.deleteAllFleetRepos();
+  })
+
+  qase(179,
+    it(`FLEET-179: Test GitRepo shows Active state for missing resources when 'diff' used in 'fleet.yaml'`, { tags: `@fleet-179}`}, () => {
+      const repoName = 'ds-cluster-fleet-179'
+      const repoUrl = 'https://github.com/sbulage/fleet-test-data'
+      const branch = 'add-ignore-missing-resource-data'
+      // Create GitRepo without diff which will not ignore missing resources.
+      const pathWithoutDiff = 'qa-test-apps/ignore-missing-resources/without-diff'
+
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path: pathWithoutDiff });
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Modified', repoName);
+      cy.checkGitRepoStatus(repoName, '0 / 1', '3 / 6', 'Modified');
+
+      // Update Path which has diff mentioned in the fleet.yaml
+      // On both Path data is same the only difference is diff part.
+      const pathWithDiff = 'qa-test-apps/ignore-missing-resources/with-diff'
+
+      cy.addFleetGitRepo({ repoName, path: pathWithDiff, fleetNamespace: 'fleet-default', editConfig: true });
+      cy.clickButton('Save');
+      cy.verifyTableRow(0, 'Active', repoName);
+      cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
+
+      // Delete GitRepo
+      cy.deleteAllFleetRepos();
+    })
+  );
+});
