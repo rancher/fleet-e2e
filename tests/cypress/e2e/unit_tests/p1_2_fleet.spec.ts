@@ -1039,3 +1039,69 @@ describe('Test Helm app with Custom Values', { tags: '@p1_2' }, () => {
     );
   });
 });
+
+describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
+  const configMapName = "test-map"
+  const repoTestData: testData[] = [
+    {
+      qase_id: 180,
+      message: 'Test GitRepo creates bundles specified under bundles: without option: field',
+      repoName: 'test-bundle',
+      gitrepo_file: 'assets/gitrepo-bundle-create-tests/180-gitrepo-create-bundle.yaml',
+      bundle_count: '3 / 3',
+      resource_count: '12 / 12',
+    },
+    {
+      qase_id: 181,
+      message: 'Test GitRepo creates bundles specified under bundles: with option: field',
+      repoName: 'test-bundle-dev-prod',
+      gitrepo_file: 'assets/gitrepo-bundle-create-tests/181-gitrepo-create-dev-prod-bundle.yaml',
+      bundle_count: '4 / 4',
+      resource_count: '15 / 15',
+    },
+    {
+      qase_id: 182,
+      message: 'Test update GitRepo by removing prod.yaml from option and verify that prod bundle should not be created.',
+      repoName: 'test-bundle-dev',
+      gitrepo_file: 'assets/gitrepo-bundle-create-tests/182-gitrepo-create-dev-bundle.yaml',
+      bundle_count: '3 / 3',
+      resource_count: '12 / 12',
+    },
+    {
+      qase_id: 183,
+      message: 'Test update GitRepo by adding test.yaml under option and verify that prod bundle should not be created.',
+      repoName: 'test-bundle-dev-test',
+      gitrepo_file: 'assets/gitrepo-bundle-create-tests/183-gitrepo-create-dev-test-bundle.yaml',
+      bundle_count: '4 / 4',
+      resource_count: '15 / 15',
+    },
+  ]
+
+  beforeEach('Cleanup leftover GitRepo', () => {
+    cy.login();
+    cy.visit('/');
+    cy.deleteAllFleetRepos();
+  })
+
+  repoTestData.forEach(({ qase_id, message, repoName, gitRepoFile, bundle_count, resource_count }) => {
+    qase(qase_id,
+      it(`FLEET-${qase_id}: ${message}`, { tags: `@fleet-${qase_id}`}, () => {
+
+        // Create GitRepo
+        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.clickButton('Add Repository');
+        cy.clickButton('Edit as YAML');
+        cy.addYamlFile(gitRepoFile);
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
+
+        // Check count of bundle
+        cy.clickNavMenu(['Advanced', 'Bundles']);
+        cy.filterInSearchBox()
+
+        // Delete GitRepo
+        cy.deleteAllFleetRepos();
+      })
+    );
+  });
+});
