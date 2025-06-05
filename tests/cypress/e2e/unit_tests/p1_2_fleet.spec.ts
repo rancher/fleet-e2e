@@ -1041,7 +1041,6 @@ describe('Test Helm app with Custom Values', { tags: '@p1_2' }, () => {
 });
 
 describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
-  const configMapName = "test-map"
   const repoTestData: testData[] = [
     {
       qase_id: 180,
@@ -1083,7 +1082,7 @@ describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
     cy.deleteAllFleetRepos();
   })
 
-  repoTestData.forEach(({ qase_id, message, repoName, gitRepoFile, bundle_count, resource_count }) => {
+  repoTestData.forEach(({ qase_id, message, repoName, gitrepo_file, bundle_count, resource_count }) => {
     qase(qase_id,
       it(`FLEET-${qase_id}: ${message}`, { tags: `@fleet-${qase_id}`}, () => {
 
@@ -1091,13 +1090,15 @@ describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
         cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
         cy.clickButton('Add Repository');
         cy.clickButton('Edit as YAML');
-        cy.addYamlFile(gitRepoFile);
+        cy.wait(1000);
+        cy.addYamlFile(gitrepo_file);
         cy.clickButton('Create');
-        cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
-
+        // If tests failed due to resource count, then implement new bundle name checking logic.
+        // Consider new count logic implemented at that time.
         // Check count of bundle
-        cy.clickNavMenu(['Advanced', 'Bundles']);
-        cy.filterInSearchBox()
+        // cy.clickNavMenu(['Advanced', 'Bundles']);
+        // cy.filterInSearchBox()
+        cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
 
         // Delete GitRepo
         cy.deleteAllFleetRepos();
