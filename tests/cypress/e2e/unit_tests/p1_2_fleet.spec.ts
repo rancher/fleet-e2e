@@ -14,6 +14,7 @@ limitations under the License.
 
 import 'cypress/support/commands';
 import { qase } from 'cypress-qase-reporter/dist/mocha';
+import { versionedIt } from 'cypress/support/utils';
 
 export const appName = "nginx-keep"
 export const branch = "master"
@@ -1083,26 +1084,23 @@ describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
   })
 
   repoTestData.forEach(({ qase_id, message, repoName, gitrepo_file, bundle_count, resource_count }) => {
-    qase(qase_id,
-      it(`FLEET-${qase_id}: ${message}`, { tags: `@fleet-${qase_id}`}, () => {
+    versionedIt(['head', '2.12'], `${qase_id}`, `FLEET-${qase_id}: ${message}`, { tags: `@fleet-${qase_id}`}, () => {
+      // Create GitRepo
+      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.clickButton('Add Repository');
+      cy.clickButton('Edit as YAML');
+      cy.wait(1000);
+      cy.addYamlFile(gitrepo_file);
+      cy.clickButton('Create');
+      // If tests failed due to resource count, then implement new bundle name checking logic.
+      // Consider new count logic implemented at that time.
+      // Check count of bundle
+      // cy.clickNavMenu(['Advanced', 'Bundles']);
+      // cy.filterInSearchBox()
+      cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
 
-        // Create GitRepo
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-        cy.clickButton('Add Repository');
-        cy.clickButton('Edit as YAML');
-        cy.wait(1000);
-        cy.addYamlFile(gitrepo_file);
-        cy.clickButton('Create');
-        // If tests failed due to resource count, then implement new bundle name checking logic.
-        // Consider new count logic implemented at that time.
-        // Check count of bundle
-        // cy.clickNavMenu(['Advanced', 'Bundles']);
-        // cy.filterInSearchBox()
-        cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
-
-        // Delete GitRepo
-        cy.deleteAllFleetRepos();
-      })
-    );
+      // Delete GitRepo
+      cy.deleteAllFleetRepos();
+    })
   });
 });
