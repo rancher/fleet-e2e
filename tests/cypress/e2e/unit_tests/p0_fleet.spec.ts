@@ -27,7 +27,7 @@ beforeEach(() => {
 });
 
 Cypress.config();
-describe('Test Fleet deployment on PUBLIC repos',  { tags: '@p0' }, () => {
+describe.only('Test Fleet deployment on PUBLIC repos',  { tags: '@p0' }, () => {
   qase(62,
     it('FLEET-62: Deploy application to local cluster', { tags: '@fleet-62' }, () => {
 
@@ -174,7 +174,7 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
         const repoName = 'local-cluster-fleet-141';
         const gitAuthType = 'ssh-key-knownhost';
     
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.continuousDeliveryMenuSelection();
         
         // Create private repo using known host
         cy.fleetNamespaceToggle('fleet-local');
@@ -234,7 +234,7 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
           cy.deleteAll(false);
           
           // Verify gitrepo is added using default knownhost
-          cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+          cy.continuousDeliveryMenuSelection();
           cy.fleetNamespaceToggle('fleet-local');
           cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
           cy.clickButton('Create');
@@ -251,7 +251,7 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
           
           // Verify gitrepo is canot be added when default knownhost exists
           // since it does not have ssh access
-          cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+          cy.continuousDeliveryMenuSelection();
           cy.fleetNamespaceToggle('fleet-local');
           cy.addFleetGitRepo({ repoName, repoUrl, branch, path});
           cy.clickButton('Create');
@@ -431,9 +431,13 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         });
 
         // Gitrepo creation via YAML
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle('fleet-local');
-        cy.clickButton('Add Repository');
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('Git Repos').should('be.visible').click();
+        cy.wait(1000);
+        cy.contains('App Bundle: Create').should('be.visible');
         cy.clickButton('Edit as YAML');
         cy.addYamlFile('assets/webhook-tests/webhook_test_disable_polling.yaml');
         cy.clickButton('Create');
@@ -481,9 +485,13 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         kubectl delete secrets -n cattle-fleet-system gitjob-webhook{enter}');
 
         // Gitrepo creation via YAML
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle('fleet-local');
-        cy.clickButton('Add Repository');
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('Git Repos').should('be.visible').click();
+        cy.wait(1000);
+        cy.contains('App Bundle: Create').should('be.visible');
         cy.clickButton('Edit as YAML');
         
         cy.addYamlFile('assets/webhook-tests/webhook_test_webhook_secret_in_repo.yaml');
@@ -537,9 +545,13 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         kubectl create secret generic gitjob-webhook -n cattle-fleet-system --from-literal=github=wrong-webhook-secret{enter}');
 
         // Gitrepo creation via YAML
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle('fleet-local');
-        cy.clickButton('Add Repository');
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('Git Repos').should('be.visible').click();
+        cy.wait(1000);
+        cy.contains('App Bundle: Create').should('be.visible');
         cy.clickButton('Edit as YAML');
         
         cy.addYamlFile('assets/webhook-tests/webhook_test_disable_polling.yaml');
@@ -632,7 +644,11 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
 
       // Gitrepo adddition via YAML
       cy.fleetNamespaceToggle('fleet-local');
-      cy.clickButton('Add Repository');
+      cy.clickButton('Create App Bundle');
+      cy.contains('App Bundle: Create').should('be.visible');
+      cy.contains('Git Repos').should('be.visible').click();
+      cy.wait(1000);
+      cy.contains('App Bundle: Create').should('be.visible');
       cy.clickButton('Edit as YAML');
       cy.addYamlFile('assets/disable_polling.yaml');
       cy.clickButton('Create');
@@ -645,7 +661,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
       cy.exec('bash assets/disable_polling_setting_5_replicas.sh').then((result) => {
         cy.log(result.stdout, result.stderr);
       });
-      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.continuousDeliveryMenuSelection();
       cy.fleetNamespaceToggle('fleet-local');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
 
