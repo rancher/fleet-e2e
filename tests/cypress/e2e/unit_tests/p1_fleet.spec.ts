@@ -32,10 +32,13 @@ beforeEach(() => {
 describe('Test resource behavior after deleting GitRepo using keepResources option using YAML', { tags: '@p1' }, () => {
   qase(68, 
     it('Fleet-68: Test RESOURCES will be KEPT and NOT be DELETED after GitRepo is deleted when keepResources: true used in the GitRepo yaml file.', { tags: '@fleet-68' }, () => {
-      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.continuousDeliveryMenuSelection();
       cy.fleetNamespaceToggle('fleet-local')
-      cy.clickButton('Add Repository');
-      cy.contains('Git Repo:').should('be.visible');
+      cy.clickButton('Create App Bundle');
+      cy.contains('App Bundle: Create').should('be.visible');
+      cy.contains('Git Repos').should('be.visible').click();
+      cy.wait(1000);
+      cy.contains('App Bundle: Create').should('be.visible');
       cy.clickButton('Edit as YAML');
       cy.addYamlFile('assets/git-repo-keep-resources-true.yaml');
       cy.clickButton('Create');
@@ -402,7 +405,7 @@ if (!/\/2\.9/.test(Cypress.env('rancher_version'))) {
 
             // Adding more wait for 30seconds to capture the error if occurred after modifying the resources.
             cy.wait(30000);
-            cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+            cy.continuousDeliveryMenuSelection();
             cy.verifyTableRow(0, 'Active', repoName);
 
             // Check All clusters are in healthy state after performing any modification to the resources.
@@ -458,7 +461,11 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
       });
 
       cy.fleetNamespaceToggle('fleet-local');
-      cy.clickButton('Add Repository');
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('Git Repos').should('be.visible').click();
+        cy.wait(1000);
+        cy.contains('App Bundle: Create').should('be.visible');
 
       // Pass YAML file (no previous additions of Name, urls or paths)
       cy.clickButton('Edit as YAML');
@@ -497,7 +504,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
           cy.screenshot('Screenshot AFTER reloading should be 2/2');
           cy.verifyTableRow(0, 'Active', '2/2');
 
-          cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+          cy.continuousDeliveryMenuSelection();
           cy.fleetNamespaceToggle('fleet-local');
           cy.open3dotsMenu('test-disable-polling', 'Force Update');
           cy.wait(2000); // Wait to let time for Update to take effect.
@@ -538,7 +545,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
 
           prepareGithubRepoReplicas()
 
-          cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+          cy.continuousDeliveryMenuSelection();
           cy.fleetNamespaceToggle('fleet-local');
           cy.open3dotsMenu(repoName, 'Pause');
 

@@ -41,7 +41,7 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@upgra
         cy.checkGitRepoAfterUpgrade(repoName, 'fleet-default');
       }
       else {
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle('fleet-default')
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
         cy.clickButton('Create');
@@ -68,7 +68,7 @@ describe('Test Fleet deployment on PUBLIC repos',  { tags: '@upgrade' }, () => {
         cy.checkGitRepoAfterUpgrade(repoName, 'fleet-local');
       }
       else {
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle('fleet-local');
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         // Adding check validate "Edit as Yaml" works
@@ -98,7 +98,7 @@ describe('Test gitrepos with cabundle', { tags: '@upgrade' }, () => {
         cy.checkGitRepoAfterUpgrade(repoName, 'fleet-local');
       }
       else {
-          cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+          cy.continuousDeliveryMenuSelection();
           cy.fleetNamespaceToggle('fleet-local');
           cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
           cy.clickButton('Create');
