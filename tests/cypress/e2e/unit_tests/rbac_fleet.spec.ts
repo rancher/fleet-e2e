@@ -251,7 +251,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
 
       // Ensuring user is not able to access "Cluster Registration Tokens",
       // "GitRepoRestrictions', "BundleNamespaceMappings".
-      cy.accesMenuSelection('Continuous Delivery', 'Advanced');
+      cy.accesMenuSelection('Continuous Delivery', 'Resources');
       cy.contains('Cluster Registration Tokens').should('not.exist');
       cy.contains('GitRepoRestrictions').should('not.exist');
       cy.contains('BundleNamespaceMappings').should('not.exist');
@@ -847,7 +847,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
   qase(39,
     it('Test "GitRepoRestrictions" on non-existent namespace throws error in the UI', { tags: '@fleet-39' }, () => {
 
-      cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
+      cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
       cy.clickButton('Create from YAML');
       cy.readFile('assets/git-repo-restrictions-non-exists-ns.yaml').then((content) => {
         cy.get('.CodeMirror').then((codeMirrorElement) => {
@@ -866,7 +866,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
       const repoName = 'local-gitreporestrictions-fleet-40'
 
       // Create GitRepoRestrictions with allowedTargetNamespace
-      cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
+      cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
       cy.clickButton('Create from YAML');
       cy.readFile('assets/git-repo-restrictions-allowed-target-ns.yaml').then((content) => {
         cy.get('.CodeMirror').then((codeMirrorElement) => {
@@ -892,7 +892,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
       cy.get('.col-link-detail').contains(appName).should('be.visible');
 
       // Deleting GitRepoRestrictions from the fleet-local namespace
-      cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
+      cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
       cy.fleetNamespaceToggle('fleet-local');
       cy.deleteAll(false);
 
@@ -906,7 +906,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
       const repoName = 'local-gitreporestrictions-fleet-41'
 
       // Create GitRepoRestrictions with allowedTargetNamespace
-      cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
+      cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
       cy.clickButton('Create from YAML');
       cy.readFile('assets/git-repo-restrictions-allowed-target-ns.yaml').then((content) => {
         cy.get('.CodeMirror').then((codeMirrorElement) => {
@@ -939,7 +939,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
       cy.get('.col-link-detail').contains(appName).should('be.visible');
 
       // Deleting GitRepoRestrictions from the fleet-local namespace
-      cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
+      cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
       cy.fleetNamespaceToggle('fleet-local');
       cy.deleteAll(false);
 

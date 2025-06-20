@@ -27,7 +27,7 @@ beforeEach(() => {
 });
 
 Cypress.config();
-describe.only('Test Fleet deployment on PUBLIC repos',  { tags: '@p0' }, () => {
+describe('Test Fleet deployment on PUBLIC repos',  { tags: '@p0' }, () => {
   qase(62,
     it('FLEET-62: Deploy application to local cluster', { tags: '@fleet-62' }, () => {
 

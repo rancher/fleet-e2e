@@ -992,7 +992,7 @@ describe('Test move cluster to newly created workspace and deploy application to
       cy.restoreClusterToDefaultWorkspace(dsFirstClusterName, timeout);
 
       // Delete the newly created workspace
-      cy.clickNavMenu(['Advanced', 'Workspaces']);
+      cy.clickNavMenu(['Resources', 'Workspaces']);
       cy.filterInSearchBox(newWorkspaceName)
       cy.deleteAll(false);
     })
