@@ -98,7 +98,7 @@ Cypress.Commands.add('continuousDeliveryMenuSelection', (appBundles=true) => {
 });
 
 Cypress.Commands.add('continuousDeliveryWorkspacesMenu', () => {
-  cy.get('body').then(($body) => {
+  cy.get('body', { timeout: 15000 }).then(($body) => {
     if ($body.text().includes('App Bundles')) {
       cy.contains('App Bundles').should('be.visible');
       cy.clickNavMenu(['Workspaces']);
@@ -112,7 +112,7 @@ Cypress.Commands.add('continuousDeliveryWorkspacesMenu', () => {
 });
 
 Cypress.Commands.add('continuousDeliveryBundlesMenu', () => {
-  cy.get('body').then(($body) => {
+  cy.get('body', { timeout: 15000 }).then(($body) => {
     if ($body.text().includes('App Bundles')) {
       cy.contains('App Bundles').should('be.visible');
       cy.clickNavMenu(['Resources', 'Bundles']);
@@ -127,7 +127,7 @@ Cypress.Commands.add('continuousDeliveryBundlesMenu', () => {
 
 // Command add and edit Fleet Git Repository
 // TODO: Rename this command name to 'addEditFleetGitRepo'
-Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, tlsOption, tlsCertificate, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget, allowedTargetNamespace="" }) => {
+Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, tlsOption, tlsCertificate, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget, allowedTargetNamespace="", local=false }) => {
 
   cy.continuousDeliveryMenuSelection();
 
@@ -142,6 +142,9 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
 
   else {
     cy.clickButton('Create App Bundle');
+    if (local){
+      cy.fleetNamespaceToggle(fleetNamespace);
+    }
     cy.contains('App Bundle: Create').should('be.visible');
     cy.contains('Git Repos').should('be.visible').click();
     cy.wait(1000);

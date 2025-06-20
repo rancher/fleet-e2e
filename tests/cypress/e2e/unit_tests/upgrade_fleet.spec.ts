@@ -69,8 +69,7 @@ describe('Test Fleet deployment on PUBLIC repos',  { tags: '@upgrade' }, () => {
       }
       else {
         cy.continuousDeliveryMenuSelection();
-        cy.fleetNamespaceToggle('fleet-local');
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
         // Adding check validate "Edit as Yaml" works
         cy.clickButton('Edit as YAML');
         cy.contains('apiVersion: fleet.cattle.io/v1alpha1').should('be.visible');
@@ -99,8 +98,7 @@ describe('Test gitrepos with cabundle', { tags: '@upgrade' }, () => {
       }
       else {
           cy.continuousDeliveryMenuSelection();
-          cy.fleetNamespaceToggle('fleet-local');
-          cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
           cy.clickButton('Create');
           cy.verifyTableRow(0, 'Active', '1/1');
       }
