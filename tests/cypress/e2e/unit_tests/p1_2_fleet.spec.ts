@@ -28,6 +28,7 @@ export const dsAllClusterList = ['imported-0', 'imported-1', 'imported-2']
 export const dsFirstClusterName = dsAllClusterList[0]
 export const dsFirstTwoClusterList = dsAllClusterList.slice(0, 2)
 export const dsThirdClusterName = dsAllClusterList[2]
+export const NoAppBundleOrGitRepoPresentMessages = ['No repositories have been added', 'No App Bundles have been created']
 
 beforeEach(() => {
   cy.login();
@@ -77,17 +78,16 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
             
             // Navigate back to GitRepo page
             cy.clickButton('Cancel')
-            cy.contains('No repositories have been added').should('be.visible')
+            cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible')
           })
           )
       } else {
         qase(qase_id,
           it(`Fleet-${qase_id}: Test GitRepo bundle name TRIMMING behavior. GitRepo with "${test_explanation}"`, { tags: `@fleet-${qase_id}` }, () => {
             // Change namespace to fleet-local
-            cy.fleetNamespaceToggle('fleet-local');
 
             // Add Fleet repository and create it
-            cy.addFleetGitRepo({repoName, repoUrl, branch, path});
+            cy.addFleetGitRepo({repoName, repoUrl, branch, path, local: true});
             cy.clickButton('Create');
             cy.verifyTableRow(0, 'Active', repoName);
 
@@ -148,7 +148,7 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1_2'}, 
         it(`Fleet-${qase_id}: Test ${test_explanation}`, { tags: `@fleet-${qase_id}` }, () => {
           const repoName = `default-single-app-cluster-group-${qase_id}`
 
-          cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+          cy.continuousDeliveryMenuSelection();
           cy.clickNavMenu(['Clusters']);
           cy.contains('.title', 'Clusters').should('be.visible');
 
@@ -351,7 +351,7 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1_2'}, 
       })
 
       // Add label to the third cluster
-      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.continuousDeliveryMenuSelection();
       cy.clickNavMenu(['Clusters']);
       cy.contains('.title', 'Clusters').should('be.visible');
       cy.assignClusterLabel(dsThirdClusterName, new_key, new_value);
@@ -456,7 +456,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
     qase(qase_id,
       it(`Test install ${test_explanation} using clusterSelector(matchLabels) in GitRepo`, { tags: `@fleet-${qase_id}` }, () => {
 
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.continuousDeliveryMenuSelection();
         cy.clickNavMenu(['Clusters']);
         cy.contains('.title', 'Clusters').should('be.visible');
   
@@ -482,8 +482,11 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         cy.clickNavMenu(['Git Repos']);
         cy.wait(500);
 
-        cy.clickButton('Add Repository');
-        cy.contains('Git Repo:').should('be.visible');
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('Git Repos').should('be.visible').click();
+        cy.wait(1000);
+        cy.contains('App Bundle: Create').should('be.visible');
         cy.clickButton('Edit as YAML');
         cy.addYamlFile(gitRepoFile);
         cy.clickButton('Create');
@@ -559,8 +562,11 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       cy.clickNavMenu(['Git Repos']);
       cy.wait(500);
       
-      cy.clickButton('Add Repository');
-      cy.contains('Git Repo:').should('be.visible');
+      cy.clickButton('Create App Bundle');
+      cy.contains('App Bundle: Create').should('be.visible');
+      cy.contains('Git Repos').should('be.visible').click();
+      cy.wait(1000);
+      cy.contains('App Bundle: Create').should('be.visible');
       cy.clickButton('Edit as YAML');
       cy.addYamlFile(gitRepoFile);
       cy.clickButton('Create');
@@ -613,8 +619,11 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       // Create a GitRepo targeting cluster selector created from YAML.
       cy.clickNavMenu(['Git Repos']);
       cy.wait(500);
-      cy.clickButton('Add Repository');
-      cy.contains('Git Repo:').should('be.visible');
+      cy.clickButton('Create App Bundle');
+      cy.contains('App Bundle: Create').should('be.visible');
+      cy.contains('Git Repos').should('be.visible').click();
+      cy.wait(1000);
+      cy.contains('App Bundle: Create').should('be.visible');
       cy.clickButton('Edit as YAML');
       cy.addYamlFile(gitRepoFile);
       cy.clickButton('Create');
@@ -752,8 +761,11 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
         cy.clickNavMenu(['Git Repos']);
         cy.wait(500);
 
-        cy.clickButton('Add Repository');
-        cy.contains('Git Repo:').should('be.visible');
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('Git Repos').should('be.visible').click();
+        cy.wait(1000);
+        cy.contains('App Bundle: Create').should('be.visible');
         cy.clickButton('Edit as YAML');
         cy.addYamlFile(clusterGroupSelectorFile);
         cy.clickButton('Create');
@@ -826,7 +838,11 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         const namespaceName = 'my-custom-namespace'
 
         cy.fleetNamespaceToggle('fleet-local');
-        cy.clickButton('Add Repository');
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('Git Repos').should('be.visible').click();
+        cy.wait(1000);
+        cy.contains('App Bundle: Create').should('be.visible');
         cy.clickButton('Edit as YAML');
         cy.addYamlFile('assets/131-ns-deleted-when-bundle-deleted.yaml');
         cy.clickButton('Create');
@@ -856,9 +872,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         const branch = 'main'
         const path = 'bundles-delete-namespaces-nested'
 
-        cy.fleetNamespaceToggle('fleet-local');
-        // cy.clickButton('Add Repository');
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
         cy.clickButton('Create');
         // As 2 gitrepos are created, we need to wait for both to be displayed
         // before we can check the status
@@ -872,7 +886,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         cy.verifyTableRow(0, 'Active', namespaceName);
 
         // Go back to the GitRepos and delete only the main one
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle('fleet-local');
         cy.filterInSearchBox(repoName); // this is the main one
         
@@ -976,7 +990,7 @@ describe('Test move cluster to newly created workspace and deploy application to
       cy.restoreClusterToDefaultWorkspace(dsFirstClusterName, timeout);
 
       // Delete the newly created workspace
-      cy.clickNavMenu(['Advanced', 'Workspaces']);
+      cy.clickNavMenu(['Resources', 'Workspaces']);
       cy.filterInSearchBox(newWorkspaceName)
       cy.deleteAll(false);
     })
@@ -1010,7 +1024,7 @@ describe('Test Helm app with Custom Values', { tags: '@p1_2' }, () => {
         }
 
         // Create GitRepo
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle('fleet-local')
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         cy.clickButton('Create');

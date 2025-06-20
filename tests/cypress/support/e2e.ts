@@ -23,7 +23,7 @@ declare global {
       open3dotsMenu(name: string, selection?: string, checkNotInMenu?: boolean): Chainable<Element>;
       addPathOnGitRepoCreate(path: string, index?: number): Chainable<Element>;
       gitRepoAuth(AuthType: string, userOrPublicKey?: string, pwdOrPrivateKey?: string, gitOrHelmAuth?: string, helmUrlRegex?: string): Chainable<Element>;
-      addFleetGitRepo(repoName: string, repoUrl?: string, branch?: string, path?: string, path2?: string, fleetNamespace?: string, editConfig?: boolean, helmUrlRegex?: string, deployToTarget?: string, tlsOption?: string, tlsCertificate?: string, allowedTargetNamespace?: string): Chainable<Element>;
+      addFleetGitRepo(repoName: string, repoUrl?: string, branch?: string, path?: string, path2?: string, fleetNamespace?: string, editConfig?: boolean, helmUrlRegex?: string, deployToTarget?: string, tlsOption?: string, tlsCertificate?: string, allowedTargetNamespace?: string, local?: boolean): Chainable<Element>;
       fleetNamespaceToggle(toggleOption: string): Chainable<Element>;
       verifyTableRow(rowNumber: number, expectedText1?: string|RegExp, expectedText2?: string|RegExp, timeout?: number): Chainable<Element>;
       nameSpaceMenuToggle(namespaceName: string): Chainable<Element>;
@@ -68,6 +68,9 @@ declare global {
       deleteConfigMap(configMapName: string): Chainable<Element>;
       closePopWindow(windowMessage: string): Chainable<Element>;
       k8sUpgradeInRancher(clusterName: string): Chainable<Element>;
+      continuousDeliveryMenuSelection(appBundles?: boolean): Chainable<Element>;
+      continuousDeliveryWorkspacesMenu(): Chainable<Element>;
+      continuousDeliveryBundlesMenu(): Chainable<Element>;
     }
   }
 }
