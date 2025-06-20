@@ -216,8 +216,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
         const branch = 'master'
         const path = 'imagescans'
 
-        cy.fleetNamespaceToggle('fleet-local');
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
         cy.clickButton('Create');
         cy.verifyTableRow(0, 'Error', '1/1');
         cy.accesMenuSelection('local', 'Workloads');
@@ -273,8 +272,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
           it(`Fleet-${qase_id}: Test private helm registries for \"helmRepoURLRegex\" matches with \"${test_explanation}\" URL specified in fleet.yaml file`, { tags: `@fleet-${qase_id}` }, () => {;
             // Positive test using matching regex
             helmUrlRegex = helmUrlRegex_matching
-            cy.fleetNamespaceToggle('fleet-local');
-            cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex });
+            cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex, local: true });
             cy.clickButton('Create');
             cy.verifyTableRow(0, 'Active', /([1-9]\d*)\/\1/);
             cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
@@ -286,8 +284,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
             cy.deleteAllFleetRepos();
             // Negative test using non-matching regex 1234.*
             helmUrlRegex = '1234.*'
-            cy.fleetNamespaceToggle('fleet-local');
-            cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex });
+            cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex, local: true });
             cy.clickButton('Create');
             cy.get('.text-error', { timeout: 120000 }).should('contain', 'code: 401');
             cy.deleteAllFleetRepos();

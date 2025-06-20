@@ -204,6 +204,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       cy.login(stduser, uiPassword);
 
       // Ensuring the user IS able to "go to Continuous Delivery", "list" and "delete" workspaces.
+      cy.continuousDeliveryMenuSelection();
       cy.continuousDeliveryWorkspacesMenu();
       cy.verifyTableRow(0, 'Active', 'fleet-default');
       cy.verifyTableRow(1, 'Active', 'fleet-local');
@@ -267,8 +268,8 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
 
       // Create git repos
       cy.continuousDeliveryMenuSelection();
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.wait(500);
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
       cy.clickButton('Create');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
   
@@ -490,8 +491,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
 
     // Create git repos
     cy.continuousDeliveryMenuSelection();
-    cy.fleetNamespaceToggle('fleet-local');
-    cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
     cy.clickButton('Create');
     cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
 
@@ -818,6 +818,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.login(baseUser, uiPassword);
 
       // Ensuring the user IS able to "go to Continuous Delivery", "list" and "delete" workspaces.
+      cy.continuousDeliveryMenuSelection();
       cy.continuousDeliveryWorkspacesMenu();
       cy.verifyTableRow(0, 'Active', 'fleet-default');
       cy.verifyTableRow(1, 'Active', 'fleet-local');
@@ -878,8 +879,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
 
       // Add Fleet repository and create it
       cy.wait(200);
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.addFleetGitRepo({repoName, repoUrl, branch, path, allowedTargetNamespace});
+      cy.addFleetGitRepo({repoName, repoUrl, branch, path, allowedTargetNamespace, local: true});
 
       cy.clickButton('Create');
       cy.verifyTableRow(0, 'Active', repoName);
@@ -918,8 +918,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
 
       // Add Fleet repository and create it
       cy.wait(200);
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.addFleetGitRepo({repoName, repoUrl, branch, path});
+      cy.addFleetGitRepo({repoName, repoUrl, branch, path, local: true});
       cy.clickButton('Create');
       cy.verifyTableRow(0, 'Error', repoName);
       cy.get('td.text-error')

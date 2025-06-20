@@ -85,10 +85,9 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
         qase(qase_id,
           it(`Fleet-${qase_id}: Test GitRepo bundle name TRIMMING behavior. GitRepo with "${test_explanation}"`, { tags: `@fleet-${qase_id}` }, () => {
             // Change namespace to fleet-local
-            cy.fleetNamespaceToggle('fleet-local');
 
             // Add Fleet repository and create it
-            cy.addFleetGitRepo({repoName, repoUrl, branch, path});
+            cy.addFleetGitRepo({repoName, repoUrl, branch, path, local: true});
             cy.clickButton('Create');
             cy.verifyTableRow(0, 'Active', repoName);
 
@@ -873,8 +872,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         const branch = 'main'
         const path = 'bundles-delete-namespaces-nested'
 
-        cy.fleetNamespaceToggle('fleet-local');
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
         cy.clickButton('Create');
         // As 2 gitrepos are created, we need to wait for both to be displayed
         // before we can check the status
