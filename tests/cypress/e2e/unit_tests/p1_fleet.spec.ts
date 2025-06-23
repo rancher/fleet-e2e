@@ -73,8 +73,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
       qase(qase_id,
         it(`Fleet-${qase_id}: Test ${test_explanation}`, { tags: `@fleet-${qase_id}` }, () => {
           const repoName = `local-cluster-fleet-${qase_id}`
-          cy.fleetNamespaceToggle('fleet-local')
-          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, keepResources });
+          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, keepResources, local: true });
           cy.clickButton('Create');
           cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
           cy.checkApplicationStatus(appName);
@@ -105,8 +104,7 @@ describe('Test Self-Healing of resource modification when correctDrift option us
       qase(qase_id,
         it(`Fleet-${qase_id}: Test ${test_explanation}`, { tags: `@fleet-${qase_id}` }, () => {
           const repoName = `local-cluster-correct-${qase_id}`
-          cy.fleetNamespaceToggle('fleet-local')
-          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift });
+          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift, local: true });
           cy.clickButton('Create');
           cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
           cy.checkApplicationStatus(appName);
@@ -132,8 +130,7 @@ describe('Test Self-Healing of resource modification when correctDrift option us
   qase(77,
     it("Fleet-77: Test MODIFICATION to resources will be self-healed when correctDrift is set to true in existing GitRepo.", { tags: '@fleet-77', retries: 1 }, () => {
       const repoName = "local-cluster-correct-77"
-      cy.fleetNamespaceToggle('fleet-local')
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
       cy.clickButton('Create');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
       cy.checkApplicationStatus(appName);
@@ -172,8 +169,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
   qase(71,
     it("Fleet-71: Test RESOURCES will be KEPT and NOT be DELETED after GitRepo is deleted when keepResources is set to true in existing GitRepo.", { tags: '@fleet-71' }, () => {
       const repoName = "local-cluster-keep-71"
-      cy.fleetNamespaceToggle('fleet-local')
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
       cy.clickButton('Create');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
       cy.checkApplicationStatus(appName);
