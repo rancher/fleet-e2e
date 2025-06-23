@@ -1025,8 +1025,7 @@ describe('Test Helm app with Custom Values', { tags: '@p1_2' }, () => {
 
         // Create GitRepo
         cy.continuousDeliveryMenuSelection();
-        cy.fleetNamespaceToggle('fleet-local')
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
         cy.clickButton('Create');
         cy.verifyTableRow(0, 'Active', repoName);
         cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');

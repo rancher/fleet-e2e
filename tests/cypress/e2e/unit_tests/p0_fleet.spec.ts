@@ -285,9 +285,8 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
           cy.wait(500); // Needs time for previous command to finish
                 
           // Verify gitrepo is added using default knownhost
-          cy.accesMenuSelection('Continuous Delivery', 'Git Repos')
-          cy.fleetNamespaceToggle('fleet-local')
-          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey })
+          cy.continuousDeliveryMenuSelection();
+          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, local: true })
           cy.clickButton('Create')
 
           // Ensure that apps cannot be installed && error appears
