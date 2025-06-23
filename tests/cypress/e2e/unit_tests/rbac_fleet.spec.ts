@@ -307,13 +307,16 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       cy.login(stduser, uiPassword);
 
       // CAN go to Continuous Delivery Dashboard and "list" gitrepos
-      cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
-      cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
+      cy.continuousDeliveryMenuSelection();
+      cy.verifyTableRow(0, 'Active', repoNameDefault);
+
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.verifyTableRow(0, 'Active', repoName);
       
       // CHECKS IN FLEET-DEFAULT
       // Can't "Create", "Edit" nor "Delete"
       cy.continuousDeliveryMenuSelection();
-      cy.get('.btn.role-primary').contains('Create App Bundle').should('not.exist');
+      cy.checkAccessToCreateGitRepoPage();
       // Note: listing is checked implictly here
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
       cy.open3dotsMenu(repoNameDefault, 'Delete', true);
@@ -353,8 +356,11 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       cy.login(stduser, uiPassword);
 
       // CAN go to Continuous Delivery Dashboard and "list" gitrepos
-      cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
-      cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
+      cy.continuousDeliveryMenuSelection();
+      cy.verifyTableRow(0, 'Active', repoNameDefault);
+
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.verifyTableRow(0, 'Active', repoName);
 
       // CHECKS IN FLEET-DEFAULT
       // CAN "Create" repos
@@ -404,8 +410,11 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       cy.login(stduser, uiPassword);
 
       // CAN go to Continuous Delivery Dashboard and "list" gitrepos
-      cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
-      cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
+      cy.continuousDeliveryMenuSelection();
+      cy.verifyTableRow(0, 'Active', repoNameDefault);
+
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.verifyTableRow(0, 'Active', repoName);
       
       // CHECKS IN FLEET-DEFAULT
       // CAN "Create" and "Edit"
@@ -458,13 +467,16 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       cy.login(stduser, uiPassword);
 
       // CAN go to Continuous Delivery Dashboard and "list" gitrepos
-      cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
-      cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
+      cy.continuousDeliveryMenuSelection();
+      cy.verifyTableRow(0, 'Active', repoNameDefault);
+
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.verifyTableRow(0, 'Active', repoName);
 
       // CHECKS IN FLEET-DEFAULT
       cy.continuousDeliveryMenuSelection();
       // Can't "Create" repos    
-      cy.get('.btn.role-primary').contains('Create App Bundle').should('not.exist');
+      cy.checkAccessToCreateGitRepoPage();
       // Cant't "Edit"
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
       // CAN "Delete"
@@ -528,19 +540,25 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cypressLib.logout();
       cy.login(baseUser, uiPassword);
 
-      // CAN go to Continuous Delivery Dashboard and "list" gitrepos
-      cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
-      cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
-      
+      // CAN go to Continuous Delivery Dashboard/App Bundles page and "list" gitrepos
+      // cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
+      // cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
+      cy.continuousDeliveryMenuSelection();
+      cy.verifyTableRow(0, 'Active', repoNameDefault);
+
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.verifyTableRow(0, 'Active', repoName);
+
       // CHECKS IN FLEET-DEFAULT
       // Can't "Create", "Edit" nor "Delete"
       cy.continuousDeliveryMenuSelection();
-      cy.get('.btn.role-primary').contains('Create App Bundle').should('not.exist');
+      cy.checkAccessToCreateGitRepoPage();
+
       // Note: listing is checked implictly here
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
       cy.open3dotsMenu(repoNameDefault, 'Delete', true);
       
-      // CHECKS IN FLEET-DEFAULT
+      // CHECKS IN FLEET-LOCAL
       // Can't "Create", "Edit" nor "Delete"
       cy.fleetNamespaceToggle('fleet-local');
       cy.open3dotsMenu(repoName, 'Edit Config', true);
@@ -575,8 +593,11 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.login(baseUser, uiPassword);
 
       // CAN go to Continuous Delivery Dashboard and "list" gitrepos
-      cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
-      cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
+      cy.continuousDeliveryMenuSelection();
+      cy.verifyTableRow(0, 'Active', repoNameDefault);
+
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.verifyTableRow(0, 'Active', repoName);
 
       // CHECKS IN FLEET-DEFAULT
       // CAN "Create" repos
@@ -626,8 +647,11 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.login(baseUser, uiPassword);
 
       // CAN go to Continuous Delivery Dashboard and "list" gitrepos
-      cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
-      cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
+      cy.continuousDeliveryMenuSelection();
+      cy.verifyTableRow(0, 'Active', repoNameDefault);
+
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.verifyTableRow(0, 'Active', repoName);
       
       // CHECKS IN FLEET-DEFAULT
       // CAN "Create" and "Edit"
@@ -680,13 +704,16 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.login(baseUser, uiPassword);
 
       // CAN go to Continuous Delivery Dashboard and "list" gitrepos
-      cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
-      cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
+      cy.continuousDeliveryMenuSelection();
+      cy.verifyTableRow(0, 'Active', repoNameDefault);
+
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.verifyTableRow(0, 'Active', repoName);
 
       // CHECKS IN FLEET-DEFAULT
       cy.continuousDeliveryMenuSelection();
       // Can't "Create" repos    
-      cy.get('.btn.role-primary').contains('Create App Bundle').should('not.exist');
+      cy.checkAccessToCreateGitRepoPage();
       // Cant't "Edit"
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
       // CAN "Delete"

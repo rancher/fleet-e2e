@@ -1053,3 +1053,11 @@ Cypress.Commands.add('k8sUpgradeInRancher', (clusterName) => {
   cy.verifyTableRow(0, 'Upgrading');
   cy.verifyTableRow(0, 'Active', k8s_version_for_upgrade_ds_cluster, timeout);
 })
+
+// Below function will ensure that there is no Access to the Create GitRepos. Used in RBAC tests only.
+Cypress.Commands.add('checkAccessToCreateGitRepoPage', () => {
+  cy.clickButton('Create App Bundle');
+  cy.get('[data-testid="subtype-banner-item-fleet.cattle.io.gitrepo"]').should('be.visible').trigger('mouseenter', { force: true });
+  cy.contains('You have no permissions to create Git Repos').should('be.visible');
+  cy.clickButton('Cancel');
+});

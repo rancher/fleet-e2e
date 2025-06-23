@@ -71,6 +71,7 @@ declare global {
       continuousDeliveryMenuSelection(appBundles?: boolean): Chainable<Element>;
       continuousDeliveryWorkspacesMenu(): Chainable<Element>;
       continuousDeliveryBundlesMenu(): Chainable<Element>;
+      checkAccessToCreateGitRepoPage(): Chainable<Element>;
     }
   }
 }
