@@ -13,7 +13,6 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
-import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 import { qase } from 'cypress-qase-reporter/dist/mocha';
 
 export const appName = "nginx-keep"
@@ -92,8 +91,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
             cy.verifyTableRow(0, 'Active', repoName);
 
             // Navigate to Bundles
-            cypressLib.accesMenu("Advanced")
-            cypressLib.accesMenu("Bundles")
+            cy.continuousDeliveryBundlesMenu();
 
             // Check bundle name trimed to less than 53 characters
             cy.contains('tr.main-row[data-testid="sortable-table-1-row"]').should('not.be.empty', { timeout: 25000 });

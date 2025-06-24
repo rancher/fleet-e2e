@@ -68,7 +68,7 @@ declare global {
       deleteConfigMap(configMapName: string): Chainable<Element>;
       closePopWindow(windowMessage: string): Chainable<Element>;
       k8sUpgradeInRancher(clusterName: string): Chainable<Element>;
-      continuousDeliveryMenuSelection(appBundles?: boolean): Chainable<Element>;
+      continuousDeliveryMenuSelection(navToAppBundles?: boolean): Chainable<Element>;
       continuousDeliveryWorkspacesMenu(): Chainable<Element>;
       continuousDeliveryBundlesMenu(): Chainable<Element>;
       checkAccessToCreateGitRepoPage(): Chainable<Element>;
