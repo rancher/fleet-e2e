@@ -477,14 +477,14 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         }
 
         // Create a GitRepo targeting cluster group created from YAML.
+        if (/\/2\.12/.test(Cypress.env('rancher_version'))) {
+          cy.clickNavMenu(['Resources']);
+        }
         cy.clickNavMenu(['Git Repos']);
         cy.wait(500);
 
-        cy.clickButton('Create App Bundle');
-        cy.contains('App Bundle: Create').should('be.visible');
-        cy.contains('Git Repos').should('be.visible').click();
-        cy.wait(1000);
-        cy.contains('App Bundle: Create').should('be.visible');
+        cy.clickButton('Add Repository');
+        cy.contains('Git Repo:').should('be.visible');
         cy.clickButton('Edit as YAML');
         cy.addYamlFile(gitRepoFile);
         cy.clickButton('Create');
@@ -557,14 +557,13 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       )
 
       // Create a GitRepo targeting cluster group created from YAML.
+      if (/\/2\.12/.test(Cypress.env('rancher_version'))) {
+        cy.clickNavMenu(['Resources']);
+      }
       cy.clickNavMenu(['Git Repos']);
       cy.wait(500);
-      
-      cy.clickButton('Create App Bundle');
-      cy.contains('App Bundle: Create').should('be.visible');
-      cy.contains('Git Repos').should('be.visible').click();
-      cy.wait(1000);
-      cy.contains('App Bundle: Create').should('be.visible');
+      cy.clickButton('Add Repository');
+      cy.contains('Git Repo:').should('be.visible');
       cy.clickButton('Edit as YAML');
       cy.addYamlFile(gitRepoFile);
       cy.clickButton('Create');
@@ -615,13 +614,13 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       )
 
       // Create a GitRepo targeting cluster selector created from YAML.
+      if (/\/2\.12/.test(Cypress.env('rancher_version'))) {
+        cy.clickNavMenu(['Resources']);
+      }
       cy.clickNavMenu(['Git Repos']);
       cy.wait(500);
-      cy.clickButton('Create App Bundle');
-      cy.contains('App Bundle: Create').should('be.visible');
-      cy.contains('Git Repos').should('be.visible').click();
-      cy.wait(1000);
-      cy.contains('App Bundle: Create').should('be.visible');
+      cy.clickButton('Add Repository');
+      cy.contains('Git Repo:').should('be.visible');
       cy.clickButton('Edit as YAML');
       cy.addYamlFile(gitRepoFile);
       cy.clickButton('Create');
@@ -756,14 +755,14 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
         }
 
         // Create a GitRepo targeting cluster group created from YAML.
+        if (/\/2\.12/.test(Cypress.env('rancher_version'))) {
+          cy.clickNavMenu(['Resources']);
+        }
         cy.clickNavMenu(['Git Repos']);
         cy.wait(500);
 
-        cy.clickButton('Create App Bundle');
-        cy.contains('App Bundle: Create').should('be.visible');
-        cy.contains('Git Repos').should('be.visible').click();
-        cy.wait(1000);
-        cy.contains('App Bundle: Create').should('be.visible');
+        cy.clickButton('Add Repository');
+        cy.contains('Git Repo:').should('be.visible');
         cy.clickButton('Edit as YAML');
         cy.addYamlFile(clusterGroupSelectorFile);
         cy.clickButton('Create');
@@ -836,11 +835,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         const namespaceName = 'my-custom-namespace'
 
         cy.fleetNamespaceToggle('fleet-local');
-        cy.clickButton('Create App Bundle');
-        cy.contains('App Bundle: Create').should('be.visible');
-        cy.contains('Git Repos').should('be.visible').click();
-        cy.wait(1000);
-        cy.contains('App Bundle: Create').should('be.visible');
+        cy.clickCreateGitRepo();
         cy.clickButton('Edit as YAML');
         cy.addYamlFile('assets/131-ns-deleted-when-bundle-deleted.yaml');
         cy.clickButton('Create');

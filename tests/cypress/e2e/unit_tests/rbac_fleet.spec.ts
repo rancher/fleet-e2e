@@ -365,11 +365,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       // CHECKS IN FLEET-DEFAULT
       // CAN "Create" repos
       cy.continuousDeliveryMenuSelection();
-      cy.clickButton('Create App Bundle');
-      cy.contains('App Bundle: Create').should('be.visible');
-      cy.contains('Git Repos').should('be.visible').click();
-      cy.wait(1000);
-      cy.contains('App Bundle: Create').should('be.visible');
+      cy.clickCreateGitRepo();
       // Can't "Edit" nor "Delete" repos
       cy.continuousDeliveryMenuSelection();
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
@@ -419,11 +415,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       // CHECKS IN FLEET-DEFAULT
       // CAN "Create" and "Edit"
       cy.continuousDeliveryMenuSelection();
-      cy.clickButton('Create App Bundle');
-      cy.contains('App Bundle: Create').should('be.visible');
-      cy.contains('Git Repos').should('be.visible').click();
-      cy.wait(1000);
-      cy.contains('App Bundle: Create').should('be.visible');
+      cy.clickCreateGitRepo();
       cy.clickButton('Cancel');
       cy.open3dotsMenu(repoNameDefault, 'Edit Config');
       cy.clickButton('Cancel');
@@ -602,11 +594,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       // CHECKS IN FLEET-DEFAULT
       // CAN "Create" repos
       cy.continuousDeliveryMenuSelection();
-      cy.clickButton('Create App Bundle');
-      cy.contains('App Bundle: Create').should('be.visible');
-      cy.contains('Git Repos').should('be.visible').click();
-      cy.wait(1000);
-      cy.contains('App Bundle: Create').should('be.visible');
+      cy.clickCreateGitRepo();
       // Can't "Edit" nor "Delete" repos
       cy.continuousDeliveryMenuSelection();
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
@@ -656,11 +644,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       // CHECKS IN FLEET-DEFAULT
       // CAN "Create" and "Edit"
       cy.continuousDeliveryMenuSelection();
-      cy.clickButton('Create App Bundle');
-      cy.contains('App Bundle: Create').should('be.visible');
-      cy.contains('Git Repos').should('be.visible').click();
-      cy.wait(1000);
-      cy.contains('App Bundle: Create').should('be.visible');
+      cy.clickCreateGitRepo();
       cy.clickButton('Cancel');
       cy.open3dotsMenu(repoNameDefault, 'Edit Config');
       cy.clickButton('Cancel');

@@ -72,6 +72,7 @@ declare global {
       continuousDeliveryWorkspacesMenu(): Chainable<Element>;
       continuousDeliveryBundlesMenu(): Chainable<Element>;
       checkAccessToCreateGitRepoPage(): Chainable<Element>;
+      clickCreateGitRepo(local?: boolean): Chainable<Element>;
     }
   }
 }

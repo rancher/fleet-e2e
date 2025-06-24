@@ -145,14 +145,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
   } 
 
   else {
-    cy.clickButton('Create App Bundle');
-    if (local){
-      cy.fleetNamespaceToggle(fleetNamespace);
-    }
-    cy.contains('App Bundle: Create').should('be.visible');
-    cy.contains('Git Repos').should('be.visible').click();
-    cy.wait(1000);
-    cy.contains('App Bundle: Create').should('be.visible');
+    cy.clickCreateGitRepo(local);
     cy.typeValue('Name', repoName);
 
     cy.clickButton('Next');
@@ -224,6 +217,23 @@ Cypress.Commands.add('deployToClusterOrClusterGroup', (deployToTarget) => {
         cy.addYamlFile('assets/cluster_selector_with_new_labels.yaml')
       }
     })
+  }
+});
+
+Cypress.Commands.add('clickCreateGitRepo', (local) => {
+  if (/\/2\.12/.test(Cypress.env('rancher_version'))) {
+    cy.clickButton('Create App Bundle');
+    if (local){
+      cy.fleetNamespaceToggle('fleet-local');
+    }
+    cy.contains('App Bundle: Create').should('be.visible');
+    cy.contains('Git Repos').should('be.visible').click();
+    cy.wait(1000);
+    cy.contains('App Bundle: Create').should('be.visible');
+  }
+  else {
+    cy.clickButton('Add Repository');
+    cy.contains('Git Repo:').should('be.visible');
   }
 });
 
@@ -1060,8 +1070,13 @@ Cypress.Commands.add('k8sUpgradeInRancher', (clusterName) => {
 
 // Below function will ensure that there is no Access to the Create GitRepos. Used in RBAC tests only.
 Cypress.Commands.add('checkAccessToCreateGitRepoPage', () => {
-  cy.clickButton('Create App Bundle');
-  cy.get('[data-testid="subtype-banner-item-fleet.cattle.io.gitrepo"]').should('be.visible').trigger('mouseenter', { force: true });
-  cy.contains('You have no permissions to create Git Repos').should('be.visible');
-  cy.clickButton('Cancel');
+  if (/\/2\.12/.test(Cypress.env('rancher_version'))) {
+    cy.clickButton('Create App Bundle');
+    cy.get('[data-testid="subtype-banner-item-fleet.cattle.io.gitrepo"]').should('be.visible').trigger('mouseenter', { force: true });
+    cy.contains('You have no permissions to create Git Repos').should('be.visible');
+    cy.clickButton('Cancel');
+  }
+  else {
+    cy.get('.btn.role-primary').contains('Add Repository').should('not.exist');
+  }
 });
