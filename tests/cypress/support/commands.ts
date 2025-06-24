@@ -86,8 +86,11 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
 });
 
 // This new navigation enables access to App Bundles and can be extended to HelmOps too.
-Cypress.Commands.add('continuousDeliveryMenuSelection', (appBundles=true) => {
-  if (appBundles){
+Cypress.Commands.add('continuousDeliveryMenuSelection', (navToAppBundles=false) => {
+  if (/\/2\.12/.test(Cypress.env('rancher_version'))) {
+    navToAppBundles = true
+  }
+  if (navToAppBundles){
     cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
     cy.contains("App Bundles").should('be.visible')
   }
@@ -115,7 +118,8 @@ Cypress.Commands.add('continuousDeliveryBundlesMenu', () => {
   cy.get('body', { timeout: 15000 }).then(($body) => {
     if ($body.text().includes('App Bundles')) {
       cy.contains('App Bundles').should('be.visible');
-      cy.clickNavMenu(['Resources', 'Bundles']);
+      cy.clickNavMenu(['Resources']);
+      cy.get('nav').contains(/^Bundles$/).click();
     } else if ($body.text().includes('Git Repos')) {
       cy.contains('Git Repos').should('be.visible');
       cy.clickNavMenu(['Advanced', 'Bundles']);
