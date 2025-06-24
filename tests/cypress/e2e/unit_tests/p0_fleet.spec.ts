@@ -425,11 +425,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         // Gitrepo creation via YAML
         cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle('fleet-local');
-        cy.clickButton('Create App Bundle');
-        cy.contains('App Bundle: Create').should('be.visible');
-        cy.contains('Git Repos').should('be.visible').click();
-        cy.wait(1000);
-        cy.contains('App Bundle: Create').should('be.visible');
+        cy.clickCreateGitRepo();
         cy.clickButton('Edit as YAML');
         cy.addYamlFile('assets/webhook-tests/webhook_test_disable_polling.yaml');
         cy.clickButton('Create');
@@ -479,11 +475,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         // Gitrepo creation via YAML
         cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle('fleet-local');
-        cy.clickButton('Create App Bundle');
-        cy.contains('App Bundle: Create').should('be.visible');
-        cy.contains('Git Repos').should('be.visible').click();
-        cy.wait(1000);
-        cy.contains('App Bundle: Create').should('be.visible');
+        cy.clickCreateGitRepo();
         cy.clickButton('Edit as YAML');
         
         cy.addYamlFile('assets/webhook-tests/webhook_test_webhook_secret_in_repo.yaml');
@@ -539,11 +531,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         // Gitrepo creation via YAML
         cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle('fleet-local');
-        cy.clickButton('Create App Bundle');
-        cy.contains('App Bundle: Create').should('be.visible');
-        cy.contains('Git Repos').should('be.visible').click();
-        cy.wait(1000);
-        cy.contains('App Bundle: Create').should('be.visible');
+        cy.clickCreateGitRepo();
         cy.clickButton('Edit as YAML');
         
         cy.addYamlFile('assets/webhook-tests/webhook_test_disable_polling.yaml');
@@ -634,11 +622,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
 
       // Gitrepo adddition via YAML
       cy.fleetNamespaceToggle('fleet-local');
-      cy.clickButton('Create App Bundle');
-      cy.contains('App Bundle: Create').should('be.visible');
-      cy.contains('Git Repos').should('be.visible').click();
-      cy.wait(1000);
-      cy.contains('App Bundle: Create').should('be.visible');
+      cy.clickCreateGitRepo();
       cy.clickButton('Edit as YAML');
       cy.addYamlFile('assets/disable_polling.yaml');
       cy.clickButton('Create');

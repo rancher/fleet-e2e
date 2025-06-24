@@ -34,11 +34,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
     it('Fleet-68: Test RESOURCES will be KEPT and NOT be DELETED after GitRepo is deleted when keepResources: true used in the GitRepo yaml file.', { tags: '@fleet-68' }, () => {
       cy.continuousDeliveryMenuSelection();
       cy.fleetNamespaceToggle('fleet-local')
-      cy.clickButton('Create App Bundle');
-      cy.contains('App Bundle: Create').should('be.visible');
-      cy.contains('Git Repos').should('be.visible').click();
-      cy.wait(1000);
-      cy.contains('App Bundle: Create').should('be.visible');
+      cy.clickCreateGitRepo();
       cy.clickButton('Edit as YAML');
       cy.addYamlFile('assets/git-repo-keep-resources-true.yaml');
       cy.clickButton('Create');
@@ -454,11 +450,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
       });
 
       cy.fleetNamespaceToggle('fleet-local');
-        cy.clickButton('Create App Bundle');
-        cy.contains('App Bundle: Create').should('be.visible');
-        cy.contains('Git Repos').should('be.visible').click();
-        cy.wait(1000);
-        cy.contains('App Bundle: Create').should('be.visible');
+      cy.clickCreateGitRepo();
 
       // Pass YAML file (no previous additions of Name, urls or paths)
       cy.clickButton('Edit as YAML');
