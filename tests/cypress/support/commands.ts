@@ -28,7 +28,7 @@ export const rancherVersion = Cypress.env('rancher_version');
 Cypress.Commands.add('addPathOnGitRepoCreate', (path, index=0) => {
   //Index defaulting to 0, for first input box.
   cy.clickButton('Add Path');
-  cy.get(`[data-testid="array-list-box${ index }"] input[placeholder="e.g. /directory/in/your/repo"]`).type(path);
+  cy.get(`[data-testid="array-list-box${ index }"] input[placeholder="e.g. /directory/in/your/repo"], [data-testid="array-list-box${ index }"] input[placeholder="e.g. /directory/in/your/repo"]`).type(path);
 })
 
 Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex ) => {
