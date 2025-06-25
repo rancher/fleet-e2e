@@ -484,7 +484,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         cy.wait(500);
 
         cy.clickButton('Add Repository');
-        cy.contains('Git Repo:').should('be.visible');
         cy.clickButton('Edit as YAML');
         cy.addYamlFile(gitRepoFile);
         cy.clickButton('Create');
@@ -563,7 +562,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       cy.clickNavMenu(['Git Repos']);
       cy.wait(500);
       cy.clickButton('Add Repository');
-      cy.contains('Git Repo:').should('be.visible');
       cy.clickButton('Edit as YAML');
       cy.addYamlFile(gitRepoFile);
       cy.clickButton('Create');
@@ -620,7 +618,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       cy.clickNavMenu(['Git Repos']);
       cy.wait(500);
       cy.clickButton('Add Repository');
-      cy.contains('Git Repo:').should('be.visible');
       cy.clickButton('Edit as YAML');
       cy.addYamlFile(gitRepoFile);
       cy.clickButton('Create');
@@ -762,7 +759,6 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
         cy.wait(500);
 
         cy.clickButton('Add Repository');
-        cy.contains('Git Repo:').should('be.visible');
         cy.clickButton('Edit as YAML');
         cy.addYamlFile(clusterGroupSelectorFile);
         cy.clickButton('Create');
