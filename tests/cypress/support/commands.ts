@@ -410,7 +410,7 @@ Cypress.Commands.add('deleteAllFleetRepos', (namespaceName) => {
 Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
   cy.verifyTableRow(0, 'Active', repoName);
   cy.contains(repoName).click()
-  cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
+  cy.get('.primaryheader > h1, h1 > span.resource-name.masthead-resource-title').contains(repoName).should('be.visible')
   cy.log(`Checking ${bundles} Bundles and Resources`)
   if (bundles) {
     cy.get('div.fleet-status', { timeout: 30000 }).eq(0).contains(` ${bundles} Bundles ready `, { timeout: 30000 }).should('be.visible')
@@ -704,15 +704,27 @@ Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
   cy.contains('.title', 'Clusters').should('be.visible');
   cy.filterInSearchBox(clusterName);
   cy.get('td.col-link-detail > span').contains(clusterName).click();
-  cy.get('div.tags > span').then(($el) =>{
-    if ($el.length === 2) {
-      cy.log("Cluster Label get removed successfully.")
-    }
-    else {
-      cy.removeClusterLabels(clusterName, key, value)
-    }
-  })
-
+  if (/\/2\.12/.test(Cypress.env('rancher_version'))) {
+    cy.get('div.labels > .key-value > .heading > span.count').then($spanLabelCount => {
+      const labelCount = parseInt($spanLabelCount.text().trim());
+      if (labelCount === 1) {
+        cy.log("Cluster Label get removed successfully.")
+      } 
+      else {
+        cy.removeClusterLabels(clusterName, key, value)
+      }
+    })
+  } 
+  else {
+    cy.get('div.tags > span').then(($el) =>{
+      if ($el.length === 2) {
+        cy.log("Cluster Label get removed successfully.")
+      }
+      else {
+        cy.removeClusterLabels(clusterName, key, value)
+      }
+    })
+  }
   // Navigate back to all clusters page.
   cy.clickNavMenu(['Clusters']);
 })
@@ -793,7 +805,7 @@ Cypress.Commands.add('gitRepoResourceCountAsInteger', (repoName, fleetNamespace=
   cy.fleetNamespaceToggle(fleetNamespace);
   cy.verifyTableRow(0, 'Active', repoName);
   cy.contains(repoName).click()
-  cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
+  cy.get('.primaryheader > h1, h1 > span.resource-name.masthead-resource-title').contains(repoName).should('be.visible')
 
   cy.get("div[data-testid='gitrepo-deployment-summary'] div[class='count']")
   .invoke('text')
