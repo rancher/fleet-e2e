@@ -112,301 +112,303 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
   )
 });
 
-describe('Test application deployment based on clusterGroup', { tags: '@p1_2'}, () => {
-  const value = 'value_prod'
+if (!/\/2\.12/.test(Cypress.env('rancher_version'))){
+  describe('Test application deployment based on clusterGroup', { tags: '@p1_2'}, () => {
+    const value = 'value_prod'
 
-  beforeEach('Cleanup leftover GitRepo, ClusterGroup or label etc. if any.', () => {
-    cy.login();
-    cy.visit('/');
-    // Remove labels from the clusters.
-    dsAllClusterList.forEach(
-      (dsCluster) => {
-        // Adding wait to load page correctly to avoid interference with hamburger-menu.
-        cy.wait(500);
-        cy.removeClusterLabels(dsCluster, key, value);
-      }
-    )
-    cy.deleteClusterGroups();
-    cy.deleteAllFleetRepos();
-  })
+    beforeEach('Cleanup leftover GitRepo, ClusterGroup or label etc. if any.', () => {
+      cy.login();
+      cy.visit('/');
+      // Remove labels from the clusters.
+      dsAllClusterList.forEach(
+        (dsCluster) => {
+          // Adding wait to load page correctly to avoid interference with hamburger-menu.
+          cy.wait(500);
+          cy.removeClusterLabels(dsCluster, key, value);
+        }
+      )
+      cy.deleteClusterGroups();
+      cy.deleteAllFleetRepos();
+    })
 
-  const clusterGroup: testData[] = [
-    {
-      qase_id: 25,
-      test_explanation: "install single application to the all defined clusters in the 'clusterGroup'",
-    },
-    {
-      qase_id: 27,
-      test_explanation: "install existing application to the third cluster by adding it to the existing 'clusterGroup'",
-    },
-  ]
+    const clusterGroup: testData[] = [
+      {
+        qase_id: 25,
+        test_explanation: "install single application to the all defined clusters in the 'clusterGroup'",
+      },
+      {
+        qase_id: 27,
+        test_explanation: "install existing application to the third cluster by adding it to the existing 'clusterGroup'",
+      },
+    ]
 
-  clusterGroup.forEach(({ qase_id, test_explanation }) => {
-      qase(qase_id,
-        it(`Fleet-${qase_id}: Test ${test_explanation}`, { tags: `@fleet-${qase_id}` }, () => {
-          const repoName = `default-single-app-cluster-group-${qase_id}`
+    clusterGroup.forEach(({ qase_id, test_explanation }) => {
+        qase(qase_id,
+          it(`Fleet-${qase_id}: Test ${test_explanation}`, { tags: `@fleet-${qase_id}` }, () => {
+            const repoName = `default-single-app-cluster-group-${qase_id}`
 
-          cy.continuousDeliveryMenuSelection();
-          cy.clickNavMenu(['Clusters']);
-          cy.contains('.title', 'Clusters').should('be.visible');
-
-          // Assign label to the first 2 clusters i.e. imported-0 and imported-1
-          dsFirstTwoClusterList.forEach(
-            (dsCluster) => {
-              cy.assignClusterLabel(dsCluster, key, value);
-            }
-          )
-
-          // Create group of cluster consists of same label.
-          cy.clickNavMenu(['Cluster Groups']);
-          cy.contains('.title', 'Cluster Groups').should('be.visible');
-          cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
-          cy.clusterCountClusterGroup(clusterGroupName, 2);
-
-          // Create a GitRepo targeting cluster group created.
-          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, deployToTarget: clusterGroupName });
-          cy.clickButton('Create');
-          cy.checkGitRepoStatus(repoName, '1 / 1');
-
-          // Check application status on both clusters i.e. imported-0 and imported-1
-          dsFirstTwoClusterList.forEach(
-            (dsCluster) => {
-              cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
-            }
-          )
-
-          if (qase_id === 27) {
-            cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+            cy.continuousDeliveryMenuSelection();
+            cy.clickNavMenu(['Clusters']);
             cy.contains('.title', 'Clusters').should('be.visible');
 
-            // Add label to the third cluster i.e. imported-2
-            cy.assignClusterLabel(dsThirdClusterName, key, value);
+            // Assign label to the first 2 clusters i.e. imported-0 and imported-1
+            dsFirstTwoClusterList.forEach(
+              (dsCluster) => {
+                cy.assignClusterLabel(dsCluster, key, value);
+              }
+            )
 
-            // Check existing clusterGroup for third cluster (imported-2) is added.
-            cy.clusterCountClusterGroup(clusterGroupName, 3);
+            // Create group of cluster consists of same label.
+            cy.clickNavMenu(['Cluster Groups']);
+            cy.contains('.title', 'Cluster Groups').should('be.visible');
+            cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
+            cy.clusterCountClusterGroup(clusterGroupName, 2);
 
-            // Check application is deployed on third cluster i.e. imported-2
-            cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
+            // Create a GitRepo targeting cluster group created.
+            cy.addFleetGitRepo({ repoName, repoUrl, branch, path, deployToTarget: clusterGroupName });
+            cy.clickButton('Create');
+            cy.checkGitRepoStatus(repoName, '1 / 1');
 
-            // Remove label from the third cluster i.e. imported-2
-            cy.wait(500);
-            cy.removeClusterLabels(dsThirdClusterName, key, value);
-          }
+            // Check application status on both clusters i.e. imported-0 and imported-1
+            dsFirstTwoClusterList.forEach(
+              (dsCluster) => {
+                cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+              }
+            )
 
-          // Remove labels from the All 3 clusters.
-          dsAllClusterList.forEach(
-            (dsCluster) => {
-              // Adding wait to load page correctly to avoid interference with hamburger-menu.
+            if (qase_id === 27) {
+              cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+              cy.contains('.title', 'Clusters').should('be.visible');
+
+              // Add label to the third cluster i.e. imported-2
+              cy.assignClusterLabel(dsThirdClusterName, key, value);
+
+              // Check existing clusterGroup for third cluster (imported-2) is added.
+              cy.clusterCountClusterGroup(clusterGroupName, 3);
+
+              // Check application is deployed on third cluster i.e. imported-2
+              cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
+
+              // Remove label from the third cluster i.e. imported-2
               cy.wait(500);
-              cy.removeClusterLabels(dsCluster, key, value);
+              cy.removeClusterLabels(dsThirdClusterName, key, value);
             }
-          )
-          cy.deleteClusterGroups();
-        })
-      )
-    }
-  )
 
-  qase(26,
-    it("Fleet-26: Test install multiple applications to the all defined clusters in the 'clusterGroup'", { tags: '@fleet-26' }, () => {
-      const repoName = 'default-single-app-cluster-group-26'
-      const path2 = 'multiple-paths/config'
-
-      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-      cy.contains('.title', 'Clusters').should('be.visible');
-
-      // Assign label to the first 2 clusters i.e. imported-0 and imported-1
-      dsFirstTwoClusterList.forEach(
-        (dsCluster) => {
-          cy.assignClusterLabel(dsCluster, key, value);
-        }
-      )
-
-      // Create group of cluster consists of same label.
-      cy.clickNavMenu(['Cluster Groups']);
-      cy.contains('.title', 'Cluster Groups').should('be.visible');
-      cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
-
-      // Create a GitRepo targeting cluster group created.
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, path2, deployToTarget: clusterGroupName });
-      cy.clickButton('Create');
-      cy.checkGitRepoStatus(repoName, '2 / 2');
-
-      // Check first application status on both clusters i.e. imported-0 and imported-1
-      dsFirstTwoClusterList.forEach((dsCluster) => {
-        cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
-      })
-
-      dsFirstTwoClusterList.forEach((dsCluster) => {
-        // Check second application status on both clusters i.e. imported-0 and imported-1
-        // Adding wait to load page correctly to avoid interference with hamburger-menu.
-        cy.wait(500);
-        cy.accesMenuSelection(dsCluster, "Storage", "ConfigMaps");
-        cy.nameSpaceMenuToggle("test-fleet-mp-config");
-        cy.filterInSearchBox("mp-app-config");
-        cy.get('td.col-link-detail > span').contains("mp-app-config").click();
-      })
-
-      // Remove labels from the clusters i.e. imported-0 and imported-1
-      dsFirstTwoClusterList.forEach(
-        (dsCluster) => {
-          // Adding wait to load page correctly to avoid interference with hamburger-menu.
-          cy.wait(500);
-          cy.removeClusterLabels(dsCluster, key, value);
-        }
-      )
-    })
-  )
-
-  qase(28,
-    it("Fleet-28: Test remove existing application from cluster-2 by removing it from an existing 'clusterGroup'", { tags: '@fleet-28' }, () => {
-      const repoName = 'default-single-app-cluster-group-28'
-      const dsSecondClusterName = dsAllClusterList[1]
-
-      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-      cy.contains('.title', 'Clusters').should('be.visible');
-
-      // Assign label to the clusters 
-      dsFirstTwoClusterList.forEach(
-        (dsCluster) => {
-          cy.assignClusterLabel(dsCluster, key, value);
-        }
-      )
-
-      // Create group of cluster consists of same label.
-      cy.clickNavMenu(['Cluster Groups']);
-      cy.contains('.title', 'Cluster Groups').should('be.visible');
-      cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
-
-      // Create a GitRepo targeting cluster group created.
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, deployToTarget: clusterGroupName });
-      cy.clickButton('Create');
-      cy.checkGitRepoStatus(repoName, '1 / 1');
-
-      // Check first application status on both clusters.
-      dsFirstTwoClusterList.forEach((dsCluster) => {
-        cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
-      })
-
-      // Check application is not installed on third cluster i.e. imported-2
-      cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces', false);
-
-      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-      cy.contains('.title', 'Clusters').should('be.visible');
-
-      // Remove label from the Second cluster i.e. imported-1
-      cy.wait(500);
-      cy.removeClusterLabels(dsSecondClusterName, key, value);
-
-      // Check application is absent i.e. removed from second cluster i.e. imported-1
-      cy.checkApplicationStatus(appName, dsSecondClusterName, 'All Namespaces', false);
-
-      // Check application is available on first cluster i.e. imported-0
-
-      // Remove labels from the clusters.
-      dsFirstTwoClusterList.forEach(
-        (dsCluster) => {
-          // Adding wait to load page correctly to avoid interference with hamburger-menu.
-          cy.wait(500);
-          cy.removeClusterLabels(dsCluster, key, value);
-        }
-      )
-      // Delete clusterGroups.
-      cy.deleteClusterGroups();
-    })
-  )
-
-  qase(29,
-    it("Fleet-29: Test install app to new set of clusters from old set of clusters using 'clusterGroup'", { tags: '@fleet-29' }, () => {
-      const repoName = 'default-single-app-cluster-group-29'
-      const new_key = 'key_third_cluster'
-      const new_value = 'value_third_cluster'
-      const newClusterGroupName = 'cluster-group-env-third-cluster'
-
-      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-      cy.contains('.title', 'Clusters').should('be.visible');
-
-      // Check application status on both clusters i.e. imported-0 and imported-1
-      dsFirstTwoClusterList.forEach(
-        (dsCluster) => {
-          cy.assignClusterLabel(dsCluster, key, value);
-        }
-      )
-
-      // Create group of cluster consists of same label.
-      cy.clickNavMenu(['Cluster Groups']);
-      cy.contains('.title', 'Cluster Groups').should('be.visible');
-      cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
-
-      // Create a GitRepo targeting cluster group created.
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, deployToTarget: clusterGroupName });
-      cy.clickButton('Create');
-      cy.checkGitRepoStatus(repoName, '1 / 1');
-
-      // Check first application status on both clusters i.e. imported-0 and imported-1
-      dsFirstTwoClusterList.forEach((dsCluster) => {
-        cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
-      })
-
-      // Add label to the third cluster
-      cy.continuousDeliveryMenuSelection();
-      cy.clickNavMenu(['Clusters']);
-      cy.contains('.title', 'Clusters').should('be.visible');
-      cy.assignClusterLabel(dsThirdClusterName, new_key, new_value);
-
-      // Create another clusterGroup using third cluster.
-      const newBannerMessageToAssert = /Matches 1 of 3 existing clusters: "imported-\d"/
-      cy.clickNavMenu(['Cluster Groups']);
-      cy.contains('.title', 'Cluster Groups').should('be.visible');
-      cy.createClusterGroup(newClusterGroupName, new_key, new_value, newBannerMessageToAssert);
-
-      // Update GitRepo with newly created clusterGroup.
-      cy.addFleetGitRepo({ repoName, deployToTarget: newClusterGroupName, fleetNamespace: 'fleet-default', editConfig: true });
-      cy.clickButton('Save');
-      cy.checkGitRepoStatus(repoName, '1 / 1');
-
-      // Check application is present on third cluster i.e. imported-2
-      cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
-
-      // Applying Force Update in 2.9 and 2.10 versions only as it doesn't have cluster sync logic
-      if (/\/2\.10/.test(Cypress.env('rancher_version')) || /\/2\.9/.test(Cypress.env('rancher_version'))) {
-        cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-        cy.contains('.title', 'Clusters').should('be.visible');
-        dsFirstTwoClusterList.forEach(
-          (dsCluster) => {
-            cy.filterInSearchBox(dsCluster);
-            cy.open3dotsMenu(dsCluster, 'Force Update');
-            cy.wait(2000); // It take some time to Update.
-            cy.verifyTableRow(0, 'Active');
-          }
+            // Remove labels from the All 3 clusters.
+            dsAllClusterList.forEach(
+              (dsCluster) => {
+                // Adding wait to load page correctly to avoid interference with hamburger-menu.
+                cy.wait(500);
+                cy.removeClusterLabels(dsCluster, key, value);
+              }
+            )
+            cy.deleteClusterGroups();
+          })
         )
       }
+    )
 
-      // Check application status on first 2 clusters i.e. imported-0 and imported-1
-      // Application should be removed from first 2 clusters i.e. imported-0 and imported-1
-      dsFirstTwoClusterList.forEach(
-        (dsCluster) => {
-          cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces', false);
-        }
-      )
+    qase(26,
+      it("Fleet-26: Test install multiple applications to the all defined clusters in the 'clusterGroup'", { tags: '@fleet-26' }, () => {
+        const repoName = 'default-single-app-cluster-group-26'
+        const path2 = 'multiple-paths/config'
 
-      // Remove labels from the clusters i.e. imported-0 and imported-1
-      dsFirstTwoClusterList.forEach(
-        (dsCluster) => {
+        cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+        cy.contains('.title', 'Clusters').should('be.visible');
+
+        // Assign label to the first 2 clusters i.e. imported-0 and imported-1
+        dsFirstTwoClusterList.forEach(
+          (dsCluster) => {
+            cy.assignClusterLabel(dsCluster, key, value);
+          }
+        )
+
+        // Create group of cluster consists of same label.
+        cy.clickNavMenu(['Cluster Groups']);
+        cy.contains('.title', 'Cluster Groups').should('be.visible');
+        cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
+
+        // Create a GitRepo targeting cluster group created.
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, path2, deployToTarget: clusterGroupName });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '2 / 2');
+
+        // Check first application status on both clusters i.e. imported-0 and imported-1
+        dsFirstTwoClusterList.forEach((dsCluster) => {
+          cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+        })
+
+        dsFirstTwoClusterList.forEach((dsCluster) => {
+          // Check second application status on both clusters i.e. imported-0 and imported-1
           // Adding wait to load page correctly to avoid interference with hamburger-menu.
           cy.wait(500);
-          cy.removeClusterLabels(dsCluster, key, value);
+          cy.accesMenuSelection(dsCluster, "Storage", "ConfigMaps");
+          cy.nameSpaceMenuToggle("test-fleet-mp-config");
+          cy.filterInSearchBox("mp-app-config");
+          cy.get('td.col-link-detail > span').contains("mp-app-config").click();
+        })
+
+        // Remove labels from the clusters i.e. imported-0 and imported-1
+        dsFirstTwoClusterList.forEach(
+          (dsCluster) => {
+            // Adding wait to load page correctly to avoid interference with hamburger-menu.
+            cy.wait(500);
+            cy.removeClusterLabels(dsCluster, key, value);
+          }
+        )
+      })
+    )
+
+    qase(28,
+      it("Fleet-28: Test remove existing application from cluster-2 by removing it from an existing 'clusterGroup'", { tags: '@fleet-28' }, () => {
+        const repoName = 'default-single-app-cluster-group-28'
+        const dsSecondClusterName = dsAllClusterList[1]
+
+        cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+        cy.contains('.title', 'Clusters').should('be.visible');
+
+        // Assign label to the clusters 
+        dsFirstTwoClusterList.forEach(
+          (dsCluster) => {
+            cy.assignClusterLabel(dsCluster, key, value);
+          }
+        )
+
+        // Create group of cluster consists of same label.
+        cy.clickNavMenu(['Cluster Groups']);
+        cy.contains('.title', 'Cluster Groups').should('be.visible');
+        cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
+
+        // Create a GitRepo targeting cluster group created.
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, deployToTarget: clusterGroupName });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1');
+
+        // Check first application status on both clusters.
+        dsFirstTwoClusterList.forEach((dsCluster) => {
+          cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+        })
+
+        // Check application is not installed on third cluster i.e. imported-2
+        cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces', false);
+
+        cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+        cy.contains('.title', 'Clusters').should('be.visible');
+
+        // Remove label from the Second cluster i.e. imported-1
+        cy.wait(500);
+        cy.removeClusterLabels(dsSecondClusterName, key, value);
+
+        // Check application is absent i.e. removed from second cluster i.e. imported-1
+        cy.checkApplicationStatus(appName, dsSecondClusterName, 'All Namespaces', false);
+
+        // Check application is available on first cluster i.e. imported-0
+
+        // Remove labels from the clusters.
+        dsFirstTwoClusterList.forEach(
+          (dsCluster) => {
+            // Adding wait to load page correctly to avoid interference with hamburger-menu.
+            cy.wait(500);
+            cy.removeClusterLabels(dsCluster, key, value);
+          }
+        )
+        // Delete clusterGroups.
+        cy.deleteClusterGroups();
+      })
+    )
+
+    qase(29,
+      it("Fleet-29: Test install app to new set of clusters from old set of clusters using 'clusterGroup'", { tags: '@fleet-29' }, () => {
+        const repoName = 'default-single-app-cluster-group-29'
+        const new_key = 'key_third_cluster'
+        const new_value = 'value_third_cluster'
+        const newClusterGroupName = 'cluster-group-env-third-cluster'
+
+        cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+        cy.contains('.title', 'Clusters').should('be.visible');
+
+        // Check application status on both clusters i.e. imported-0 and imported-1
+        dsFirstTwoClusterList.forEach(
+          (dsCluster) => {
+            cy.assignClusterLabel(dsCluster, key, value);
+          }
+        )
+
+        // Create group of cluster consists of same label.
+        cy.clickNavMenu(['Cluster Groups']);
+        cy.contains('.title', 'Cluster Groups').should('be.visible');
+        cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
+
+        // Create a GitRepo targeting cluster group created.
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, deployToTarget: clusterGroupName });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1');
+
+        // Check first application status on both clusters i.e. imported-0 and imported-1
+        dsFirstTwoClusterList.forEach((dsCluster) => {
+          cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+        })
+
+        // Add label to the third cluster
+        cy.continuousDeliveryMenuSelection();
+        cy.clickNavMenu(['Clusters']);
+        cy.contains('.title', 'Clusters').should('be.visible');
+        cy.assignClusterLabel(dsThirdClusterName, new_key, new_value);
+
+        // Create another clusterGroup using third cluster.
+        const newBannerMessageToAssert = /Matches 1 of 3 existing clusters: "imported-\d"/
+        cy.clickNavMenu(['Cluster Groups']);
+        cy.contains('.title', 'Cluster Groups').should('be.visible');
+        cy.createClusterGroup(newClusterGroupName, new_key, new_value, newBannerMessageToAssert);
+
+        // Update GitRepo with newly created clusterGroup.
+        cy.addFleetGitRepo({ repoName, deployToTarget: newClusterGroupName, fleetNamespace: 'fleet-default', editConfig: true });
+        cy.clickButton('Save');
+        cy.checkGitRepoStatus(repoName, '1 / 1');
+
+        // Check application is present on third cluster i.e. imported-2
+        cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
+
+        // Applying Force Update in 2.9 and 2.10 versions only as it doesn't have cluster sync logic
+        if (/\/2\.10/.test(Cypress.env('rancher_version')) || /\/2\.9/.test(Cypress.env('rancher_version'))) {
+          cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+          cy.contains('.title', 'Clusters').should('be.visible');
+          dsFirstTwoClusterList.forEach(
+            (dsCluster) => {
+              cy.filterInSearchBox(dsCluster);
+              cy.open3dotsMenu(dsCluster, 'Force Update');
+              cy.wait(2000); // It take some time to Update.
+              cy.verifyTableRow(0, 'Active');
+            }
+          )
         }
-      )
 
-      // Remove labels from third cluster i.e. imported-2
-      cy.removeClusterLabels(dsThirdClusterName, new_key, new_value);
+        // Check application status on first 2 clusters i.e. imported-0 and imported-1
+        // Application should be removed from first 2 clusters i.e. imported-0 and imported-1
+        dsFirstTwoClusterList.forEach(
+          (dsCluster) => {
+            cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces', false);
+          }
+        )
 
-      // Delete clusterGroups.
-      cy.deleteClusterGroups();
-    })
-  )
-});
+        // Remove labels from the clusters i.e. imported-0 and imported-1
+        dsFirstTwoClusterList.forEach(
+          (dsCluster) => {
+            // Adding wait to load page correctly to avoid interference with hamburger-menu.
+            cy.wait(500);
+            cy.removeClusterLabels(dsCluster, key, value);
+          }
+        )
+
+        // Remove labels from third cluster i.e. imported-2
+        cy.removeClusterLabels(dsThirdClusterName, new_key, new_value);
+
+        // Delete clusterGroups.
+        cy.deleteClusterGroups();
+      })
+    )
+  });
+}
 
 describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_2'}, () => {
   const key = 'key_env'
@@ -592,91 +594,91 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       )
     })
   )
+  if (!/\/2\.12/.test(Cypress.env('rancher_version')) ){
+    qase(22,
+      it("Fleet-22: Test install app to new set of clusters from old set of clusters", { tags: '@fleet-22' }, () => {
+        const repoName = 'default-multiple-apps-cluster-selector'
+        const new_key = 'key_third_cluster'
+        const new_value = 'value_third_cluster'
 
-  qase(22,
-    it("Fleet-22: Test install app to new set of clusters from old set of clusters", { tags: '@fleet-22' }, () => {
-      const repoName = 'default-multiple-apps-cluster-selector'
-      const new_key = 'key_third_cluster'
-      const new_value = 'value_third_cluster'
+        gitRepoFile = 'assets/git-repo-multiple-app-cluster-selector.yaml'
 
-      gitRepoFile = 'assets/git-repo-multiple-app-cluster-selector.yaml'
-
-      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-      cy.contains('.title', 'Clusters').should('be.visible');
-
-      // Assign label to the clusters 
-      dsFirstTwoClusterList.forEach(
-        (dsCluster) => {
-          cy.assignClusterLabel(dsCluster, key, value);
-        }
-      )
-
-      // Create a GitRepo targeting cluster selector created from YAML.
-      if (/\/2\.12/.test(Cypress.env('rancher_version'))) {
-        cy.clickNavMenu(['Resources']);
-      }
-      cy.clickNavMenu(['Git Repos']);
-      cy.wait(500);
-      cy.clickButton('Add Repository');
-      cy.clickButton('Edit as YAML');
-      cy.addYamlFile(gitRepoFile);
-      cy.clickButton('Create');
-      cy.checkGitRepoStatus('default-multiple-apps-cluster-selector', '2 / 2');
-
-      // Check first application status on both clusters.
-      dsFirstTwoClusterList.forEach((dsCluster) => {
-        cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
-      })
-
-      // Add label to the third cluster
-      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-      cy.contains('.title', 'Clusters').should('be.visible');
-      cy.assignClusterLabel(dsThirdClusterName, new_key, new_value);
-
-      // Update GitRepo with newly created clusterGroup.
-      cy.addFleetGitRepo({ repoName, deployToTarget: "Advanced", fleetNamespace: 'fleet-default', editConfig: true });
-      cy.clickButton('Save');
-      cy.checkGitRepoStatus(repoName, '2 / 2');
-
-      // Check application is present on third cluster i.e. imported-2
-      cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
-
-      // Applying Force Update in 2.9 and 2.10 versions only as it doesn't have cluster sync logic
-      if (/\/2\.10/.test(Cypress.env('rancher_version')) || /\/2\.9/.test(Cypress.env('rancher_version'))) {
         cy.accesMenuSelection('Continuous Delivery', 'Clusters');
         cy.contains('.title', 'Clusters').should('be.visible');
+
+        // Assign label to the clusters 
         dsFirstTwoClusterList.forEach(
           (dsCluster) => {
-            cy.filterInSearchBox(dsCluster);
-            cy.open3dotsMenu(dsCluster, 'Force Update');
-            cy.wait(2000); // It take some time to Update.
-            cy.verifyTableRow(0, 'Active');
+            cy.assignClusterLabel(dsCluster, key, value);
           }
         )
-      }
 
-      // Check application status on first 2 clusters i.e. imported-0 and imported-1
-      // Application should be removed from first 2 clusters i.e. imported-0 and imported-1
-      dsFirstTwoClusterList.forEach(
-        (dsCluster) => {
-          cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces', false);
+        // Create a GitRepo targeting cluster selector created from YAML.
+        if (/\/2\.12/.test(Cypress.env('rancher_version'))) {
+          cy.clickNavMenu(['Resources']);
         }
-      )
+        cy.clickNavMenu(['Git Repos']);
+        cy.wait(500);
+        cy.clickButton('Add Repository');
+        cy.clickButton('Edit as YAML');
+        cy.addYamlFile(gitRepoFile);
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus('default-multiple-apps-cluster-selector', '2 / 2');
 
-      // Remove labels from the clusters i.e. imported-0 and imported-1
-      dsFirstTwoClusterList.forEach(
-        (dsCluster) => {
-          // Adding wait to load page correctly to avoid interference with hamburger-menu.
-          cy.wait(500);
-          cy.removeClusterLabels(dsCluster, key, value);
+        // Check first application status on both clusters.
+        dsFirstTwoClusterList.forEach((dsCluster) => {
+          cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+        })
+
+        // Add label to the third cluster
+        cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+        cy.contains('.title', 'Clusters').should('be.visible');
+        cy.assignClusterLabel(dsThirdClusterName, new_key, new_value);
+
+        // Update GitRepo with newly created clusterGroup.
+        cy.addFleetGitRepo({ repoName, deployToTarget: "Advanced", fleetNamespace: 'fleet-default', editConfig: true });
+        cy.clickButton('Save');
+        cy.checkGitRepoStatus(repoName, '2 / 2');
+
+        // Check application is present on third cluster i.e. imported-2
+        cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
+
+        // Applying Force Update in 2.9 and 2.10 versions only as it doesn't have cluster sync logic
+        if (/\/2\.10/.test(Cypress.env('rancher_version')) || /\/2\.9/.test(Cypress.env('rancher_version'))) {
+          cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+          cy.contains('.title', 'Clusters').should('be.visible');
+          dsFirstTwoClusterList.forEach(
+            (dsCluster) => {
+              cy.filterInSearchBox(dsCluster);
+              cy.open3dotsMenu(dsCluster, 'Force Update');
+              cy.wait(2000); // It take some time to Update.
+              cy.verifyTableRow(0, 'Active');
+            }
+          )
         }
-      )
 
-      // Remove labels from third cluster i.e. imported-2
-      cy.removeClusterLabels(dsThirdClusterName, new_key, new_value);
-    })
-  )
+        // Check application status on first 2 clusters i.e. imported-0 and imported-1
+        // Application should be removed from first 2 clusters i.e. imported-0 and imported-1
+        dsFirstTwoClusterList.forEach(
+          (dsCluster) => {
+            cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces', false);
+          }
+        )
 
+        // Remove labels from the clusters i.e. imported-0 and imported-1
+        dsFirstTwoClusterList.forEach(
+          (dsCluster) => {
+            // Adding wait to load page correctly to avoid interference with hamburger-menu.
+            cy.wait(500);
+            cy.removeClusterLabels(dsCluster, key, value);
+          }
+        )
+
+        // Remove labels from third cluster i.e. imported-2
+        cy.removeClusterLabels(dsThirdClusterName, new_key, new_value);
+      })
+    )
+  }
 });
 
 describe("Test Application deployment based on 'clusterGroupSelector'", { tags: '@p1_2'}, () => {
