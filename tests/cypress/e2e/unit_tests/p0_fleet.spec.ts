@@ -19,6 +19,7 @@ export const appName = "nginx-keep";
 export const clusterName = "imported-0";
 export const branch = "main";
 export const path  = "nginx"
+export const sshString = ["Public key and private key for SSH", "Public key and private key for SSH authentication"]
 
 beforeEach(() => {
   cy.login();
@@ -158,7 +159,7 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
       // Creating both known host keys in one loop
       secretKnownHostsKeys.forEach((secretKnownHostsKeys) => {
         cy.clickButton('Create');
-        cy.contains('Public key and private key for SSH').should('be.visible').click();
+        cy.contains(new RegExp(sshString.join('|'))).should('be.visible').click();
         cy.clickButton('Edit as YAML');
         cy.addYamlFile(secretKnownHostsKeys);
         cy.clickButton('Create');
