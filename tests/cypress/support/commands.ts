@@ -21,7 +21,7 @@ export const noRowsMessages = ['There are no rows to show.', 'There are no rows 
 export const NoAppBundleOrGitRepoPresentMessages = ['No repositories have been added', 'No App Bundles have been created']
 export const rancherVersion = Cypress.env('rancher_version');
 export const alpha_or_prime_versions = [/^(prime|prime-optimus|alpha)\/2\.(1[1-9]|[2-9]\d*)(\..*)?$/];
-export const devel_or_head_versions = ["latest/devel/head", "latest/devel/2.11", "latest/devel/2.12"];
+export const devel_or_head_versions = ["latest/devel/head", "latest/devel/2.12"];
 // Generic commands
 
 // Fleet commands
@@ -338,10 +338,10 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
 
 // Command to filter text in searchbox
 Cypress.Commands.add('filterInSearchBox', (filterText) => {
-  cy.get('input.input-sm.search-box').should('be.visible');
+  cy.get('input.input-sm.search-box, section#namespaced input.input-sm.search-box').should('be.visible');
   // Added 1/2 seconds of wait, as element is hidden after it gets visible.
   cy.wait(500);
-  cy.get('input.input-sm.search-box').clear().type(filterText);
+  cy.get('input.input-sm.search-box, section#namespaced input.input-sm.search-box').clear().type(filterText);
   cy.wait(250); // Adding 1/4 second to ensure next action is executed more reliably
 });
 
@@ -467,20 +467,20 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local')
   cypressLib.accesMenu(clusterName);
   cy.clickNavMenu(['Workloads', 'Deployments']);
   // Modify deployment of given application
-  if (!/\/2\.12/.test(Cypress.env('rancher_version'))) {
+  if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.some(regex => regex.test(rancherVersion))) {
+    cy.filterInSearchBox(appName);
+    cy.contains(appName).click();
+    cy.get('div.plus-minus.text-right > .value').should('be.visible').contains('1');
+    cy.get('div.plus-minus.text-right > .btn > .icon-plus').should('be.visible').click();
+    cy.get('div.plus-minus.text-right > .value').should('be.visible').contains('2');
+  }
+  else {
     cy.wait(500);
     cy.get('#trigger').click({ force: true });
     cy.contains('Scale').should('be.visible');
     // TODO: Add logic to increase resource count to given no.
     cy.get('.icon-plus').click();
     cy.get('#trigger > .icon.icon-chevron-up').click({ force: true });
-  }
-  else {
-    cy.filterInSearchBox(appName);
-    cy.contains(appName).click();
-    cy.get('div.plus-minus.text-right > .value').should('be.visible').contains('1');
-    cy.get('div.plus-minus.text-right > .btn > .icon-plus').should('be.visible').click();
-    cy.get('div.plus-minus.text-right > .value').should('be.visible').contains('2');
   }
 });
 
