@@ -338,11 +338,21 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
 
 // Command to filter text in searchbox
 Cypress.Commands.add('filterInSearchBox', (filterText) => {
-  cy.get('input.input-sm.search-box, section#namespaced input.input-sm.search-box').should('be.visible');
-  // Added 1/2 seconds of wait, as element is hidden after it gets visible.
-  cy.wait(500);
-  cy.get('input.input-sm.search-box, section#namespaced input.input-sm.search-box').clear().type(filterText);
-  cy.wait(250); // Adding 1/4 second to ensure next action is executed more reliably
+  cy.get('h1').first().then(($h1) => {
+    if ($h1.text().includes('Secrets')) {
+      cy.get('section#namespaced[aria-hidden="false"] .search.row > input.input-sm.search-box').should('be.visible');
+      cy.wait(500);
+      cy.get('section#namespaced[aria-hidden="false"] .search.row > input.input-sm.search-box').clear().type(filterText);
+      cy.wait(250);
+    }
+    else {
+      cy.get('input.input-sm.search-box').should('be.visible');
+      // Added 1/2 seconds of wait, as element is hidden after it gets visible.
+      cy.wait(500);
+      cy.get('input.input-sm.search-box').clear().type(filterText);
+      cy.wait(250); // Adding 1/4 second to ensure next action is executed more reliably
+    }
+  })
 });
 
 // Go to specific Sub Menu from Access Menu
@@ -468,11 +478,17 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local')
   cy.clickNavMenu(['Workloads', 'Deployments']);
   // Modify deployment of given application
   if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.some(regex => regex.test(rancherVersion))) {
+    cy.get('[data-testid="button-group-child-0"]').then(($button) => {
+      if ($button.hasClass('bg-disabled')){
+        $button.trigger('click');
+      }
+    })
     cy.filterInSearchBox(appName);
     cy.contains(appName).click();
     cy.get('div.plus-minus.text-right > .value').should('be.visible').contains('1');
     cy.get('div.plus-minus.text-right > .btn > .icon-plus').should('be.visible').click();
     cy.get('div.plus-minus.text-right > .value').should('be.visible').contains('2');
+    cy.clickNavMenu(['Deployments']);
   }
   else {
     cy.wait(500);
