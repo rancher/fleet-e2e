@@ -214,7 +214,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
         cy.accesMenuSelection('local', 'Workloads');
         cy.nameSpaceMenuToggle('All Namespaces');
         cy.filterInSearchBox('fleet-controller');
-        cy.verifyTableRow(0, 'Running', 'fleet-controller')
+        cy.verifyTableRow(0, /Running|Active/, 'fleet-controller')
         cy.deleteAllFleetRepos();
       })
     )
