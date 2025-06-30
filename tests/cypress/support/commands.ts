@@ -465,12 +465,21 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local')
   cypressLib.accesMenu(clusterName);
   cy.clickNavMenu(['Workloads', 'Deployments']);
   // Modify deployment of given application
-  cy.wait(500);
-  cy.get('#trigger').click({ force: true });
-  cy.contains('Scale').should('be.visible');
-  // TODO: Add logic to increase resource count to given no.
-  cy.get('.icon-plus').click();
-  cy.get('#trigger > .icon.icon-chevron-up').click({ force: true });
+  if (!/\/2\.12/.test(Cypress.env('rancher_version'))) {
+    cy.wait(500);
+    cy.get('#trigger').click({ force: true });
+    cy.contains('Scale').should('be.visible');
+    // TODO: Add logic to increase resource count to given no.
+    cy.get('.icon-plus').click();
+    cy.get('#trigger > .icon.icon-chevron-up').click({ force: true });
+  }
+  else {
+    cy.filterInSearchBox(appName);
+    cy.contains(appName).click();
+    cy.get('div.plus-minus.text-right > .value').should('be.visible').contains('1');
+    cy.get('div.plus-minus.text-right > .btn > .icon-plus').should('be.visible').click();
+    cy.get('div.plus-minus.text-right > .value').should('be.visible').contains('2');
+  }
 });
 
 // Create Role Template (User & Authentication)
@@ -807,7 +816,7 @@ Cypress.Commands.add('gitRepoResourceCountAsInteger', (repoName, fleetNamespace=
   cy.contains(repoName).click()
   cy.get('.primaryheader > h1, h1 > span.resource-name.masthead-resource-title').contains(repoName).should('be.visible')
 
-  cy.get("div[data-testid='gitrepo-deployment-summary'] div[class='count']")
+  cy.get("div[data-testid='gitrepo-deployment-summary'] div[class='count'], div[data-testid='resource-deployment-summary'] div[class=count]")
   .invoke('text')
   .then((gitRepoResourceCountText) => {
     const gitRepoTotalResourceCount = parseInt(gitRepoResourceCountText.trim(), 10);
@@ -1005,6 +1014,7 @@ Cypress.Commands.add('createConfigMap', (configMapName) => {
   cy.clickButton('Create');
   cy.clickButton('Edit as YAML');
   cy.addYamlFile('assets/helm-app-test-map-configmap.yaml');
+  cy.wait(1000);
   cy.clickButton('Create');
   cy.filterInSearchBox(configMapName);
   cy.verifyTableRow(0, configMapName);
