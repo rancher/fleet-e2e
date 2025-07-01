@@ -164,6 +164,11 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
         cy.addYamlFile(secretKnownHostsKeys);
         cy.wait(500);
         cy.clickButton('Create');
+        // In the new secret behavior it get Saved instead of created but stays on same page.
+        // TODO: remove this hacky behavior.
+        cy.clickButton('Cancel');
+        cy.filterInSearchBox('ssh-key-knownhost')
+        cy.verifyTableRow(0, 'ssh-key-knownhost');
       });
     });
 
