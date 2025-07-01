@@ -19,6 +19,7 @@ export const appName = "nginx-keep";
 export const clusterName = "imported-0";
 export const branch = "main";
 export const path  = "nginx"
+export const sshString = ["Public key and private key for SSH", "Public key and private key for SSH authentication"]
 
 beforeEach(() => {
   cy.login();
@@ -36,8 +37,7 @@ describe('Test Fleet deployment on PUBLIC repos',  { tags: '@p0' }, () => {
       const path = "simple"
       const repoUrl = "https://github.com/rancher/fleet-examples"
 
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
       // Adding check validate "Edit as Yaml" works
       cy.clickButton('Edit as YAML');
       cy.contains('apiVersion: fleet.cattle.io/v1alpha1').should('be.visible');
@@ -159,10 +159,16 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
       // Creating both known host keys in one loop
       secretKnownHostsKeys.forEach((secretKnownHostsKeys) => {
         cy.clickButton('Create');
-        cy.contains('Public key and private key for SSH').should('be.visible').click();
+        cy.contains(new RegExp(sshString.join('|'))).should('be.visible').click();
         cy.clickButton('Edit as YAML');
         cy.addYamlFile(secretKnownHostsKeys);
+        cy.wait(500);
         cy.clickButton('Create');
+        // In the new secret behavior it get Saved instead of created but stays on same page.
+        // TODO: remove this hacky behavior.
+        cy.clickButton('Cancel');
+        cy.filterInSearchBox('ssh-key-knownhost')
+        cy.verifyTableRow(0, 'ssh-key-knownhost');
       });
     });
 
@@ -174,11 +180,10 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
         const repoName = 'local-cluster-fleet-141';
         const gitAuthType = 'ssh-key-knownhost';
     
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.continuousDeliveryMenuSelection();
         
         // Create private repo using known host
-        cy.fleetNamespaceToggle('fleet-local');
-        cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path });
+        cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path, local: true });
         cy.clickButton('Create');
         cy.verifyTableRow(0, 'Active', '1/1');
         cy.checkGitRepoStatus(repoName, '1 / 1');
@@ -194,8 +199,7 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
           const gitAuthType = 'ssh-key-knownhost-missmatch';
 
           // Create private repo using known host
-          cy.fleetNamespaceToggle('fleet-local');
-          cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path });
+          cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path, local: true });
           cy.clickButton('Create');
 
           // Enrure that apps cannot be installed && error appears
@@ -234,9 +238,8 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
           cy.deleteAll(false);
           
           // Verify gitrepo is added using default knownhost
-          cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-          cy.fleetNamespaceToggle('fleet-local');
-          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
+          cy.continuousDeliveryMenuSelection();
+          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, local: true });
           cy.clickButton('Create');
           cy.checkGitRepoStatus(repoName, '1 / 1');
       })
@@ -251,9 +254,8 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
           
           // Verify gitrepo is canot be added when default knownhost exists
           // since it does not have ssh access
-          cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-          cy.fleetNamespaceToggle('fleet-local');
-          cy.addFleetGitRepo({ repoName, repoUrl, branch, path});
+          cy.continuousDeliveryMenuSelection();
+          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true});
           cy.clickButton('Create');
           cy.verifyTableRow(0, /Error|Git Updating/, '0/0');
       })
@@ -290,9 +292,8 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
           cy.wait(500); // Needs time for previous command to finish
                 
           // Verify gitrepo is added using default knownhost
-          cy.accesMenuSelection('Continuous Delivery', 'Git Repos')
-          cy.fleetNamespaceToggle('fleet-local')
-          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey })
+          cy.continuousDeliveryMenuSelection();
+          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, local: true })
           cy.clickButton('Create')
 
           // Ensure that apps cannot be installed && error appears
@@ -336,9 +337,8 @@ describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
       const path = 'simple'
       const tlsOption = "Specify additional certificates to be accepted"
       const tlsCertificate = "assets/cabundle-file.pem"
-  
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, tlsOption, tlsCertificate });
+
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, tlsOption, tlsCertificate, local: true });
       cy.clickButton('Create');
       cy.verifyTableRow(0, 'Active', '1/1');
       cy.accesMenuSelection('local', 'Storage', 'Secrets');
@@ -362,9 +362,8 @@ describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
       const repoUrl = 'https://github.com/rancher/fleet-examples'
       const branch = 'master'
       const path = 'simple'
-  
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
       cy.clickButton('Create');
       cy.verifyTableRow(0, 'Active', '1/1');
       cy.accesMenuSelection('local', 'Storage', 'Secrets');
@@ -431,9 +430,9 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         });
 
         // Gitrepo creation via YAML
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle('fleet-local');
-        cy.clickButton('Add Repository');
+        cy.clickCreateGitRepo();
         cy.clickButton('Edit as YAML');
         cy.addYamlFile('assets/webhook-tests/webhook_test_disable_polling.yaml');
         cy.clickButton('Create');
@@ -481,9 +480,9 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         kubectl delete secrets -n cattle-fleet-system gitjob-webhook{enter}');
 
         // Gitrepo creation via YAML
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle('fleet-local');
-        cy.clickButton('Add Repository');
+        cy.clickCreateGitRepo();
         cy.clickButton('Edit as YAML');
         
         cy.addYamlFile('assets/webhook-tests/webhook_test_webhook_secret_in_repo.yaml');
@@ -537,9 +536,9 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         kubectl create secret generic gitjob-webhook -n cattle-fleet-system --from-literal=github=wrong-webhook-secret{enter}');
 
         // Gitrepo creation via YAML
-        cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+        cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle('fleet-local');
-        cy.clickButton('Add Repository');
+        cy.clickCreateGitRepo();
         cy.clickButton('Edit as YAML');
         
         cy.addYamlFile('assets/webhook-tests/webhook_test_disable_polling.yaml');
@@ -586,9 +585,8 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
       it('Fleet-145: Test Fleet job cleanup', { tags: '@fleet-145' }, () => {
 
         const repoName = 'local-145-test-job-cleanup';
-  
-        cy.fleetNamespaceToggle('fleet-local');
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
         cy.clickButton('Create');
         cy.verifyTableRow(0, 'Active', '1/1');
 
@@ -603,8 +601,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
 
       const repoName = 'local-146-test-job-cleanup';
 
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
       cy.clickButton('Create');
       cy.verifyTableRow(0, 'Active', '1/1');
 
@@ -632,7 +629,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
 
       // Gitrepo adddition via YAML
       cy.fleetNamespaceToggle('fleet-local');
-      cy.clickButton('Add Repository');
+      cy.clickCreateGitRepo();
       cy.clickButton('Edit as YAML');
       cy.addYamlFile('assets/disable_polling.yaml');
       cy.clickButton('Create');
@@ -645,7 +642,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
       cy.exec('bash assets/disable_polling_setting_5_replicas.sh').then((result) => {
         cy.log(result.stdout, result.stderr);
       });
-      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+      cy.continuousDeliveryMenuSelection();
       cy.fleetNamespaceToggle('fleet-local');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
 
@@ -659,9 +656,8 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
   
       const repoName = 'local-148-test-unsuscessful-job-is-not-deleted';
       const path = 'qa-test-apps/nginx-app-bad-path';
-  
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
       cy.clickButton('Create');
       cy.verifyTableRow(0, /Git Updating|Error/, '0/0');
       
@@ -737,8 +733,7 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
         const repoName = 'simple-chart-secret';
   
         // Deploy Gitrepo
-        cy.fleetNamespaceToggle('fleet-local');
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
         cy.clickButton('Create');
         cy.verifyTableRow(0, 'Active', '1/1');
         
