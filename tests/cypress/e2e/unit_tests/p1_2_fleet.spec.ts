@@ -115,7 +115,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
   )
 });
 
-if (!/\/2\.12/.test(Cypress.env('rancher_version'))){
+if (!devel_or_head_versions.includes(rancherVersion)){
   describe('Test application deployment based on clusterGroup', { tags: '@p1_2'}, () => {
     const value = 'value_prod'
 
@@ -597,7 +597,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       )
     })
   )
-  if (!/\/2\.12/.test(Cypress.env('rancher_version')) || devel_or_head_versions.includes(rancherVersion)){
+  if (!devel_or_head_versions.includes(rancherVersion)){
     qase(22,
       it("Fleet-22: Test install app to new set of clusters from old set of clusters", { tags: '@fleet-22' }, () => {
         const repoName = 'default-multiple-apps-cluster-selector'

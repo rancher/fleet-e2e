@@ -162,6 +162,7 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
         cy.contains(new RegExp(sshString.join('|'))).should('be.visible').click();
         cy.clickButton('Edit as YAML');
         cy.addYamlFile(secretKnownHostsKeys);
+        cy.wait(500);
         cy.clickButton('Create');
       });
     });
