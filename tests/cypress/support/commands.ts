@@ -707,7 +707,15 @@ Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
   cy.filterInSearchBox(clusterName);
   cy.open3dotsMenu(clusterName, 'Edit Config');
   cy.contains('.title', 'Cluster:').should('be.visible');
-  cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
+
+  cy.get('div.labels div.row div.key-value div.kv-container').invoke('attr', 'aria-rowcount').then((count) => {
+    if (Number(count) > 0) {
+      cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
+    } else {
+      cy.log("There is no new label for remove.");
+    }
+  });
+
   cy.wait(500);
   cy.clickButton('Save');
   cy.contains('Save').should('not.exist');
