@@ -417,10 +417,15 @@ if (!/\/2\.9/.test(Cypress.env('rancher_version'))) {
             dsAllClusterList.forEach((dsCluster) => {
               // Adding wait to load page correctly to avoid interference with hamburger-menu.
               cy.wait(500);
-              cy.accesMenuSelection(dsCluster, "Service Discovery", "Services");
+              cy.accesMenuSelection(dsCluster, resourceLocation, resourceType);
               cy.nameSpaceMenuToggle(resourceNamespace);
               cy.filterInSearchBox(resourceName);
-              cy.deleteAll(false);
+              if (resourceType === 'ConfigMaps') {
+                cy.deleteConfigMap(resourceName);
+              }
+              else {
+                cy.deleteAll(false);
+              }
               cy.clickNavMenu(['Cluster', 'Projects/Namespaces']);
               cy.filterInSearchBox(resourceNamespace);
               cy.deleteAll(false);

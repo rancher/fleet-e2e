@@ -32,7 +32,9 @@ describe('First login on Rancher', { tags: '@login' }, () => {
       cypressLib.accesMenu('Clusters');
       cy.fleetNamespaceToggle('fleet-local');
       cy.verifyTableRow(0, 'Active', ' ' );
-      cy.get("td[data-testid='sortable-cell-0-2']", { timeout: 300000 }).should("not.contain", '0');
+      // In 2.12 forth column contains Bundle Ready count
+      // Check Bundle Ready count should not be '0'
+      cy.get("td[data-testid='sortable-cell-0-4']", { timeout: 300000 }).should("not.contain", '0');
     })
   );
 });
