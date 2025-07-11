@@ -338,21 +338,11 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
 
 // Command to filter text in searchbox
 Cypress.Commands.add('filterInSearchBox', (filterText) => {
-  cy.get('h1').first().then(($h1) => {
-    if ($h1.text().includes('Secrets')) {
-      cy.get('section#namespaced[aria-hidden="false"] .search.row > input.input-sm.search-box').should('be.visible');
-      cy.wait(500);
-      cy.get('section#namespaced[aria-hidden="false"] .search.row > input.input-sm.search-box').clear().type(filterText);
-      cy.wait(250);
-    }
-    else {
-      cy.get('input.input-sm.search-box').should('be.visible');
-      // Added 1/2 seconds of wait, as element is hidden after it gets visible.
-      cy.wait(500);
-      cy.get('input.input-sm.search-box').clear().type(filterText);
-      cy.wait(250); // Adding 1/4 second to ensure next action is executed more reliably
-    }
-  })
+  cy.get('input.input-sm.search-box').should('be.visible');
+  // Added 1/2 seconds of wait, as element is hidden after it gets visible.
+  cy.wait(500);
+  cy.get('input.input-sm.search-box').clear().type(filterText);
+  cy.wait(250); // Adding 1/4 second to ensure next action is executed more reliably
 });
 
 // Go to specific Sub Menu from Access Menu
@@ -711,29 +701,13 @@ Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
   cy.filterInSearchBox(clusterName);
   cy.open3dotsMenu(clusterName, 'Edit Config');
   cy.contains('.title', 'Cluster:').should('be.visible');
-  // TODO: Remove below label remove logic after
-  // After label removal from cluster, it says 409 (conflict error) while saving.
-  // issue: # https://github.com/rancher/dashboard/issues/9563
-  // Below code will work for 3 labels on the cluster, 2 with disabled labels,
-  // 1 with actual removable label.
-  if (/\/2\.8/.test(Cypress.env('rancher_version'))) {
-    cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
-  }
-  else {
-    cy.get('body').then((body) => {
-      if (body.find('span[class="switch hand"]')) {
-        cy.get('span[name="label-system-toggle"]').click();
-        cy.get('div[class="row"] div[class="key-value"] button.role-link').then(($el) => {
-          if ($el.length === 2) {
-            cy.log("There is no new label for remove. Only 2 default labels present.");
-          }
-          else {
-            cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
-          }
-        })
-      }
-    })
-  }
+  cy.get('div.labels div.row div.key-value div.kv-container').invoke('attr', 'aria-rowcount').then((count) => {
+    if (Number(count) > 0) {
+      cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
+    } else {
+      cy.log("There is no new label for remove.");
+    }
+  });
 
   cy.wait(500);
   cy.clickButton('Save');
