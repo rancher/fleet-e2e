@@ -704,7 +704,8 @@ Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
   cy.get('div.labels div.row div.key-value div.kv-container').invoke('attr', 'aria-rowcount').then((count) => {
     if (Number(count) > 0) {
       cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
-    } else {
+    }
+    else {
       cy.log("There is no new label for remove.");
     }
   });
@@ -1034,7 +1035,17 @@ Cypress.Commands.add('createConfigMap', (configMapName) => {
 Cypress.Commands.add('deleteConfigMap', (configMapName) => {
     cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
     cy.filterInSearchBox(configMapName);
-    cy.deleteAll(false);
+    cy.wait(1000);
+    cy.get('body').then(($body) => {
+      const button = $body.find('[data-testid="sortable-table-promptRemove"]');
+      if (button.length > 0) {
+        cy.wrap(button).should('be.visible').then(() => {
+          cy.deleteAll(false);
+        });
+      } else {
+        cy.log("No ConfigMap available for Delete.");
+      }
+    })
   })
 
 // Command to remove pop-ups if they appear
