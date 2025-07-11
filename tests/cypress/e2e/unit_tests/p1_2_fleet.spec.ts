@@ -968,10 +968,11 @@ describe('Test move cluster to newly created workspace and deploy application to
 
       // Create a GitRepo targeting to cluster available in newly created workspace.
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.fleetNamespaceToggle(newWorkspaceName);
       cy.clickButton('Create');
 
       // Review below line after all tests passed.
-      // cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
 
       // Delete GitRepo
       // In Fleet Workspace, namespace name similarly treated as namespace.

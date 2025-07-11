@@ -61,8 +61,8 @@ declare global {
       actualResourceOnCluster(clusterName: string): Chainable<Element>;
       enableFeatureFlag(flagName: string): Chainable<Element>;
       checkModalCardTitle(expectedText: string, waitForRestart?: boolean, shouldHaveText?: boolean): Chainable<Element>;
-      moveClusterToWorkspace(clusterName: string, workspaceName: string, timeout: number): Chainable<Element>;
-      restoreClusterToDefaultWorkspace(clusterName: string, timeout: number, defaultWorkspaceName?: string): Chainable<Element>;
+      moveClusterToWorkspace(clusterName: string, workspaceName: string, timeout: number, restore?: boolean): Chainable<Element>;
+      restoreClusterToDefaultWorkspace(clusterName: string, timeout: number, defaultWorkspaceName?: string, restore?: boolean): Chainable<Element>;
       createNewFleetWorkspace(newWorkspaceName: string): Chainable<Element>;
       createConfigMap(configMapName: string): Chainable<Element>;
       deleteConfigMap(configMapName: string): Chainable<Element>;

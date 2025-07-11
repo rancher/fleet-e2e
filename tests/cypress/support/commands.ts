@@ -973,7 +973,7 @@ Cypress.Commands.add('checkModalCardTitle', (expectedText, waitForRestart=true, 
   });
 })
 
-Cypress.Commands.add('moveClusterToWorkspace', (clusterName, workspaceName, timeout) => {
+Cypress.Commands.add('moveClusterToWorkspace', (clusterName, workspaceName, timeout, restore=false) => {
   // Navigate to Clusters page when other navigation is present.
   cy.get('body').then((body) => {
     if (body.find('.title').text().includes('Clusters')) {
@@ -983,6 +983,9 @@ Cypress.Commands.add('moveClusterToWorkspace', (clusterName, workspaceName, time
       cy.accesMenuSelection('Continuous Delivery', 'Clusters');
     }
   })
+  if (restore) {
+    cy.fleetNamespaceToggle("new-fleet-workspace");
+  }
 
   cy.filterInSearchBox(clusterName);
   cy.verifyTableRow(0, 'Active', clusterName);
@@ -1012,8 +1015,8 @@ Cypress.Commands.add('moveClusterToWorkspace', (clusterName, workspaceName, time
   cy.verifyTableRow(0, 'Active', clusterName);
 })
 
-Cypress.Commands.add('restoreClusterToDefaultWorkspace', (clusterName, timeout, defaultWorkspaceName='fleet-default', ) => {
-  cy.moveClusterToWorkspace(clusterName, defaultWorkspaceName, timeout);
+Cypress.Commands.add('restoreClusterToDefaultWorkspace', (clusterName, timeout, defaultWorkspaceName='fleet-default', restore=true) => {
+  cy.moveClusterToWorkspace(clusterName, defaultWorkspaceName, timeout, restore);
 })
 
 Cypress.Commands.add('createConfigMap', (configMapName) => {
