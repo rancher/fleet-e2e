@@ -21,7 +21,7 @@ export const noRowsMessages = ['There are no rows to show.', 'There are no rows 
 export const NoAppBundleOrGitRepoPresentMessages = ['No repositories have been added', 'No App Bundles have been created']
 export const rancherVersion = Cypress.env('rancher_version');
 export const alpha_or_prime_versions = [/^(prime|prime-optimus|alpha)\/2\.(1[1-9]|[2-9]\d*)(\..*)?$/];
-export const devel_or_head_versions = ["latest/devel/head", "latest/devel/2.12"];
+export const devel_or_head_versions = ["latest/devel/head", "latest/devel/2.12", "head/2.12"];
 // Generic commands
 
 // Fleet commands
@@ -704,7 +704,8 @@ Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
   cy.get('div.labels div.row div.key-value div.kv-container').invoke('attr', 'aria-rowcount').then((count) => {
     if (Number(count) > 0) {
       cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
-    } else {
+    }
+    else {
       cy.log("There is no new label for remove.");
     }
   });
@@ -973,7 +974,7 @@ Cypress.Commands.add('checkModalCardTitle', (expectedText, waitForRestart=true, 
   });
 })
 
-Cypress.Commands.add('moveClusterToWorkspace', (clusterName, workspaceName, timeout) => {
+Cypress.Commands.add('moveClusterToWorkspace', (clusterName, workspaceName, timeout, restore=false) => {
   // Navigate to Clusters page when other navigation is present.
   cy.get('body').then((body) => {
     if (body.find('.title').text().includes('Clusters')) {
@@ -983,6 +984,9 @@ Cypress.Commands.add('moveClusterToWorkspace', (clusterName, workspaceName, time
       cy.accesMenuSelection('Continuous Delivery', 'Clusters');
     }
   })
+  if (restore) {
+    cy.fleetNamespaceToggle("new-fleet-workspace");
+  }
 
   cy.filterInSearchBox(clusterName);
   cy.verifyTableRow(0, 'Active', clusterName);
@@ -1012,8 +1016,8 @@ Cypress.Commands.add('moveClusterToWorkspace', (clusterName, workspaceName, time
   cy.verifyTableRow(0, 'Active', clusterName);
 })
 
-Cypress.Commands.add('restoreClusterToDefaultWorkspace', (clusterName, timeout, defaultWorkspaceName='fleet-default', ) => {
-  cy.moveClusterToWorkspace(clusterName, defaultWorkspaceName, timeout);
+Cypress.Commands.add('restoreClusterToDefaultWorkspace', (clusterName, timeout, defaultWorkspaceName='fleet-default', restore=true) => {
+  cy.moveClusterToWorkspace(clusterName, defaultWorkspaceName, timeout, restore);
 })
 
 Cypress.Commands.add('createConfigMap', (configMapName) => {
@@ -1031,7 +1035,17 @@ Cypress.Commands.add('createConfigMap', (configMapName) => {
 Cypress.Commands.add('deleteConfigMap', (configMapName) => {
     cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
     cy.filterInSearchBox(configMapName);
-    cy.deleteAll(false);
+    cy.wait(1000);
+    cy.get('body').then(($body) => {
+      const button = $body.find('[data-testid="sortable-table-promptRemove"]');
+      if (button.length > 0) {
+        cy.wrap(button).should('be.visible').then(() => {
+          cy.deleteAll(false);
+        });
+      } else {
+        cy.log("No ConfigMap available for Delete.");
+      }
+    })
   })
 
 // Command to remove pop-ups if they appear

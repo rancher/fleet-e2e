@@ -30,7 +30,7 @@ export const dsThirdClusterName = dsAllClusterList[2]
 export const NoAppBundleOrGitRepoPresentMessages = ['No repositories have been added', 'No App Bundles have been created']
 export const rancherVersion = Cypress.env('rancher_version')
 export const alpha_or_prime_versions = [/^(prime|prime-optimus|alpha)\/2\.(1[1-9]|[2-9]\d*)(\..*)?$/];
-export const devel_or_head_versions = ["latest/devel/head", "latest/devel/2.12"]
+export const devel_or_head_versions = ["latest/devel/head", "latest/devel/2.12", "head/2.12"]
 
 beforeEach(() => {
   cy.login();
@@ -968,10 +968,11 @@ describe('Test move cluster to newly created workspace and deploy application to
 
       // Create a GitRepo targeting to cluster available in newly created workspace.
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.fleetNamespaceToggle(newWorkspaceName);
       cy.clickButton('Create');
 
       // Review below line after all tests passed.
-      // cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
 
       // Delete GitRepo
       // In Fleet Workspace, namespace name similarly treated as namespace.
