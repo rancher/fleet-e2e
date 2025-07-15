@@ -28,6 +28,10 @@ on:
         default: latest/devel/head
         required: true
         type: string
+      branch:
+        description: Use this branch '2.12-stable' when upgrading to 2.12. Default is empty
+        required: false
+        default: ''
       upstream_cluster_version:
         description: K3s upstream cluster version where to install Rancher
         default: v1.28.8+k3s1
@@ -78,3 +82,4 @@ jobs:
       upgrade: ${{ inputs.upgrade }}
       qase_run_id: ${{ inputs.qase_run_id }}
       grep_test_by_tag: ${{ inputs.grep_test_by_tag }}
+      branch: ${{ inputs.branch }}

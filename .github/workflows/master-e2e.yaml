@@ -386,6 +386,11 @@ jobs:
           echo "rm_upgraded_version=${RM_UPGRADED_VERSION}" >> ${GITHUB_OUTPUT}
           echo "fleet_app_upgraded_version=${FLEET_APP_UPGRADED_VERSION}" >> ${GITHUB_OUTPUT}
           echo "fleet_images_after_upgrade=${FLEET_UPGRADED_IMAGES}" >> ${GITHUB_OUTPUT}
+      - name: Checkout (After Upgrade)
+        if: ${{ inputs.branch }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
       - name: Cypress tests - On Upgraded Rancher
         id: cypress_result_after_rancher_upgrade
         if: ${{ inputs.rancher_upgrade != '' }}
