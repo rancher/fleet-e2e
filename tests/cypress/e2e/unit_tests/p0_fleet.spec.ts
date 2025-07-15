@@ -271,8 +271,18 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
           cy.accesMenuSelection('local', 'Storage', 'Secrets');
           cy.nameSpaceMenuToggle('All Namespaces');
           cy.filterInSearchBox('ssh-key');
-          cy.deleteAll(false);
-          
+
+          // Delete Secrets key if present
+          cy.get('body').then(($body) => {
+            const button = $body.find('[data-testid="sortable-table-promptRemove"]');
+            if (button.length > 0) {
+              cy.wrap(button).should('be.visible').then(() => {
+                cy.deleteAll(false);
+              });
+            } else {
+              cy.log("No Secrets are available for Delete.");
+            }
+          })
           // Delete default custom known-hosts
           cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
           cy.nameSpaceMenuToggle('All Namespaces');
