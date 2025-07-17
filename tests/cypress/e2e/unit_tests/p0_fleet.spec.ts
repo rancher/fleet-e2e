@@ -271,6 +271,7 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
           cy.accesMenuSelection('local', 'Storage', 'Secrets');
           cy.nameSpaceMenuToggle('All Namespaces');
           cy.filterInSearchBox('ssh-key');
+          cy.wait(500);
 
           // Delete Secrets key if present
           cy.get('body').then(($body) => {

@@ -420,6 +420,7 @@ if (!/\/2\.9/.test(Cypress.env('rancher_version'))) {
               cy.accesMenuSelection(dsCluster, resourceLocation, resourceType);
               cy.nameSpaceMenuToggle(resourceNamespace);
               cy.filterInSearchBox(resourceName);
+              cy.wait(500);
               if (resourceType === 'ConfigMaps') {
                 cy.deleteConfigMap(resourceName);
               }
