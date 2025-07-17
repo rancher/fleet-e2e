@@ -420,11 +420,21 @@ if (!/\/2\.9/.test(Cypress.env('rancher_version'))) {
               cy.accesMenuSelection(dsCluster, resourceLocation, resourceType);
               cy.nameSpaceMenuToggle(resourceNamespace);
               cy.filterInSearchBox(resourceName);
+              cy.wait(500);
               if (resourceType === 'ConfigMaps') {
                 cy.deleteConfigMap(resourceName);
               }
               else {
-                cy.deleteAll(false);
+                cy.get('body').then(($body) => {
+                  const button = $body.find('[data-testid="sortable-table-promptRemove"]');
+                  if (button.length > 0) {
+                    cy.wrap(button).should('be.visible').then(() => {
+                      cy.deleteAll(false);
+                    });
+                  } else {
+                    cy.log("No Service(s) available for Delete.");
+                  }
+                })
               }
               cy.clickNavMenu(['Cluster', 'Projects/Namespaces']);
               cy.filterInSearchBox(resourceNamespace);
