@@ -76,6 +76,21 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 
 	// Global variables stored in struct
 	var downstreamClusters []downstreamCluster
+	var clusterNamespace string
+	var clusterAPI string
+	var clusterAPIVER string
+
+BeforeEach(func() {
+	if strings.Contains(rancherVersion, "2.10") {
+		clusterAPI = "provisioning.cattle.io"
+		clusterAPIVER = "/v1"
+		clusterNamespace = "fleet-default"
+	} else {
+		clusterAPI = "management.cattle.io"
+		clusterAPIVER = "/v3"
+		clusterNamespace = ""
+	}
+})
 
 	It("Install Rancher Manager", func() {
 		By("Installing K3s", func() {
@@ -252,30 +267,35 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				insecureRegistrationCommand := ""
 
 				clusterDefinitionYaml := genericYAMLStruct{
-					APIVersion: "provisioning.cattle.io/v1",
+					APIVersion: clusterAPI+clusterAPIVER,
 					Kind:       "Cluster",
 					Metadata: struct {
 						Name      string `yaml:"name"`
 						Namespace string `yaml:"namespace"`
 					}{
 						Name:      downstreamClusterName,
-						Namespace: "fleet-default",
+						Namespace: clusterNamespace,
 					},
 				}
 
-				err := k.ApplyYAML("fleet-default", downstreamClusterName, clusterDefinitionYaml)
+				err := k.ApplyYAML(clusterNamespace, downstreamClusterName, clusterDefinitionYaml)
 				Expect(err).To(Not(HaveOccurred()))
 
 				// Get and store internal cluster name
-				// INTERNAL_CLUSTER_NAME=$(kubectl get clusters.provisioning.cattle.io -n fleet-default $CLUSTER_NAME -o jsonpath='{..status.clusterName}')
+				// INTERNAL_CLUSTER_NAME=$(kubectl get clusters.management.cattle.io $CLUSTER_NAME -o jsonpath='{..status.clusterName}')
 				Eventually(func() string {
-					internalClusterName, _ = kubectl.Run("get", "clusters.provisioning.cattle.io",
-						"--namespace", "fleet-default",
+					internalClusterName, _ = kubectl.Run("get", "clusters."+clusterAPI,
+						"--namespace", clusterNamespace,
 						downstreamClusterName,
 						"-o", "jsonpath={.status.clusterName}",
 					)
 					return internalClusterName
-				}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(ContainSubstring("c-m-"))
+				}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(
+					Or(
+							ContainSubstring("imported-"),
+							ContainSubstring("c-"),
+						),
+				)
 
 				// Get insecureCommand for importing cluster
 				// INSECURE_COMMAND=$(kubectl get ClusterRegistrationToken.management.cattle.io -n $INTERNAL_CLUSTER_NAME -o jsonpath='{.items[0].status.insecureCommand}')
@@ -372,8 +392,8 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			for _, cluster := range downstreamClusters {
 				count := 1
 				Eventually(func() string {
-					downstreamClusterStatus, _ := kubectl.Run("get", "clusters.provisioning.cattle.io",
-						"--namespace", "fleet-default",
+					downstreamClusterStatus, _ := kubectl.Run("get", "clusters."+clusterAPI,
+						"--namespace", clusterNamespace,
 						cluster.downstreamClusterName,
 						"-o", "jsonpath={.status.conditions[?(@.type==\"Ready\")].status}",
 					)
