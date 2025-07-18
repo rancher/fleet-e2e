@@ -76,6 +76,15 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 
 	// Global variables stored in struct
 	var downstreamClusters []downstreamCluster
+	var namespace string
+
+	BeforeEach(func() {
+		if strings.Contains(rancherVersion, "2.10") {
+				namespace = "fleet-default"
+		} else {
+				namespace = ""
+		}
+	})
 
 	It("Install Rancher Manager", func() {
 		By("Installing K3s", func() {
@@ -259,18 +268,18 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 						Namespace string `yaml:"namespace"`
 					}{
 						Name:      downstreamClusterName,
-						Namespace: "fleet-default",
+						Namespace: namespace,
 					},
 				}
 
-				err := k.ApplyYAML("fleet-default", downstreamClusterName, clusterDefinitionYaml)
+				err := k.ApplyYAML(namespace, downstreamClusterName, clusterDefinitionYaml)
 				Expect(err).To(Not(HaveOccurred()))
 
 				// Get and store internal cluster name
-				// INTERNAL_CLUSTER_NAME=$(kubectl get clusters.management.cattle.io -n fleet-default $CLUSTER_NAME -o jsonpath='{..status.clusterName}')
+				// INTERNAL_CLUSTER_NAME=$(kubectl get clusters.management.cattle.io $CLUSTER_NAME -o jsonpath='{..status.clusterName}')
 				Eventually(func() string {
 					internalClusterName, _ = kubectl.Run("get", "clusters.management.cattle.io",
-						"--namespace", "fleet-default",
+						"--namespace", namespace,
 						downstreamClusterName,
 						"-o", "jsonpath={.status.clusterName}",
 					)
@@ -373,7 +382,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				count := 1
 				Eventually(func() string {
 					downstreamClusterStatus, _ := kubectl.Run("get", "clusters.management.cattle.io",
-						"--namespace", "fleet-default",
+						"--namespace", namespace,
 						cluster.downstreamClusterName,
 						"-o", "jsonpath={.status.conditions[?(@.type==\"Ready\")].status}",
 					)
