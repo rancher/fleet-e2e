@@ -252,7 +252,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				insecureRegistrationCommand := ""
 
 				clusterDefinitionYaml := genericYAMLStruct{
-					APIVersion: "provisioning.cattle.io/v1",
+					APIVersion: "management.cattle.io/v1",
 					Kind:       "Cluster",
 					Metadata: struct {
 						Name      string `yaml:"name"`
@@ -267,9 +267,9 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				Expect(err).To(Not(HaveOccurred()))
 
 				// Get and store internal cluster name
-				// INTERNAL_CLUSTER_NAME=$(kubectl get clusters.provisioning.cattle.io -n fleet-default $CLUSTER_NAME -o jsonpath='{..status.clusterName}')
+				// INTERNAL_CLUSTER_NAME=$(kubectl get clusters.management.cattle.io -n fleet-default $CLUSTER_NAME -o jsonpath='{..status.clusterName}')
 				Eventually(func() string {
-					internalClusterName, _ = kubectl.Run("get", "clusters.provisioning.cattle.io",
+					internalClusterName, _ = kubectl.Run("get", "clusters.management.cattle.io",
 						"--namespace", "fleet-default",
 						downstreamClusterName,
 						"-o", "jsonpath={.status.clusterName}",
@@ -372,7 +372,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			for _, cluster := range downstreamClusters {
 				count := 1
 				Eventually(func() string {
-					downstreamClusterStatus, _ := kubectl.Run("get", "clusters.provisioning.cattle.io",
+					downstreamClusterStatus, _ := kubectl.Run("get", "clusters.management.cattle.io",
 						"--namespace", "fleet-default",
 						cluster.downstreamClusterName,
 						"-o", "jsonpath={.status.conditions[?(@.type==\"Ready\")].status}",
