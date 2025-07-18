@@ -290,7 +290,12 @@ BeforeEach(func() {
 						"-o", "jsonpath={.status.clusterName}",
 					)
 					return internalClusterName
-				}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(ContainSubstring("c-"))
+				}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(
+					Or(
+							ContainSubstring("imported-"),
+							ContainSubstring("c-"),
+						),
+				)
 
 				// Get insecureCommand for importing cluster
 				// INSECURE_COMMAND=$(kubectl get ClusterRegistrationToken.management.cattle.io -n $INTERNAL_CLUSTER_NAME -o jsonpath='{.items[0].status.insecureCommand}')
