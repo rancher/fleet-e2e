@@ -20,8 +20,8 @@ import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 export const noRowsMessages = ['There are no rows to show.', 'There are no rows which match your search query.']
 export const NoAppBundleOrGitRepoPresentMessages = ['No repositories have been added', 'No App Bundles have been created']
 export const rancherVersion = Cypress.env('rancher_version');
-export const alpha_or_prime_versions = [/^(prime|prime-optimus|alpha)\/2\.(1[1-9]|[2-9]\d*)(\..*)?$/];
-export const devel_or_head_versions = ["latest/devel/head", "latest/devel/2.12", "head/2.12"];
+export const alpha_or_prime_versions = [/^(prime|prime-optimus|prime-optimus-alpha|alpha)\/2\.(1[1-9]|[2-9]\d*)(\..*)?$/];
+export const devel_or_head_versions = ["latest/devel/head", "latest/devel/2.11", "head/2.11", "head/2.12"];
 // Generic commands
 
 // Fleet commands
