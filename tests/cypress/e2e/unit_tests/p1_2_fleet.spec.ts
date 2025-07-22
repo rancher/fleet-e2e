@@ -29,7 +29,7 @@ export const dsFirstTwoClusterList = dsAllClusterList.slice(0, 2)
 export const dsThirdClusterName = dsAllClusterList[2]
 export const NoAppBundleOrGitRepoPresentMessages = ['No repositories have been added', 'No App Bundles have been created']
 export const rancherVersion = Cypress.env('rancher_version')
-export const alpha_or_prime_versions = [/^(prime|prime-optimus|prime-optimus-alpha|alpha)\/2\.(1[1-9]|[2-9]\d*)(\..*)?$/];
+export const alpha_or_prime_versions = /^(prime|prime-optimus|prime-optimus-alpha|alpha|head)\/2\.(9|10|11)\.\d+.*$/;
 export const devel_or_head_versions = ["latest/devel/head", "latest/devel/2.11", "head/2.11", "head/2.12"]
 
 beforeEach(() => {
@@ -115,7 +115,8 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
   )
 });
 
-if (!devel_or_head_versions.includes(rancherVersion)){
+// TODO: Remove this logic after 2.12 release
+if (!devel_or_head_versions.includes(rancherVersion) && alpha_or_prime_versions.test(rancherVersion)) {
   describe('Test application deployment based on clusterGroup', { tags: '@p1_2'}, () => {
     const value = 'value_prod'
 
@@ -597,7 +598,8 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       )
     })
   )
-  if (!devel_or_head_versions.includes(rancherVersion)){
+  // TODO: Remove this logic after 2.12 release
+  if (!devel_or_head_versions.includes(rancherVersion) && alpha_or_prime_versions.test(rancherVersion)) {
     qase(22,
       it("Fleet-22: Test install app to new set of clusters from old set of clusters", { tags: '@fleet-22' }, () => {
         const repoName = 'default-multiple-apps-cluster-selector'
