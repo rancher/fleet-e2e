@@ -483,7 +483,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         }
 
         // Create a GitRepo targeting cluster group created from YAML.
-        if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.some(regex => regex.test(rancherVersion))) {
+        if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.test(rancherVersion)) {
           cy.clickNavMenu(['Resources']);
         }
         cy.clickNavMenu(['Git Repos']);
@@ -562,7 +562,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       )
 
       // Create a GitRepo targeting cluster group created from YAML.
-      if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.some(regex => regex.test(rancherVersion))) {
+      if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.test(rancherVersion)) {
         cy.clickNavMenu(['Resources']);
       }
       cy.clickNavMenu(['Git Repos']);
@@ -619,7 +619,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         )
 
         // Create a GitRepo targeting cluster selector created from YAML.
-        if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.some(regex => regex.test(rancherVersion))) {
+        if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.test(rancherVersion)) {
           cy.clickNavMenu(['Resources']);
         }
         cy.clickNavMenu(['Git Repos']);
@@ -759,7 +759,7 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
         }
 
         // Create a GitRepo targeting cluster group created from YAML.
-        if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.some(regex => regex.test(rancherVersion))) {
+        if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.test(rancherVersion)) {
           cy.clickNavMenu(['Resources']);
         }
         cy.clickNavMenu(['Git Repos']);
@@ -951,7 +951,7 @@ describe('Test move cluster to newly created workspace and deploy application to
       let timeout = 30000
 
       //Version check for 2.11 (head) onwards
-      if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.some(regex => regex.test(rancherVersion))) {
+      if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.test(rancherVersion)) {
         timeout = 60000
       }
 
