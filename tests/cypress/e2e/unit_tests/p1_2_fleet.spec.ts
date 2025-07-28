@@ -938,16 +938,7 @@ describe('Test move cluster to newly created workspace and deploy application to
       const flagName = "provisioningv2-fleet-workspace-back-population"
       const newWorkspaceName = "new-fleet-workspace"
       const fleetDefault = "fleet-default"
-      let timeout = 30000
-
-      //Version check for 2.11 (head) onwards
-      const rancherVersion = Cypress.env('rancher_version')
-      const alpha_or_prime_versions = [/^(prime|prime-optimus|prime-optimus-alpha|alpha)\/2\.(1[1-9]|[2-9]\d*)(\..*)?$/];;
-      const devel_or_head_versions = ["latest/devel/head", "latest/devel/2.11", "head/2.11", "head/2.12"]
-
-      if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.some(regex => regex.test(rancherVersion))) {
-        timeout = 60000
-      }
+      const timeout = 30000
 
       // Enable cluster can move to another Fleet workspace feature flag.
       cy.enableFeatureFlag(flagName);

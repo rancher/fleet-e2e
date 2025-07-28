@@ -87,132 +87,28 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
 // Command add and edit Fleet Git Repository
 // TODO: Rename this command name to 'addEditFleetGitRepo'
 Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, tlsOption, tlsCertificate, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget, allowedTargetNamespace="" }) => {
-
-  //Version check for 2.11 (head) onwards
-  const alpha_or_prime_versions = [/^(prime|prime-optimus|prime-optimus-alpha|alpha)\/2\.(1[1-9]|[2-9]\d*)(\..*)?$/];
-  const devel_or_head_versions = ["latest/devel/head", "latest/devel/2.11", "head/2.11", "head/2.12"]
-
-  // TODO: re-work on regex more to include 2.11 onwards and not before versions in it.
-  if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.some(regex => regex.test(rancherVersion))){
-    cy.addFleetGitRepoNew({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, tlsOption, tlsCertificate, keepResources, correctDrift, fleetNamespace, editConfig, helmUrlRegex, deployToTarget, allowedTargetNamespace})
-  }
-  else{
-    cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-    if (editConfig === true) {
-      cy.fleetNamespaceToggle(fleetNamespace);
-      // Check 'Error' state only to allowedTargetNamespace test only
-      cy.verifyTableRow(0, /Active|Modified|Error/, repoName);
-      cy.open3dotsMenu(repoName, 'Edit Config');
-      cy.contains('Git Repo:').should('be.visible');
-    } 
-    else {
-      cy.clickButton('Add Repository');
-      cy.contains('Git Repo:').should('be.visible');
-      cy.typeValue('Name', repoName);
-      cy.typeValue('Repository URL', repoUrl);
-      cy.typeValue('Branch Name', branch);
-    }
-    // Path is not required when git repo contains 1 application folder only.
-    if (path) {
-      cy.addPathOnGitRepoCreate(path);
-    }
-    if (path2) {
-      cy.addPathOnGitRepoCreate(path2, 1);
-    }
-    if (gitAuthType) {
-      cy.gitRepoAuth(gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex);
-    }
-
-    if (tlsOption) {
-      cy.contains(`TLS Certificate Verification`).click();
-      // Select the TLS option
-      cy.get('ul.vs__dropdown-menu > li > div', { timeout: 15000 })
-        .contains(tlsOption, { matchCase: false })
-        .should('be.visible')
-        .click();
-
-      if (tlsOption = 'Specify additional certificates') {
-        cy.readFile(tlsCertificate).then((content) => {
-          cy.get('textarea[placeholder="Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"]').type(content);
-        });
-      }
-    }
-
-    // Check the checkbox of keepResources if option 'yes' is given.
-    // After checked check-box, `keepResources: true` is set
-    // in the GitRepo YAML.
-    if (keepResources === 'yes') {
-      cy.get('.checkbox-outer-container.check').contains('Always Keep Resources').click();
-    }
-    if (correctDrift === 'yes') {
-      cy.get('[data-testid="GitRepo-correctDrift-checkbox"] > .checkbox-container > .checkbox-custom').click();
-    }
-    cy.clickButton('Next');
-    cy.get('button.btn').contains('Previous').should('be.visible');
-    // Target to any cluster or group or no cluster.
-    if (deployToTarget) {
-      cy.deployToClusterOrClusterGroup(deployToTarget);
-    }
-
-    // Type allowed namespace name in the Target Namespace while creating GitRepo.
-    if (allowedTargetNamespace !== "") {
-      cy.get('input[placeholder="Optional: Require all resources to be in this namespace"]').type(allowedTargetNamespace);
-    }
-  }
-});
-
-Cypress.Commands.add('addFleetGitRepoNew', ({ repoName, repoUrl, branch, path, path2, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, tlsOption, tlsCertificate, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex, deployToTarget, allowedTargetNamespace="" }) => {
-
   cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-
   if (editConfig === true) {
     cy.fleetNamespaceToggle(fleetNamespace);
     // Check 'Error' state only to allowedTargetNamespace test only
     cy.verifyTableRow(0, /Active|Modified|Error/, repoName);
     cy.open3dotsMenu(repoName, 'Edit Config');
     cy.contains('Git Repo:').should('be.visible');
-    // This new 'Create: Step 1' is present on new UI 2.11 onwards
-    cy.clickButton('Next');
   } 
-
-  // PART 1 - METADATA + PART 2 REPOSITORY DETAILS (a)
   else {
     cy.clickButton('Add Repository');
     cy.contains('Git Repo:').should('be.visible');
     cy.typeValue('Name', repoName);
-
-    // This new 'Create: Step 1' is present on new UI 2.11 onwards
-    cy.clickButton('Next');
-
     cy.typeValue('Repository URL', repoUrl);
     cy.typeValue('Branch Name', branch);
   }
-
-  // PART 2b - REPOSITORY DETAILS
+  // Path is not required when git repo contains 1 application folder only.
   if (path) {
     cy.addPathOnGitRepoCreate(path);
   }
   if (path2) {
     cy.addPathOnGitRepoCreate(path2, 1);
   }
-
-  // This new 'Create: Step 2' is present on new UI 2.11 onwards
-  cy.clickButton('Next');
-
-  // PART 3 - TARGET DETAILS
-  // This new 'Create: Step 3' is present on new UI 2.11 onwards
-  if (deployToTarget) {
-    cy.deployToClusterOrClusterGroup(deployToTarget);
-  }
-
-  // Type allowed namespace name in the Target Namespace while creating GitRepo.
-  if (allowedTargetNamespace !== "") {
-    cy.get('input[placeholder="Optional: Require all resources to be in this namespace"]').type(allowedTargetNamespace);
-  }
-
-  cy.clickButton('Next');
-
-  // PART 4 -ADVANCED
   if (gitAuthType) {
     cy.gitRepoAuth(gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex);
   }
@@ -231,14 +127,26 @@ Cypress.Commands.add('addFleetGitRepoNew', ({ repoName, repoUrl, branch, path, p
       });
     }
   }
+
   // Check the checkbox of keepResources if option 'yes' is given.
   // After checked check-box, `keepResources: true` is set
   // in the GitRepo YAML.
   if (keepResources === 'yes') {
-    cy.get('.checkbox-outer-container.check').contains('Always Keep Resources', { matchCase: false }).click();
+    cy.get('.checkbox-outer-container.check').contains('Always Keep Resources').click();
   }
   if (correctDrift === 'yes') {
-    cy.get('.checkbox-outer-container.check').contains('Enable self-healing', { matchCase: false }).click();
+    cy.get('[data-testid="GitRepo-correctDrift-checkbox"] > .checkbox-container > .checkbox-custom').click();
+  }
+  cy.clickButton('Next');
+  cy.get('button.btn').contains('Previous').should('be.visible');
+  // Target to any cluster or group or no cluster.
+  if (deployToTarget) {
+    cy.deployToClusterOrClusterGroup(deployToTarget);
+  }
+
+  // Type allowed namespace name in the Target Namespace while creating GitRepo.
+  if (allowedTargetNamespace !== "") {
+    cy.get('input[placeholder="Optional: Require all resources to be in this namespace"]').type(allowedTargetNamespace);
   }
 });
 
