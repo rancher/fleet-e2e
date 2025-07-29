@@ -34,7 +34,7 @@ describe('First login on Rancher', { tags: '@login' }, () => {
       cy.verifyTableRow(0, 'Active', ' ' );
       // In 2.12 forth column contains Bundle Ready count
       // Check Bundle Ready count should not be '0'
-      cy.get("td[data-testid='sortable-cell-0-4']", { timeout: 300000 }).should("not.contain", '0');
+      cy.get("td[data-testid='sortable-cell-0-2'], td[data-testid='sortable-cell-0-4']", { timeout: 300000 }).should("not.contain", '0');
     })
   );
 });

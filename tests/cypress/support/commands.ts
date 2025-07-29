@@ -20,8 +20,10 @@ import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 export const noRowsMessages = ['There are no rows to show.', 'There are no rows which match your search query.']
 export const NoAppBundleOrGitRepoPresentMessages = ['No repositories have been added', 'No App Bundles have been created']
 export const rancherVersion = Cypress.env('rancher_version');
-export const alpha_or_prime_versions = [/^(prime|prime-optimus|prime-optimus-alpha|alpha)\/2\.(1[1-9]|[2-9]\d*)(\..*)?$/];
-export const devel_or_head_versions = ["latest/devel/head", "latest/devel/2.11", "head/2.11", "head/2.12"];
+export const supported_versions_212_and_above = [
+  /^(prime|prime-optimus|prime-optimus-alpha|alpha)\/2\.(1[2-9]|\d{2,})(\..*)?$/,
+  /^head\/2\.(1[2-9]|\d{3,})$/
+];
 // Generic commands
 
 // Fleet commands
@@ -88,8 +90,9 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
 });
 
 // This new navigation enables access to App Bundles and can be extended to HelmOps too.
-Cypress.Commands.add('continuousDeliveryMenuSelection', (navToAppBundles=false) => {
-  if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.some(regex => regex.test(rancherVersion))) {
+Cypress.Commands.add('continuousDeliveryMenuSelection', () => {
+  let navToAppBundles = false
+  if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
     navToAppBundles = true
   }
   if (navToAppBundles){
@@ -142,7 +145,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
     // Check 'Error' state only to allowedTargetNamespace test only
     cy.verifyTableRow(0, /Active|Modified|Error/, repoName);
     cy.open3dotsMenu(repoName, 'Edit Config');
-    cy.contains('App Bundle:').should('be.visible');
+    cy.contains(/App Bundle|Git Repo/).should('be.visible');
     cy.clickButton('Next');
   } 
 
@@ -223,7 +226,7 @@ Cypress.Commands.add('deployToClusterOrClusterGroup', (deployToTarget) => {
 });
 
 Cypress.Commands.add('clickCreateGitRepo', (local) => {
-  if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.some(regex => regex.test(rancherVersion))) {
+  if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
     cy.clickButton('Create App Bundle');
     if (local){
       cy.fleetNamespaceToggle('fleet-local');
@@ -236,6 +239,9 @@ Cypress.Commands.add('clickCreateGitRepo', (local) => {
   else {
     cy.clickButton('Add Repository');
     cy.contains('Git Repo:').should('be.visible');
+    if (local){
+      cy.fleetNamespaceToggle('fleet-local');
+    }
   }
 });
 
@@ -467,7 +473,7 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local')
   cypressLib.accesMenu(clusterName);
   cy.clickNavMenu(['Workloads', 'Deployments']);
   // Modify deployment of given application
-  if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.some(regex => regex.test(rancherVersion))) {
+  if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
     cy.get('[data-testid="button-group-child-0"]').then(($button) => {
       if ($button.hasClass('bg-disabled')){
         $button.trigger('click');
@@ -721,7 +727,7 @@ Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
   cy.contains('.title', 'Clusters').should('be.visible');
   cy.filterInSearchBox(clusterName);
   cy.get('td.col-link-detail > span').contains(clusterName).click();
-  if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.some(regex => regex.test(rancherVersion))) {
+  if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
     cy.get('div.labels > .key-value > .heading > span.count').then($spanLabelCount => {
       const labelCount = parseInt($spanLabelCount.text().trim());
       if (labelCount === 1) {
@@ -1113,7 +1119,7 @@ Cypress.Commands.add('k8sUpgradeInRancher', (clusterName) => {
 
 // Below function will ensure that there is no Access to the Create GitRepos. Used in RBAC tests only.
 Cypress.Commands.add('checkAccessToCreateGitRepoPage', () => {
-  if (devel_or_head_versions.includes(rancherVersion) || alpha_or_prime_versions.some(regex => regex.test(rancherVersion))) {
+  if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
     cy.clickButton('Create App Bundle');
     cy.get('[data-testid="subtype-banner-item-fleet.cattle.io.gitrepo"]').should('be.visible').trigger('mouseenter', { force: true });
     cy.contains('You have no permissions to create Git Repos').should('be.visible');

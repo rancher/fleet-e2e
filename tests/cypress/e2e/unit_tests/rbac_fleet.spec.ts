@@ -34,7 +34,11 @@ export const customRoleName_4 = "gitrepo-list-delete-fleetworkspaces-bundles-all
 export const customRoleName_5 = "fleetworkspace-list-create-gitrepo-bundles-all-role"
 export const customRoleName_6 = "fleetworkspace-all-except-delete-gitrepo-bundles-all-role"
 export const customRoleName_7 = "fleetworkspace-list-delete-gitrepo-bundles-all-role"
-  
+export const rancherVersion = Cypress.env('rancher_version');
+export const supported_versions_212_and_above = [
+  /^(prime|prime-optimus|prime-optimus-alpha|alpha)\/2\.(1[2-9]|\d{2,})(\..*)?$/,
+  /^head\/2\.(1[2-9]|\d{3,})$/
+];
 
 beforeEach(() => {
   cy.login();
@@ -533,13 +537,17 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.login(baseUser, uiPassword);
 
       // CAN go to Continuous Delivery Dashboard/App Bundles page and "list" gitrepos
-      // cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
-      // cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
-      cy.continuousDeliveryMenuSelection();
-      cy.verifyTableRow(0, 'Active', repoNameDefault);
+      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
+        cy.continuousDeliveryMenuSelection();
+        cy.verifyTableRow(0, 'Active', repoNameDefault);
 
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.verifyTableRow(0, 'Active', repoName);
+        cy.fleetNamespaceToggle('fleet-local');
+        cy.verifyTableRow(0, 'Active', repoName);
+      }
+      else {
+        cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
+        cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
+      }
 
       // CHECKS IN FLEET-DEFAULT
       // Can't "Create", "Edit" nor "Delete"
