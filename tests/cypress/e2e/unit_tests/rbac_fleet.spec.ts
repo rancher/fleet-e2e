@@ -256,7 +256,12 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
 
       // Ensuring user is not able to access "Cluster Registration Tokens",
       // "GitRepoRestrictions', "BundleNamespaceMappings".
-      cy.accesMenuSelection('Continuous Delivery', 'Resources');
+      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
+        cy.accesMenuSelection('Continuous Delivery', 'Resources');
+      }
+      else {
+        cy.accesMenuSelection('Continuous Delivery', 'Advanced');
+      }
       cy.contains('Cluster Registration Tokens').should('not.exist');
       cy.contains('GitRepoRestrictions').should('not.exist');
       cy.contains('BundleNamespaceMappings').should('not.exist');
@@ -322,6 +327,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       cy.continuousDeliveryMenuSelection();
       cy.checkAccessToCreateGitRepoPage();
       // Note: listing is checked implictly here
+      cy.fleetNamespaceToggle('fleet-default');
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
       cy.open3dotsMenu(repoNameDefault, 'Delete', true);
       
@@ -372,6 +378,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       cy.clickCreateGitRepo();
       // Can't "Edit" nor "Delete" repos
       cy.continuousDeliveryMenuSelection();
+      cy.fleetNamespaceToggle('fleet-default');
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
       cy.open3dotsMenu(repoNameDefault, 'Delete', true);
       
@@ -421,6 +428,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       cy.continuousDeliveryMenuSelection();
       cy.clickCreateGitRepo();
       cy.clickButton('Cancel');
+      cy.fleetNamespaceToggle('fleet-default');
       cy.open3dotsMenu(repoNameDefault, 'Edit Config');
       cy.clickButton('Cancel');
       // Can't "Delete"
@@ -473,6 +481,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       cy.continuousDeliveryMenuSelection();
       // Can't "Create" repos    
       cy.checkAccessToCreateGitRepoPage();
+      cy.fleetNamespaceToggle('fleet-default');
       // Cant't "Edit"
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
       // CAN "Delete"
@@ -539,6 +548,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       // CAN go to Continuous Delivery Dashboard/App Bundles page and "list" gitrepos
       if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
         cy.continuousDeliveryMenuSelection();
+        cy.fleetNamespaceToggle('fleet-default');
         cy.verifyTableRow(0, 'Active', repoNameDefault);
 
         cy.fleetNamespaceToggle('fleet-local');
@@ -546,6 +556,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       }
       else {
         cy.accesMenuSelection('Continuous Delivery', 'Dashboard');
+        cy.fleetNamespaceToggle('fleet-default');
         cy.get('div.fleet-dashboard-data').should('contain', repoName).and('contain', repoNameDefault);
       }
 
@@ -555,6 +566,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.checkAccessToCreateGitRepoPage();
 
       // Note: listing is checked implictly here
+      cy.fleetNamespaceToggle('fleet-default');
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
       cy.open3dotsMenu(repoNameDefault, 'Delete', true);
       
@@ -594,6 +606,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
 
       // CAN go to Continuous Delivery Dashboard and "list" gitrepos
       cy.continuousDeliveryMenuSelection();
+      cy.fleetNamespaceToggle('fleet-default');
       cy.verifyTableRow(0, 'Active', repoNameDefault);
 
       cy.fleetNamespaceToggle('fleet-local');
@@ -605,6 +618,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.clickCreateGitRepo();
       // Can't "Edit" nor "Delete" repos
       cy.continuousDeliveryMenuSelection();
+      cy.fleetNamespaceToggle('fleet-default');
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
       cy.open3dotsMenu(repoNameDefault, 'Delete', true);
       
@@ -644,6 +658,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
 
       // CAN go to Continuous Delivery Dashboard and "list" gitrepos
       cy.continuousDeliveryMenuSelection();
+      cy.fleetNamespaceToggle('fleet-default');
       cy.verifyTableRow(0, 'Active', repoNameDefault);
 
       cy.fleetNamespaceToggle('fleet-local');
@@ -654,6 +669,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.continuousDeliveryMenuSelection();
       cy.clickCreateGitRepo();
       cy.clickButton('Cancel');
+      cy.fleetNamespaceToggle('fleet-default');
       cy.open3dotsMenu(repoNameDefault, 'Edit Config');
       cy.clickButton('Cancel');
       // Can't "Delete"
@@ -697,6 +713,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
 
       // CAN go to Continuous Delivery Dashboard and "list" gitrepos
       cy.continuousDeliveryMenuSelection();
+      cy.fleetNamespaceToggle('fleet-default');
       cy.verifyTableRow(0, 'Active', repoNameDefault);
 
       cy.fleetNamespaceToggle('fleet-local');
@@ -707,6 +724,7 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       // Can't "Create" repos    
       cy.checkAccessToCreateGitRepoPage();
       // Cant't "Edit"
+      cy.fleetNamespaceToggle('fleet-default');
       cy.open3dotsMenu(repoNameDefault, 'Edit Config', true);
       // CAN "Delete"
       cy.open3dotsMenu(repoNameDefault, 'Delete');
@@ -866,8 +884,12 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
 
   qase(39,
     it('Test "GitRepoRestrictions" on non-existent namespace throws error in the UI', { tags: '@fleet-39' }, () => {
-
-      cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
+      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
+        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
+      }
+      else {
+        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
+      }
       cy.clickButton('Create from YAML');
       cy.readFile('assets/git-repo-restrictions-non-exists-ns.yaml').then((content) => {
         cy.get('.CodeMirror').then((codeMirrorElement) => {
@@ -886,7 +908,12 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
       const repoName = 'local-gitreporestrictions-fleet-40'
 
       // Create GitRepoRestrictions with allowedTargetNamespace
-      cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
+      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
+        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
+      }
+      else {
+        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
+      }
       cy.clickButton('Create from YAML');
       cy.readFile('assets/git-repo-restrictions-allowed-target-ns.yaml').then((content) => {
         cy.get('.CodeMirror').then((codeMirrorElement) => {
@@ -911,7 +938,12 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
       cy.get('.col-link-detail').contains(appName).should('be.visible');
 
       // Deleting GitRepoRestrictions from the fleet-local namespace
-      cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
+      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
+        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
+      }
+      else {
+        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
+      }
       cy.fleetNamespaceToggle('fleet-local');
       cy.deleteAll(false);
 
@@ -925,7 +957,12 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
       const repoName = 'local-gitreporestrictions-fleet-41'
 
       // Create GitRepoRestrictions with allowedTargetNamespace
-      cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
+      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
+        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
+      }
+      else {
+        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
+      }
       cy.clickButton('Create from YAML');
       cy.readFile('assets/git-repo-restrictions-allowed-target-ns.yaml').then((content) => {
         cy.get('.CodeMirror').then((codeMirrorElement) => {
@@ -957,7 +994,12 @@ describe('Test GitRepoRestrictions scenarios for GitRepo applicaiton deployment.
       cy.get('.col-link-detail').contains(appName).should('be.visible');
 
       // Deleting GitRepoRestrictions from the fleet-local namespace
-      cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
+      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
+        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
+      }
+      else {
+        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
+      }
       cy.fleetNamespaceToggle('fleet-local');
       cy.deleteAll(false);
 
