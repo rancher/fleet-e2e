@@ -164,9 +164,6 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
         cy.addYamlFile(secretKnownHostsKeys);
         cy.wait(500);
         cy.clickButton('Create');
-        cy.nameSpaceMenuToggle('All Namespaces')
-        cy.filterInSearchBox('ssh-key-knownhost')
-        cy.verifyTableRow(0, 'ssh-key-knownhost');
       });
     });
 

@@ -237,11 +237,11 @@ Cypress.Commands.add('clickCreateGitRepo', (local) => {
     cy.contains('App Bundle: Create').should('be.visible');
   }
   else {
-    cy.clickButton('Add Repository');
-    cy.contains('Git Repo:').should('be.visible');
     if (local){
       cy.fleetNamespaceToggle('fleet-local');
     }
+    cy.clickButton('Add Repository');
+    cy.contains('Git Repo:').should('be.visible');
   }
 });
 
