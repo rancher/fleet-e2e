@@ -41,10 +41,10 @@ describe('First login on Rancher', { tags: '@login' }, () => {
       // In 2.12 forth column contains Bundle Ready count
       // Check Bundle Ready count should not be '0'
       if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-        cy.get("td[data-testid='sortable-cell-0-2']", { timeout: 300000 }).should("not.contain", '0');
+        cy.get("td[data-testid='sortable-cell-0-4']", { timeout: 300000 }).should("not.contain", '0');
       }
       else {
-        cy.get("td[data-testid='sortable-cell-0-4']", { timeout: 300000 }).should("not.contain", '0');
+        cy.get("td[data-testid='sortable-cell-0-2']", { timeout: 300000 }).should("not.contain", '0');
       }
     })
   );

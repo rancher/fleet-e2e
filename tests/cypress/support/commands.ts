@@ -917,8 +917,7 @@ Cypress.Commands.add('createNewUser', (username, password, role, uncheckStandard
 
 Cypress.Commands.add('createNewFleetWorkspace', (newWorkspaceName) => {
   // Create new workspace
-  // In 2.12, Workspace option placed above Advanced/Resources.
-  cy.accesMenuSelection('Continuous Delivery', 'Workspaces');
+  cy.continuousDeliveryWorkspacesMenu()
   cy.clickButton('Create')
   cy.contains('Workspace:').should('be.visible');
   cy.typeValue('Name', newWorkspaceName);
