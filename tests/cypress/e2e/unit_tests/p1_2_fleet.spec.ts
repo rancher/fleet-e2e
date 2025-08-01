@@ -957,7 +957,7 @@ describe('Test move cluster to newly created workspace and deploy application to
       const fleetDefault = "fleet-default"
       let timeout = 30000
 
-      //Version check for 2.11 (head) onwards
+      //Version check for 2.12 (head)
       if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
         timeout = 60000
       }
@@ -992,7 +992,8 @@ describe('Test move cluster to newly created workspace and deploy application to
       cy.restoreClusterToDefaultWorkspace(dsFirstClusterName, timeout);
 
       // Delete the newly created workspace
-      cy.clickNavMenu(['Resources', 'Workspaces']);
+      cy.continuousDeliveryMenuSelection()
+      cy.continuousDeliveryWorkspacesMenu()
       cy.filterInSearchBox(newWorkspaceName)
       cy.deleteAll(false);
     })

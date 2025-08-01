@@ -1007,7 +1007,7 @@ Cypress.Commands.add('moveClusterToWorkspace', (clusterName, workspaceName, time
   ).click();
   cy.contains(workspaceName, { matchCase: false })
     .should('be.visible')
-    .click();
+    .click({ force: true });
   cy.clickButton('Apply');
 
   // It automatically switches to Newly created workspace.
