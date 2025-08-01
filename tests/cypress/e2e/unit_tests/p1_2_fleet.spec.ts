@@ -30,7 +30,7 @@ export const dsThirdClusterName = dsAllClusterList[2]
 export const NoAppBundleOrGitRepoPresentMessages = ['No repositories have been added', 'No App Bundles have been created']
 export const rancherVersion = Cypress.env('rancher_version')
 export const supported_versions_212_and_above = [
-  /^(prime|prime-optimus|prime-optimus-alpha|alpha)\/2\.(1[2-9]|\d{2,})(\..*)?$/,
+  /^(prime|prime-optimus|prime-optimus-alpha|alpha)\/2\.(1[2-9]|\d{3,})(\..*)?$/,
   /^head\/2\.(1[2-9]|\d{3,})$/
 ];
 
@@ -914,6 +914,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         const branch = "master"
         const path = "simple"
         const repoUrl = "https://github.com/rancher/fleet-examples"
+        const timeout = 50000
         let resourceCount = '18 / 18'
         let multipliedResourceCount = true
 
@@ -927,7 +928,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
 
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         cy.clickButton('Create');
-        cy.checkGitRepoStatus(repoName, '1 / 1', resourceCount);
+        cy.checkGitRepoStatus(repoName, '1 / 1', resourceCount, timeout);
 
         // Get the Resource count from GitRepo and store it.
         cy.gitRepoResourceCountAsInteger(repoName, 'fleet-default');

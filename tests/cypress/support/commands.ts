@@ -415,22 +415,22 @@ Cypress.Commands.add('deleteAllFleetRepos', (namespaceName) => {
 });
 
 // Check Git repo deployment status
-Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
+Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources, timeout=30000) => {
   cy.verifyTableRow(0, 'Active', repoName);
   cy.contains(repoName).click()
   cy.get('.primaryheader > h1, h1 > span.resource-name.masthead-resource-title').contains(repoName).should('be.visible')
   cy.log(`Checking ${bundles} Bundles and Resources`)
   if (bundles) {
-    cy.get('div.fleet-status', { timeout: 30000 }).eq(0).contains(` ${bundles} Bundles ready `, { timeout: 30000 }).should('be.visible')
+    cy.get('div.fleet-status', { timeout: timeout }).eq(0).contains(` ${bundles} Bundles ready `, { timeout: timeout }).should('be.visible')
   }
   // Ensure this check is performed only for tests in 'fleet-local' namespace.
   if (resources) {
-      cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(` ${resources} Resources ready `, { timeout: 30000 }).should('be.visible')
+      cy.get('div.fleet-status', { timeout: timeout }).eq(1).contains(` ${resources} Resources ready `, { timeout: timeout }).should('be.visible')
   } else {
     // On downstream clusters (v2.9+), resources are affected by cluster count.
     // Avoid specifying 'resources' for tests in 'fleet-default' to allow automatic verification.
     // This checks for the presence of a matching "X / X Resources ready" pattern.
-    cy.get('div.fleet-status', { timeout: 30000 }).eq(1).should(($div) => {
+    cy.get('div.fleet-status', { timeout: timeout }).eq(1).should(($div) => {
       // Replace whitespaces by a space and trim the string
       const text = $div.text().replace(/\s+/g, ' ').trim();
       // Perform the match check within .should callback as .then breaks retry ability
@@ -917,6 +917,7 @@ Cypress.Commands.add('createNewUser', (username, password, role, uncheckStandard
 
 Cypress.Commands.add('createNewFleetWorkspace', (newWorkspaceName) => {
   // Create new workspace
+  cy.continuousDeliveryMenuSelection();
   cy.continuousDeliveryWorkspacesMenu()
   cy.clickButton('Create')
   cy.contains('Workspace:').should('be.visible');
