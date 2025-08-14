@@ -615,7 +615,7 @@ Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
   cy.filterInSearchBox(clusterName);
   cy.open3dotsMenu(clusterName, 'Edit Config');
   cy.contains('.title', 'Cluster:').should('be.visible');
-
+  cy.wait(500)
   cy.get('body').then((body) => {
     if (body.find('div[class="row"] div[class="key-value"] button.role-link').length > 0) {
       cy.get('div[class="row"] div[class="key-value"] button.role-link').first().click();
