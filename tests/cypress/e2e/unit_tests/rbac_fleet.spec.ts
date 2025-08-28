@@ -1037,6 +1037,7 @@ describe("Global settings related tests", { tags: '@rbac'}, () => {
         cy.contains('Waiting for Restart', { timeout: 180000 }).should('not.exist');
 
         cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
+        cy.nameSpaceMenuToggle('All Namespaces');
         cy.contains('fleet-cleanup-gitrepo-jobs').should('exist');
       })
     )
