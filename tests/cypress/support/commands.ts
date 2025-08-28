@@ -646,6 +646,33 @@ Cypress.Commands.add('assignClusterLabel', (clusterName, key, value) => {
   cy.wait(500);
   cy.clickButton('Save');
   cy.contains('Save').should('not.exist');
+
+  cy.clickNavMenu(['Clusters']);
+  // Remove below workaround once issue: https://github.com/rancher/rancher/issues/51479 Fixed.
+  // Ensure label is Added.
+  cy.contains('.title', 'Clusters').should('be.visible');
+  cy.filterInSearchBox(clusterName);
+  cy.get('td.col-link-detail > span').contains(clusterName).click();
+  if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
+    cy.get('div.labels > .key-value > .heading > span.count').then($spanLabelCount => {
+      const labelCount = parseInt($spanLabelCount.text().trim());
+      if (labelCount === 1) {
+        cy.log("Cluster Label NOT reflected on page.")
+
+        // Pause Cluster
+        cy.get('[data-testid="masthead-action-menu"] > .icon.icon-actions').click({ force: true });
+        cy.get('.list-unstyled.menu > li > span, div.dropdownTarget', { timeout: 15000 }).contains('Pause').should('be.visible');
+        cy.get('.list-unstyled.menu > li > span, div.dropdownTarget', { timeout: 15000 }).contains('Pause').click({ force: true });
+
+        // Unpause Cluster
+        cy.wait(1000);
+        cy.get('[data-testid="masthead-action-menu"] > .icon.icon-actions').click({ force: true });
+        cy.get('.list-unstyled.menu > li > span, div.dropdownTarget', { timeout: 15000 }).contains('Unpause').should('be.visible');
+        cy.get('.list-unstyled.menu > li > span, div.dropdownTarget', { timeout: 15000 }).contains('Unpause').click({ force: true });
+      }
+    })
+  }
+
   // Navigate back to all clusters page.
   cy.clickNavMenu(['Clusters']);
 })
