@@ -276,7 +276,7 @@ jobs:
         run: |
           if ${{ inputs.hardening == 'true' }} then
             cd tests && make install-rke2-hardened-rancher
-          else:
+          else
               cd tests && make e2e-install-rancher
           fi
       - name: Extract component versions/informations
