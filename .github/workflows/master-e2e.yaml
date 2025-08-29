@@ -274,7 +274,7 @@ jobs:
           PUBLIC_DOMAIN: bc.googleusercontent.com
           RANCHER_PASSWORD: ${{ secrets.rancher_password }}
         run: |
-          if: ${{ inputs.hardening == 'true' }} then
+          if ${{ inputs.hardening == 'true' }} then
             cd tests && make install-rke2-hardened-rancher
           else:
               cd tests && make e2e-install-rancher
