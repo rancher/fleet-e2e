@@ -1038,6 +1038,8 @@ describe("Global settings related tests", { tags: '@rbac'}, () => {
 
         cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
         cy.nameSpaceMenuToggle('All Namespaces');
+        // Load page correctly
+        cy.wait(1000);
         cy.contains('fleet-cleanup-gitrepo-jobs').should('exist');
       })
     )
