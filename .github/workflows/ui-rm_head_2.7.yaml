@@ -60,5 +60,5 @@ jobs:
       upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.32.4+k3s1' }}
       rancher_version: ${{ inputs.rancher_version || 'head/2.12' }}
       qase_run_id: ${{ inputs.qase_run_id || 'auto' }}
-      hardening: ${{ inputs.hardening || 'false' }}
+      hardening: ${{ inputs.hardening }}
       grep_test_by_tag: ${{ inputs.grep_test_by_tag || '@login' }}
