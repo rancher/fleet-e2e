@@ -2,6 +2,9 @@
 
 set -E -x
 
+# Export Kubeconfig in case it has failed
+export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
+
 helm repo add jetstack https://charts.jetstack.io
 helm repo update
 helm upgrade --install cert-manager --namespace cert-manager jetstack/cert-manager \
@@ -14,7 +17,6 @@ sleep 8
 
 # Getting Google IP
 export GCP_EXTRENAL_IP=$(wget --quiet --header="Metadata-Flavor: Google" -O - http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip) 
-echo "External IP: ${GCP_EXTRENAL_IP}"
 
 # Rancher installation
 export MY_IP=${GCP_EXTRENAL_IP}
@@ -30,7 +32,7 @@ helm upgrade --install rancher rancher-head-2.12/rancher \
   --devel \
   --namespace cattle-system --create-namespace \
   --set hostname=$SYSTEM_DOMAIN \
-  --set bootstrapPassword=password \
+  --set bootstrapPassword=rancherpassword \
   --set replicas=1 \
  \
   --wait
