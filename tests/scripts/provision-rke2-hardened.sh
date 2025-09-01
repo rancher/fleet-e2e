@@ -2,6 +2,11 @@
 
 set -E -x
 
+### Deploy Kubectl && alias
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+alias k=kubectl
+
 # Node Setup
 sudo bash -c 'cat << EOF > /etc/sysctl.d/90-kubelet.conf
 vm.panic_on_oom=0
