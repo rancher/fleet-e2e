@@ -85,22 +85,26 @@ EOF
 # Bear in mind cis must be in sync with deployed k8s version
 sudo mkdir -p /etc/rancher/rke2
 echo "write-kubeconfig-mode: 644" | sudo tee /etc/rancher/rke2/config.yaml
-echo "pod-security-admission-config-file: $PWDk/psa.yaml" | sudo tee -a /etc/rancher/rke2/config.yaml > /dev/null
+echo "pod-security-admission-config-file: $PWD/psa.yaml" | sudo tee -a /etc/rancher/rke2/config.yaml > /dev/null
 echo "profile: cis" | sudo tee -a /etc/rancher/rke2/config.yaml > /dev/null
 
 # Deploy RKE2
 # For Rancher 2.7.x: curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION="v1.26.12+rke2r1" sudo -E sh - 
 
+echo "Downloading RKE2"
 curl -sfL https://get.rke2.io | sudo -E sh -
+sleep 40
 export PATH=$PATH:/opt/rke2/bin
 export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
 sleep 5
 
 # Start RKE2
+echo "Starting RKE2 service"
 sudo systemctl enable --now rke2-server.service
-sleep 90
+sleep 120
 
 # Configure default Service account
+echo "Configuring default Service account"
 sudo bash -c 'cat << EOF > service_account_update.yaml
 apiVersion: v1
 kind: ServiceAccount
