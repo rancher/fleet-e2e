@@ -275,7 +275,7 @@ jobs:
           RANCHER_PASSWORD: ${{ secrets.rancher_password }}
         run: |
           if ${{ inputs.hardening != '' }}; then
-            cd tests && make e2e-install-rke2-hardened-rancher
+            cd tests && make e2e-install-rke2-hardened-cluster && make e2e-no-k3s-install-test-rancher
           else
             cd tests && make e2e-install-rancher
           fi
