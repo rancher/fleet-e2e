@@ -101,7 +101,7 @@ sleep 5
 # Start RKE2
 echo "Starting RKE2 service"
 sudo systemctl enable --now rke2-server.service
-sleep 120
+sleep 180
 
 # Configure default Service account
 echo "Configuring default Service account"
@@ -112,6 +112,8 @@ metadata:
      name: default
 automountServiceAccountToken: false
 EOF'
+
+sleep 5
 
 # Update Service Account to the default namespace
 for namespace in $(kubectl get namespaces -A -o=jsonpath="{.items[*]['metadata.name']}"); do
