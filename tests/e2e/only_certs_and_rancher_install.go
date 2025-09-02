@@ -46,7 +46,7 @@ func rolloutDeployment(ns, d string) {
 	}, tools.SetTimeout(2*time.Minute), 30*time.Second).Should(ContainSubstring("successfully rolled out"))
 }
 
-var _ = Describe("E2E - Install Rancher Manager", Label("only-certs-and-rancher-install"), func() {
+var _ = Describe("E2E - Deploy only certs and Rancher Manager", Label("deploy-only-certs-and-rancher"), func() {
 	// Create kubectl context
 	// Default timeout is too small, so New() cannot be used
 	k := &kubectl.Kubectl{
