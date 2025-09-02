@@ -15,11 +15,11 @@ helm upgrade --install cert-manager --namespace cert-manager jetstack/cert-manag
 
 sleep 8
 
-# Getting Google IP
-export GCP_EXTRENAL_IP=$(wget --quiet --header="Metadata-Flavor: Google" -O - http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip) 
+# # Getting Google IP
+# export GCP_EXTRENAL_IP=$(wget --quiet --header="Metadata-Flavor: Google" -O - http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip) 
 
 # Rancher installation
-export MY_IP=${GCP_EXTRENAL_IP}
+export MY_IP=${PUBLIC_DNS}
 export SYSTEM_DOMAIN="${MY_IP}.bc.googleusercontent.com"
 export RANCHER_USER=admin RANCHER_PASSWORD=rancherpassword
 export RANCHER_URL=https://${MY_IP}.bc.googleusercontent.com/dashboard
