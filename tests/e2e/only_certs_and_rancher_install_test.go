@@ -30,7 +30,7 @@ import (
 	"github.com/rancher-sandbox/ele-testhelpers/tools"
 )
 
-func rolloutDeployment(ns, d string) {
+func rolloutDeploymentOnlyCertsAndRancher(ns, d string) {
 	// NOTE: 1st or 2nd rollout command can sporadically fail, so better to use Eventually here
 	Eventually(func() string {
 		status, _ := kubectl.Run("rollout", "restart", "deployment/"+d,
