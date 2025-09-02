@@ -14,6 +14,9 @@ publish-qase-run: deps
 e2e-install-rancher: deps
 	ginkgo --label-filter install -r -v ./e2e
 
+e2e-install-only-certs-and-rancher: deps
+	ginkgo --label-filter only-certs-and-rancher-install -r -v ./e2e
+
 e2e-no-k3s-install-test-rancher:
 	@./scripts/certs-and-rancher-install.sh
 
