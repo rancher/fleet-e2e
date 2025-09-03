@@ -14,7 +14,6 @@ limitations under the License.
 
 import 'cypress/support/commands';
 import { qase } from 'cypress-qase-reporter/dist/mocha';
-import { versionedIt } from 'cypress/support/utils';
 
 export const appName = "nginx-keep"
 export const branch = "master"
@@ -1084,7 +1083,7 @@ describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
   })
 
   repoTestData.forEach(({ qase_id, message, repoName, gitrepo_file, bundle_count, resource_count }) => {
-    versionedIt(['head', '2.12'], `${qase_id}`, `FLEET-${qase_id}: ${message}`, { tags: `@fleet-${qase_id}`}, () => {
+    it(`FLEET-${qase_id}: ${message}`, { tags: `@fleet-${qase_id}`}, () => {
       // Create GitRepo
       cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
       cy.clickButton('Add Repository');
