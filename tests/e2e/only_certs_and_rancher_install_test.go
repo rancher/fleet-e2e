@@ -69,48 +69,6 @@ var _ = Describe("E2E - Deploy only certs and Rancher Manager", Label("deploy-on
 	var downstreamClusters []downstreamCluster
 
 	It("Install Rancher Manager", func() {
-		// By("Installing K3s", func() {
-		// 	// Get K3s installation script
-		// 	fileName := "k3s-install.sh"
-		// 	Eventually(func() error {
-		// 		return tools.GetFileFromURL("https://get.k3s.io", fileName, true)
-		// 	}, tools.SetTimeout(2*time.Minute), 10*time.Second).ShouldNot(HaveOccurred())
-
-		// 	// Set command and arguments
-		// 	installCmd := exec.Command("sh", fileName)
-		// 	// installCmd.Env = append(os.Environ(), "INSTALL_K3S_EXEC=--disable metrics-server")
-
-		// 	// Retry in case of (sporadic) failure...
-		// 	count := 1
-		// 	Eventually(func() error {
-		// 		// Execute K3s installation
-		// 		out, err := installCmd.CombinedOutput()
-		// 		GinkgoWriter.Printf("K3s installation loop %d:\n%s\n", count, out)
-		// 		count++
-		// 		return err
-		// 	}, tools.SetTimeout(2*time.Minute), 5*time.Second).Should(BeNil())
-		// })
-
-		// By("Starting K3s", func() {
-		// 	err := exec.Command("sudo", "systemctl", "start", "k3s").Run()
-		// 	Expect(err).To(Not(HaveOccurred()))
-
-		// 	// Delay few seconds before checking
-		// 	time.Sleep(tools.SetTimeout(20 * time.Second))
-		// })
-
-		// By("Waiting for K3s to be started", func() {
-		// 	// Wait for all pods to be started
-		// 	checkList := [][]string{
-		// 		{"kube-system", "app=local-path-provisioner"},
-		// 		{"kube-system", "k8s-app=kube-dns"},
-		// 		{"kube-system", "app.kubernetes.io/name=traefik"},
-		// 		{"kube-system", "svccontroller.k3s.cattle.io/svcname=traefik"},
-		// 	}
-		// 	Eventually(func() error {
-		// 		return rancher.CheckPod(k, checkList)
-		// 	}, tools.SetTimeout(4*time.Minute), 30*time.Second).Should(BeNil())
-		// })
 
 		By("Configuring Kubeconfig file", func() {
 			// Copy K3s file in ~/.kube/config

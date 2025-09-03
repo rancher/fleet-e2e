@@ -89,8 +89,6 @@ echo "pod-security-admission-config-file: $PWD/psa.yaml" | sudo tee -a /etc/ranc
 echo "profile: cis" | sudo tee -a /etc/rancher/rke2/config.yaml > /dev/null
 
 # Deploy RKE2
-# For Rancher 2.7.x: curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION="v1.26.12+rke2r1" sudo -E sh - 
-
 echo "Downloading RKE2"
 curl -sfL https://get.rke2.io | sudo -E sh -
 sleep 40
@@ -112,7 +110,6 @@ metadata:
      name: default
 automountServiceAccountToken: false
 EOF'
-
 sleep 5
 
 # Update Service Account to the default namespace
