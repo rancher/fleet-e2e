@@ -332,6 +332,7 @@ jobs:
             cypress/e2e/unit_tests/p1_2_fleet.spec.ts
             cypress/e2e/unit_tests/rbac_fleet.spec.ts
             cypress/e2e/unit_tests/upgrade_fleet.spec.ts
+            cypress/e2e/unit_tests/hardened_fleet.spec.ts
         run: |
           if ${{ inputs.qase_run_id == 'none' }}; then
             # Unset default QASE_* variables when reporting is disabled

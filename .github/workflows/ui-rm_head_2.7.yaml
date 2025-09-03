@@ -32,7 +32,7 @@ on:
         description: Grep tags. For hardened tests, use @hardening-tests Keep always @login
         required: false
         type: string
-        default: '@login'
+        default: '@login @hardening-tests'
 
 jobs:
   ui:
