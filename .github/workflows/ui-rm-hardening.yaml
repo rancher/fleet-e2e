@@ -18,6 +18,11 @@ on:
         default: head/2.12
         type: string
         required: true
+      upstream_cluster_version:
+        description: Upstream cluster version where to install Rancher
+        default: 'v1.32.4+k3s1'
+        type: string
+        required: true
       hardening:
         description: Select if desired hardened cluster (if 'true' use only @login @hardening-tests)
         required: false
@@ -27,7 +32,7 @@ on:
         description: Grep tags. For hardened tests, use @hardening-tests Keep always @login
         required: false
         type: string
-        default: '@login'
+        default: '@login @hardening-tests'
 
 jobs:
   ui:
@@ -52,7 +57,8 @@ jobs:
       cluster_name: hardened-rke2-cluster
       # WARNING, VALUES BELOW ARE HARDCODED FOR RUNS SCHEDULED BY CRON
       destroy_runner: ${{ github.event_name == 'schedule' && true || inputs.destroy_runner }}
+      upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.32.4+k3s1' }}
       rancher_version: ${{ inputs.rancher_version || 'head/2.12' }}
       qase_run_id: ${{ inputs.qase_run_id || 'auto' }}
-      hardening: ${{ inputs.hardening || 'false' }}
+      hardening: ${{ inputs.hardening }}
       grep_test_by_tag: ${{ inputs.grep_test_by_tag || '@login' }}
