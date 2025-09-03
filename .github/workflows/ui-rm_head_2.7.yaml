@@ -18,11 +18,11 @@ on:
         default: head/2.12
         type: string
         required: true
-      upstream_cluster_version:
-        description: K3s upstream cluster version where to install Rancher
-        default: 'v1.32.4+k3s1'
-        type: string
-        required: true
+      # upstream_cluster_version:
+      #   description: K3s upstream cluster version where to install Rancher
+      #   default: 'v1.32.4+k3s1'
+      #   type: string
+      #   required: true
       hardening:
         description: Select if desired hardened cluster (if 'true' use only @login @hardening-tests)
         required: false
@@ -57,7 +57,7 @@ jobs:
       cluster_name: hardened-rke2-cluster
       # WARNING, VALUES BELOW ARE HARDCODED FOR RUNS SCHEDULED BY CRON
       destroy_runner: ${{ github.event_name == 'schedule' && true || inputs.destroy_runner }}
-      upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.32.4+k3s1' }}
+      # upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.32.4+k3s1' }}
       rancher_version: ${{ inputs.rancher_version || 'head/2.12' }}
       qase_run_id: ${{ inputs.qase_run_id || 'auto' }}
       hardening: ${{ inputs.hardening }}
