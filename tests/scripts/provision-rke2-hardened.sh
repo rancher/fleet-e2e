@@ -92,8 +92,8 @@ echo "profile: cis" | sudo tee -a /etc/rancher/rke2/config.yaml > /dev/null
 echo "Downloading RKE2"
 # curl -sfL https://get.rke2.io | sudo -E sh -
 # Use INSTALL_K3S_VERSION as the Kubernetes version if set, otherwise default to latest
-if [ -n "$INSTALL_K3S_VERSION" ]; then
-  curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION="$INSTALL_K3S_VERSION" sudo -E sh -
+if [ -n "$INSTALL_HARDENED_VERSION" ]; then
+  curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION="$INSTALL_HARDENED_VERSION" sudo -E sh -
 else
   curl -sfL https://get.rke2.io | sudo -E sh -
 fi
