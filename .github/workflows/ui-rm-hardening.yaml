@@ -19,8 +19,8 @@ on:
         type: string
         required: true
       upstream_cluster_version:
-        description: Upstream cluster RKE2 version where to install Rancher
-        default: 'v1.33.4+rke2r1'
+        description: Upstream cluster version where to install Rancher
+        default: 'v1.32.4+k3s1'
         type: string
         required: true
       hardening:
