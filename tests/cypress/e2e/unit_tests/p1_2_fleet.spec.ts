@@ -1098,30 +1098,32 @@ describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
     },
   ]
 
-  beforeEach('Cleanup leftover GitRepo', () => {
-    cy.login();
-    cy.visit('/');
-    cy.deleteAllFleetRepos();
-  })
-
-  repoTestData.forEach(({ qase_id, test_name, repoName, gitrepo_file, bundle_count, resource_count, expectedBundles }) => {
-    it(`FLEET-${qase_id}: ${test_name}`, { tags: `@fleet-${qase_id}`}, () => {
-      // Create GitRepo
-      cy.continuousDeliveryMenuSelection()
-      cy.clickCreateGitRepo();
-      cy.clickButton('Edit as YAML');
-      cy.wait(1000);
-      cy.addYamlFile(gitrepo_file);
-      cy.clickButton('Create');
-      cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
-      cy.continuousDeliveryBundlesMenu();
-      expectedBundles.forEach((bundle_name: string) => {
-        cy.filterInSearchBox(bundle_name);
-        cy.verifyTableRow(0, 'Active', bundle_name);
-      });
-
-      // Delete GitRepo
+  if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
+    beforeEach('Cleanup leftover GitRepo', () => {
+      cy.login();
+      cy.visit('/');
       cy.deleteAllFleetRepos();
     })
-  });
+
+    repoTestData.forEach(({ qase_id, test_name, repoName, gitrepo_file, bundle_count, resource_count, expectedBundles }) => {
+      it(`FLEET-${qase_id}: ${test_name}`, { tags: `@fleet-${qase_id}`}, () => {
+        // Create GitRepo
+        cy.continuousDeliveryMenuSelection()
+        cy.clickCreateGitRepo();
+        cy.clickButton('Edit as YAML');
+        cy.wait(1000);
+        cy.addYamlFile(gitrepo_file);
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
+        cy.continuousDeliveryBundlesMenu();
+        expectedBundles.forEach((bundle_name: string) => {
+          cy.filterInSearchBox(bundle_name);
+          cy.verifyTableRow(0, 'Active', bundle_name);
+        });
+
+        // Delete GitRepo
+        cy.deleteAllFleetRepos();
+      })
+    });
+  }
 });
