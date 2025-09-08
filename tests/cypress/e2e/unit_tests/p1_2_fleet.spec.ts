@@ -1044,35 +1044,57 @@ describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
   const repoTestData: testData[] = [
     {
       qase_id: 180,
-      message: 'Test GitRepo creates bundles specified under bundles: without option: field',
+      test_name: 'Test GitRepo creates bundles specified under bundles: without option: field',
       repoName: 'test-bundle',
       gitrepo_file: 'assets/gitrepo-bundle-create-tests/180-gitrepo-create-bundle.yaml',
       bundle_count: '3 / 3',
       resource_count: '12 / 12',
+      expectedBundles: [
+        "test-bundle-driven-helm",
+        "test-bundle-driven-kustomize",
+        "test-bundle-driven-simple",
+      ],
     },
     {
       qase_id: 181,
-      message: 'Test GitRepo creates bundles specified under bundles: with option: field',
+      test_name: 'Test GitRepo creates bundles specified under bundles: with option: field',
       repoName: 'test-bundle-dev-prod',
       gitrepo_file: 'assets/gitrepo-bundle-create-tests/181-gitrepo-create-dev-prod-bundle.yaml',
       bundle_count: '4 / 4',
       resource_count: '15 / 15',
+      expectedBundles: [
+        "test-bundle-dev-prod-driven-helm",
+        "test-bundle-dev-prod-driven-kustomize-dev",
+        "test-bundle-dev-prod-driven-kustomize-prod",
+        "test-bundle-dev-prod-driven-simple",
+      ],
     },
     {
       qase_id: 182,
-      message: 'Test update GitRepo by removing prod.yaml from option and verify that prod bundle should not be created.',
+      test_name: 'Test update GitRepo by removing prod.yaml from option and verify that prod bundle should not be created.',
       repoName: 'test-bundle-dev',
       gitrepo_file: 'assets/gitrepo-bundle-create-tests/182-gitrepo-create-dev-bundle.yaml',
       bundle_count: '3 / 3',
       resource_count: '12 / 12',
+      expectedBundles: [
+        "test-bundle-dev-driven-helm",
+        "test-bundle-dev-driven-kustomize-dev",
+        "test-bundle-dev-driven-simple",
+      ],
     },
     {
       qase_id: 183,
-      message: 'Test update GitRepo by adding test.yaml under option and verify that prod bundle should not be created.',
+      test_name: 'Test update GitRepo by adding test.yaml under option and verify that prod bundle should not be created.',
       repoName: 'test-bundle-dev-test',
       gitrepo_file: 'assets/gitrepo-bundle-create-tests/183-gitrepo-create-dev-test-bundle.yaml',
       bundle_count: '4 / 4',
       resource_count: '15 / 15',
+      expectedBundles: [
+        "test-bundle-dev-test-driven-helm",
+        "test-bundle-dev-test-driven-kustomize-dev",
+        "test-bundle-dev-test-driven-kustomize-test",
+        "test-bundle-dev-test-driven-simple",
+      ],
     },
   ]
 
@@ -1082,21 +1104,21 @@ describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
     cy.deleteAllFleetRepos();
   })
 
-  repoTestData.forEach(({ qase_id, message, repoName, gitrepo_file, bundle_count, resource_count }) => {
-    it(`FLEET-${qase_id}: ${message}`, { tags: `@fleet-${qase_id}`}, () => {
+  repoTestData.forEach(({ qase_id, test_name, repoName, gitrepo_file, bundle_count, resource_count, expectedBundles }) => {
+    it(`FLEET-${qase_id}: ${test_name}`, { tags: `@fleet-${qase_id}`}, () => {
       // Create GitRepo
-      cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
-      cy.clickButton('Add Repository');
+      cy.continuousDeliveryMenuSelection()
+      cy.clickCreateGitRepo();
       cy.clickButton('Edit as YAML');
       cy.wait(1000);
       cy.addYamlFile(gitrepo_file);
       cy.clickButton('Create');
-      // If tests failed due to resource count, then implement new bundle name checking logic.
-      // Consider new count logic implemented at that time.
-      // Check count of bundle
-      // cy.clickNavMenu(['Advanced', 'Bundles']);
-      // cy.filterInSearchBox()
       cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
+      cy.continuousDeliveryBundlesMenu();
+      expectedBundles.forEach((bundle_name: string) => {
+        cy.filterInSearchBox(bundle_name);
+        cy.verifyTableRow(0, 'Active', bundle_name);
+      });
 
       // Delete GitRepo
       cy.deleteAllFleetRepos();
