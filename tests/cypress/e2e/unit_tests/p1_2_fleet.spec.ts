@@ -434,8 +434,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         cy.removeClusterLabels(dsCluster, key, value);
       }
     )
-    
-
     cy.deleteAllFleetRepos();
   })
 
@@ -467,7 +465,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         cy.continuousDeliveryMenuSelection();
         cy.clickNavMenu(['Clusters']);
         cy.contains('.title', 'Clusters').should('be.visible');
-  
         // Assign label to the clusters 
         dsFirstTwoClusterList.forEach(
           (dsCluster) => {
@@ -494,6 +491,8 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         cy.wait(500);
 
         cy.clickButton('Add Repository');
+        // Cypress too fast to click on button.
+        cy.wait(500);
         cy.clickButton('Edit as YAML');
         cy.addYamlFile(gitRepoFile);
         cy.clickButton('Create');

@@ -700,9 +700,15 @@ Cypress.Commands.add('deleteClusterGroups', () => {
 
 // Remove added labels from the cluster(s)
 Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
-
-  cy.continuousDeliveryMenuSelection();
-  cy.clickNavMenu(['Clusters']);
+  // Navigate to Clusters page when other navigation is present.
+  cy.get('body').then((body) => {
+    if (body.find('.title').text().includes('Clusters')) {
+      return true
+    }
+    else {
+      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+    }
+  })
   cy.contains('.title', 'Clusters').should('be.visible');
   cy.filterInSearchBox(clusterName);
   cy.open3dotsMenu(clusterName, 'Edit Config');
