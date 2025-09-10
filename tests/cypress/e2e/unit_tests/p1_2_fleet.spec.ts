@@ -127,6 +127,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
       beforeEach('Cleanup leftover GitRepo, ClusterGroup or label etc. if any.', () => {
         cy.login();
         cy.visit('/');
+        cy.deleteAllFleetRepos();
         // Remove labels from the clusters.
         dsAllClusterList.forEach(
           (dsCluster) => {
@@ -136,7 +137,6 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
           }
         )
         cy.deleteClusterGroups();
-        cy.deleteAllFleetRepos();
       })
 
       const clusterGroup: testData[] = [
@@ -199,6 +199,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
 
                 // Remove label from the third cluster i.e. imported-2
                 cy.wait(500);
+                cy.accesMenuSelection('Continuous Delivery', 'Clusters');
                 cy.removeClusterLabels(dsThirdClusterName, key, value);
               }
 
@@ -257,6 +258,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
           })
 
           // Remove labels from the clusters i.e. imported-0 and imported-1
+          cy.accesMenuSelection('Continuous Delivery', 'Clusters');
           dsFirstTwoClusterList.forEach(
             (dsCluster) => {
               // Adding wait to load page correctly to avoid interference with hamburger-menu.
@@ -313,6 +315,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
           // Check application is available on first cluster i.e. imported-0
 
           // Remove labels from the clusters.
+          cy.accesMenuSelection('Continuous Delivery', 'Clusters');
           dsFirstTwoClusterList.forEach(
             (dsCluster) => {
               // Adding wait to load page correctly to avoid interference with hamburger-menu.
@@ -426,6 +429,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
   beforeEach('Cleanup leftover GitRepo if any.', () => {
     cy.login();
     cy.visit('/');
+    cy.deleteAllFleetRepos();
     // Remove labels from the clusters.
     dsAllClusterList.forEach(
       (dsCluster) => {
@@ -434,7 +438,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         cy.removeClusterLabels(dsCluster, key, value);
       }
     )
-    cy.deleteAllFleetRepos();
   })
 
   const clusterSelector: testData[] = [
@@ -519,6 +522,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
 
           // Remove label from the third cluster.
           cy.wait(500);
+          cy.accesMenuSelection('Continuous Delivery', 'Clusters');
           cy.removeClusterLabels(dsThirdClusterName, key, value);
         }
 
@@ -538,6 +542,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         }
 
         // Remove labels from the clusters.
+        cy.accesMenuSelection('Continuous Delivery', 'Clusters');
         dsFirstTwoClusterList.forEach(
           (dsCluster) => {
             // Adding wait to load page correctly to avoid interference with hamburger-menu.
@@ -583,6 +588,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
 
       // Remove label from the Second cluster i.e. imported-1
       cy.wait(500);
+      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
       cy.removeClusterLabels(dsSecondClusterName, key, value);
 
       // Check application is absent i.e. removed from second cluster i.e. imported-1
@@ -592,6 +598,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       cy.checkApplicationStatus(appName, dsFirstClusterName, 'All Namespaces');
 
       // Remove labels from the clusters.
+      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
       dsFirstTwoClusterList.forEach(
         (dsCluster) => {
           // Adding wait to load page correctly to avoid interference with hamburger-menu.
@@ -676,6 +683,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         )
 
         // Remove labels from the clusters i.e. imported-0 and imported-1
+        cy.accesMenuSelection('Continuous Delivery', 'Clusters');
         dsFirstTwoClusterList.forEach(
           (dsCluster) => {
             // Adding wait to load page correctly to avoid interference with hamburger-menu.
@@ -699,6 +707,7 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
   beforeEach('Cleanup leftover GitRepo if any.', () => {
     cy.login();
     cy.visit('/');
+    cy.deleteAllFleetRepos();
     // Remove labels from the clusters.
     dsAllClusterList.forEach(
       (dsCluster) => {
@@ -709,7 +718,6 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
     )
 
     cy.deleteClusterGroups();
-    cy.deleteAllFleetRepos();
   })
 
   const clusterSelector: testData[] = [
@@ -802,6 +810,7 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
 
           // Remove label from the third cluster.
           cy.wait(500);
+          cy.accesMenuSelection('Continuous Delivery', 'Clusters');
           cy.removeClusterLabels(dsThirdClusterName, key, value);
         }
 
@@ -821,6 +830,7 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
         }
 
         // Remove labels from the clusters.
+        cy.accesMenuSelection('Continuous Delivery', 'Clusters');
         dsFirstTwoClusterList.forEach(
           (dsCluster) => {
             // Adding wait to load page correctly to avoid interference with hamburger-menu.
