@@ -491,11 +491,11 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
           cy.clickNavMenu(['Resources']);
         }
         cy.clickNavMenu(['Git Repos']);
-        cy.wait(500);
+        cy.wait(1000);
 
         cy.clickButton('Add Repository');
         // Cypress too fast to click on button.
-        cy.wait(500);
+        cy.wait(1000);
         cy.clickButton('Edit as YAML');
         cy.addYamlFile(gitRepoFile);
         cy.clickButton('Create');
@@ -574,8 +574,9 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         cy.clickNavMenu(['Resources']);
       }
       cy.clickNavMenu(['Git Repos']);
-      cy.wait(500);
+      cy.wait(1000);
       cy.clickButton('Add Repository');
+      cy.wait(1000);
       cy.clickButton('Edit as YAML');
       cy.addYamlFile(gitRepoFile);
       cy.clickButton('Create');
@@ -635,8 +636,9 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
           cy.clickNavMenu(['Resources']);
         }
         cy.clickNavMenu(['Git Repos']);
-        cy.wait(500);
+        cy.wait(1000);
         cy.clickButton('Add Repository');
+        cy.wait(1000);
         cy.clickButton('Edit as YAML');
         cy.addYamlFile(gitRepoFile);
         cy.clickButton('Create');
@@ -776,9 +778,10 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
           cy.clickNavMenu(['Resources']);
         }
         cy.clickNavMenu(['Git Repos']);
-        cy.wait(500);
+        cy.wait(1000);
 
         cy.clickButton('Add Repository');
+        cy.wait(1000);
         cy.clickButton('Edit as YAML');
         cy.addYamlFile(clusterGroupSelectorFile);
         cy.clickButton('Create');
