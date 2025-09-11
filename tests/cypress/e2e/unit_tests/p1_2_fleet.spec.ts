@@ -539,6 +539,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
             cy.filterInSearchBox("mp-app-config");
             cy.get('td.col-link-detail > span').contains("mp-app-config").click();
           })
+          cy.accesMenuSelection('Continuous Delivery', 'Clusters');
         }
 
         // Remove labels from the clusters.
@@ -756,6 +757,9 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
             cy.assignClusterLabel(dsCluster, key, value);
           }
         )
+
+        // Adding explicit wait here till the labels are reflected on Clusters.
+        cy.wait(5000);
 
         // Create group of cluster consists of same label.
         cy.clickNavMenu(['Cluster Groups']);

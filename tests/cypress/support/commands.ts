@@ -653,7 +653,7 @@ Cypress.Commands.add('assignClusterLabel', (clusterName, key, value) => {
 // Create clusterGroup based on label assigned to the cluster
 Cypress.Commands.add('createClusterGroup', (clusterGroupName, key, value, bannerMessageToAssert, assignClusterGroupLabel=false, clusterGroupLabelKey, clusterGroupLabelValue) => {
   cy.fleetNamespaceToggle('fleet-default');
-
+  cy.wait(1000);
   cy.clickButton('Create');
   cy.get('input[placeholder="A unique name"]').type(clusterGroupName);
   cy.clickButton('Add Rule');
