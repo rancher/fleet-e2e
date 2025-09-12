@@ -539,10 +539,10 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
             cy.filterInSearchBox("mp-app-config");
             cy.get('td.col-link-detail > span').contains("mp-app-config").click();
           })
-          cy.accesMenuSelection('Continuous Delivery', 'Clusters');
         }
 
         // Remove labels from the clusters.
+        cy.wait(5000);
         cy.accesMenuSelection('Continuous Delivery', 'Clusters');
         dsFirstTwoClusterList.forEach(
           (dsCluster) => {
