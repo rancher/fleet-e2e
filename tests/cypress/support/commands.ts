@@ -637,7 +637,7 @@ Cypress.Commands.add('upgradeFleet', () => {
 
 // Add label to the imported cluster(s)
 Cypress.Commands.add('assignClusterLabel', (clusterName, key, value) => {
-  
+  cy.clickNavMenu(['Clusters']);
   cy.filterInSearchBox(clusterName);
   cy.open3dotsMenu(clusterName, 'Edit Config');
   cy.clickButton('Add Label');
@@ -647,6 +647,24 @@ Cypress.Commands.add('assignClusterLabel', (clusterName, key, value) => {
   cy.clickButton('Save');
   cy.contains('Save').should('not.exist');
   // Navigate back to all clusters page.
+  cy.clickNavMenu(['Clusters']);
+
+  // Below block will ensure cluster Label is added if not added,
+  // it will re-add it.
+  cy.contains('.title', 'Clusters').should('be.visible');
+  cy.filterInSearchBox(clusterName);
+  cy.get('td.col-link-detail > span').contains(clusterName).click();
+  if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
+    cy.get('div.labels > .key-value > .heading > span.count').then($spanLabelCount => {
+      const labelCount = parseInt($spanLabelCount.text().trim());
+      if (labelCount === 2) {
+        cy.log("Cluster Label is Added successfully.")
+      } 
+      else {
+        cy.assignClusterLabel(clusterName, key, value)
+      }
+    })
+  }
   cy.clickNavMenu(['Clusters']);
 })
 
