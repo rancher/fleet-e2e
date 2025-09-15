@@ -251,8 +251,9 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   // in 2.10 an onwards, but it is mandatory for earlier versions
   // To be improved in the future
   const old_versions = ["latest/devel/2.7", "latest/devel/2.8", "latest/devel/2.9"];
+  const old_versions_regex = [/^(prime|prime-optimus|prime-optimus-alpha|alpha)\/2\.(10|[0-9])(\.\d+)*(-[a-zA-Z0-9.-]+)?$/];
 
-  if (old_versions.includes(rancherVersion)) {
+  if (old_versions.includes(rancherVersion) || old_versions_regex.some(r => r.test(rancherVersion))) {
     cy.log('Rancher version is: ' + rancherVersion , 'Clicking WITH force:true');
     cy.get('.top > .ns-filter').click({ force: true });
   }
