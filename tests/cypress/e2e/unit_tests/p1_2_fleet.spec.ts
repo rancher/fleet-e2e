@@ -204,6 +204,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
               }
 
               // Remove labels from the All 3 clusters.
+              cy.accesMenuSelection('Continuous Delivery', 'Clusters');
               dsAllClusterList.forEach(
                 (dsCluster) => {
                   // Adding wait to load page correctly to avoid interference with hamburger-menu.
@@ -403,6 +404,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
           )
 
           // Remove labels from the clusters i.e. imported-0 and imported-1
+          cy.accesMenuSelection('Continuous Delivery', 'Clusters');
           dsFirstTwoClusterList.forEach(
             (dsCluster) => {
               // Adding wait to load page correctly to avoid interference with hamburger-menu.
