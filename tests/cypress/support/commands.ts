@@ -1159,7 +1159,7 @@ Cypress.Commands.add('createCloudCredential', (cloudProvider='Amazon', credentia
   cy.byLabel('Access Key').type(accessKey);
   cy.byLabel('Secret Key').type(secretKey);
   cy.contains('Default Region').should('be.visible').click().then(() => {
-    cy.contains(region).should('be.visible').click();
+    cy.contains(region).should('exist').click();
   });
   cy.clickButton('Create');
   cy.wait(1000);
@@ -1175,13 +1175,15 @@ Cypress.Commands.add('createCloudCluster', (cloudInstanceType, clusterName, subn
 
   cy.accesMenuSelection('Cluster Management', 'Clusters');
   cy.clickButton('Create');
+  cy.wait(1000); // Wait to avoid overlaying issue
   cy.contains('Loading...', { timeout: 20000 }).should('not.exist');
-  cy.contains(cloudInstanceType).should('be.visible').click();
   cy.contains('Cluster: Create').should('be.visible');
+  cy.contains(cloudInstanceType).should('be.visible').click();
   cy.byLabel('Cluster Name').type(clusterName);
   cy.contains('VPC/Subnet').should('be.visible').click().then(() => {
     cy.contains(subnetId).should('be.visible').click();
   });
+
   cy.clickButton('Create');
   cy.wait(2000);
 
