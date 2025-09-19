@@ -764,3 +764,46 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
     )
   })
 };
+
+describe('Test Fleet on AWS EC2 imported cluster', { tags: '@cloud-ds' }, () => {
+
+  // Doownstream cluster provisioning
+  it('Import EC2 cluster into Rancher', () => {
+
+    const cloudProvider = 'Amazon';
+    const credentialName = 'qa-fleet-ec2-cloud-cred';
+    const clusterName = 'qa-fleet-ec2-cluster';
+    const accessKey = Cypress.env('aws_access_key_id');
+    const secretKey = Cypress.env('aws_secret_access_key');
+    const region = 'eu-central-1';
+    const subnetId = 'fleetqa-mmt-subnet-public1-eu-central-1a';
+    const cloudInstance = 'Amazon EC2';
+
+    cy.createCloudCredential(cloudProvider, credentialName, accessKey, secretKey, region);
+    cy.createCloudCluster(cloudInstance, clusterName, subnetId);
+
+  })
+
+  it('Add gitrepo and deploy app to EC2 cluster', () => {
+    
+    const repoName = 'nginx-app';
+    const repoUrl = 'https://github.com/rancher/fleet-test-data/';
+    const branch = 'master';
+    const path = 'qa-test-apps/nginx-app';
+
+    cy.addFleetGitRepo(repoName, repoUrl, branch, path, false);
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', '4/4');    // 4 clusters means gitrepo was deployed to ec2 cluster
+  });
+
+  it('Delete EC2 cluster', () => {
+
+    const clusterName = 'qa-fleet-ec2-cluster';
+
+    cy.deleteDownstreamCluster(clusterName, false);
+    
+  })
+
+});
+
+
