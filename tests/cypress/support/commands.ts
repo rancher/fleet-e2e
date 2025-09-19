@@ -1147,14 +1147,14 @@ Cypress.Commands.add('checkAccessToCreateGitRepoPage', () => {
 });
 
 // Command to create cloud credential
-Cypress.Commands.add('createCloudCredential', (cloudProvider='Amazon', credentialName, accessKey, secretKey, region='us-east-1') => {
+Cypress.Commands.add('createCloudCredential', (cloudProvider='Amazon', credentialName, accessKey, secretKey, region='eu-central-1') => {
   // Delete existing cloud credential if present
   // Create cloud credential
   cy.accesMenuSelection('Cluster Management', 'Cloud Credentials');
   cy.wait(1000); // Wait to avoid overlaying issue
   cy.clickButton('Create');
   cy.contains('Cloud Credential: Create Amazon').should('be.visible');
-  cy.contains(cloudProvider).should('be.visible').click();
+  cy.contains(cloudProvider).should('exist').click();
   cy.byLabel('Credential Name').type(credentialName);
   cy.byLabel('Access Key').type(accessKey);
   cy.byLabel('Secret Key').type(secretKey);

@@ -791,7 +791,7 @@ describe('Test Fleet on AWS EC2 imported cluster', { tags: '@cloud-ds' }, () => 
     const branch = 'master';
     const path = 'qa-test-apps/nginx-app';
 
-    cy.addFleetGitRepo(repoName, repoUrl, branch, path, false);
+    cy.addFleetGitRepo({repoName, repoUrl, branch, path, local: false });
     cy.clickButton('Create');
     cy.verifyTableRow(0, 'Active', '4/4');    // 4 clusters means gitrepo was deployed to ec2 cluster
   });
