@@ -53,6 +53,13 @@ on:
       qase_api_token:
         description: Qase API token to use for Qase reporting
         required: true
+      aws_access_key_id:
+        description: AWS Access Key ID to use to create EC2 instances
+        required: false
+      aws_secret_access_key:
+        description: AWS Secret Access Key to use to create EC2 instances
+        required: false 
+
     inputs:
       branch:
         description: Specify branch name to run workflow on
@@ -328,6 +335,8 @@ jobs:
           AZURE_PRIVATE_PWD: ${{ secrets.azure_private_pwd }}
           RSA_PRIVATE_KEY_QA: ${{ secrets.rsa_private_key_qa }}
           RSA_PUBLIC_KEY_QA: ${{ secrets.rsa_public_key_qa }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           GREPTAGS: ${{ inputs.grep_test_by_tag }}
           UPGRADE: 'false'
           # Add cypress/e2e/unit_tests/user.spec.ts again when implementing RBAC tests.
@@ -423,6 +432,8 @@ jobs:
           AZURE_PRIVATE_PWD: ${{ secrets.azure_private_pwd }}
           RSA_PRIVATE_KEY_QA: ${{ secrets.rsa_private_key_qa }}
           RSA_PUBLIC_KEY_QA: ${{ secrets.rsa_public_key_qa }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
           GREPTAGS: ${{ inputs.grep_test_by_tag }}
           UPGRADE: ${{ inputs.upgrade }}
           FLEET_APP_VERSION: ${{ steps.component.outputs.fleet_app_version }}
