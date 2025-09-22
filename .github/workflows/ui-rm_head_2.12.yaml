@@ -24,10 +24,10 @@ on:
         type: string
         required: true
       grep_test_by_tag:
-        description: Grep tags. For multiple selection separate with spaces. Keep always @login
+        description: Grep tags. For multiple selection separate with spaces. Keep always @login.
         required: false
         type: string
-        default: '@login @p0 @p1 @p1_2 @rbac'
+        default: '@login @p0 @p1 @p1_2 @rbac @special_tests'
   schedule:
     - cron: '40 3 * * *'
 
@@ -59,4 +59,4 @@ jobs:
       upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.33.2+k3s1' }}
       rancher_version: ${{ inputs.rancher_version || 'head/2.12' }}
       qase_run_id: ${{ inputs.qase_run_id || 'auto' }}
-      grep_test_by_tag: ${{ inputs.grep_test_by_tag || '@login @p0 @p1 @p1_2 @rbac' }}
+      grep_test_by_tag: ${{ inputs.grep_test_by_tag || '@login @p0 @p1 @p1_2 @rbac @special_tests' }}

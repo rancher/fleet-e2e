@@ -90,7 +90,7 @@ on:
         description: Grep tags. For multiple selection separate with spaces
         required: false
         type: string
-        default: '@login @p0 @p1 @p1_2 @rbac'
+        default: '@login @p0 @p1 @p1_2 @rbac @special_tests'
       hardening:
         description: Select if desired hardened cluster (if 'true' use only @login @hardening-tests)
         required: false
@@ -348,6 +348,7 @@ jobs:
             cypress/e2e/unit_tests/rbac_fleet.spec.ts
             cypress/e2e/unit_tests/upgrade_fleet.spec.ts
             cypress/e2e/unit_tests/hardened_fleet.spec.ts
+            cypress/e2e/unit_tests/special_fleet_tests.spec.ts
         run: |
           if ${{ inputs.qase_run_id == 'none' }}; then
             # Unset default QASE_* variables when reporting is disabled
