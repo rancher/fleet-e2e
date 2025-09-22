@@ -3,8 +3,7 @@ Copyright © 2023 - 2025 SUSE LLC
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
+You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,15 +21,17 @@ export const path  = "nginx"
 export const sshString = ["Public key and private key for SSH", "Public key and private key for SSH authentication"]
 
 beforeEach(() => {
+
   cy.login();
   cy.visit('/');
   cy.deleteAllFleetRepos();
+
 });
 
 describe('Test Fleet on AWS EC2 imported cluster', { tags: '@cloud_ds' }, () => {
 
     qase(186,
-    // Doownstream cluster provisioning
+        // Cloud downstream cluster provisioning
         it('Import EC2 cluster into Rancher', () => {
 
             const cloudProvider = 'Amazon';
@@ -78,9 +79,10 @@ describe('Test Fleet on AWS EC2 imported cluster', { tags: '@cloud_ds' }, () => 
 // to avoid any interference (i.e: if continuous-delivery feature is not correctly enabled.)
 // To be replaced into other spec file when required.
 describe("Global settings related tests", { tags: '@special_tests'}, () => {
-  if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env('rancher_version'))) {
+  
     qase(156,
       it("Fleet-156: Test gitrepoJobsCleanup is disabled when continuous-delivery feature is off", { tags: '@fleet-156' }, () => {
+
         // Verify is gitrepoJobsCleanup is enabled by default.
         cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
         cy.nameSpaceMenuToggle('All Namespaces');
@@ -105,7 +107,7 @@ describe("Global settings related tests", { tags: '@special_tests'}, () => {
         cy.nameSpaceMenuToggle('All Namespaces');
         cy.filterInSearchBox('fleet-cleanup-gitrepo-jobs');
         cy.verifyTableRow(0, 'Active', 'fleet-cleanup-gitrepo-jobs');
+
       })
     )
-  };
 });

@@ -1148,7 +1148,6 @@ Cypress.Commands.add('checkAccessToCreateGitRepoPage', () => {
 
 // Command to create cloud credential
 Cypress.Commands.add('createCloudCredential', (cloudProvider='Amazon', credentialName, accessKey, secretKey, region='eu-central-1') => {
-  // Delete existing cloud credential if present
   // Create cloud credential
   cy.accesMenuSelection('Cluster Management', 'Cloud Credentials');
   cy.wait(1000); // Wait to avoid overlaying issue
@@ -1205,8 +1204,8 @@ Cypress.Commands.add('createCloudCluster', (cloudInstanceType, clusterName, subn
 Cypress.Commands.add('deleteDownstreamCluster', (clusterName, deleteOption=false) => {
     
   cy.accesMenuSelection('Cluster Management', 'Clusters');
-    cy.filterInSearchBox(clusterName);
-    cy.deleteAll(deleteOption);
-  
+  cy.filterInSearchBox(clusterName);
+  cy.deleteAll(deleteOption);
 
-});
+  }
+);
