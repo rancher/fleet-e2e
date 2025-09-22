@@ -793,6 +793,7 @@ describe('Test Fleet on AWS EC2 imported cluster', { tags: '@cloud-ds' }, () => 
 
     cy.addFleetGitRepo({repoName, repoUrl, branch, path, local: false });
     cy.clickButton('Create');
+    cy.wait(45000); // Adding 45 seconds due to slow comunication and size of ec2 cluster
     cy.verifyTableRow(0, 'Active', '4/4');    // 4 clusters means gitrepo was deployed to ec2 cluster
   });
 
