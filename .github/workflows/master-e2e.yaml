@@ -265,6 +265,9 @@ jobs:
           sudo zypper -n install --no-recommends git
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
           echo "::endgroup::"
+      - name: Install dbus
+        run: |
+          sudo zypper -n install -y dbus
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install Go
