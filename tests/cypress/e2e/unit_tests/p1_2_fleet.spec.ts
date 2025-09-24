@@ -1215,3 +1215,34 @@ describe('Test Fleet bundle status for longhorn-crd', { tags: '@p1_2'}, () => {
     })
   )
 });
+
+describe('Test non-yaml file into bundle.', { tags: '@p1_2'}, () => {
+
+  qase(87,
+
+    it("Fleet-87: Test .fleetignore ignores content of non-yaml file into bundle.", { tags: '@fleet-87' }, () => {
+
+      const repoName = 'test-resource-ignore'
+      const path = "qa-test-apps/fleet-ignore-test"
+
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.clickButton('Create');
+
+      cy.checkGitRepoStatus(repoName, '1 / 1', '3 / 3');
+
+      // Check only nginx application created on each cluster.
+      dsAllClusterList.forEach(
+        (dsCluster) => {
+          cy.checkApplicationStatus("nginx-not-to-be-ignore", dsCluster, 'All Namespaces');
+          // Check ConfigMaps are not present on clusters.
+          // cy.checkApplicationStatus(resourceName, clusterName, Namespace, Present: true/false, firstNav, resourceToCheck);
+          cy.checkApplicationStatus("test-config-map-ignored", dsCluster, 'All Namespaces', false, 'Storage', 'ConfigMaps');
+          cy.checkApplicationStatus("config-map-ignored", dsCluster, 'All Namespaces', false, 'Storage', 'ConfigMaps');
+        }
+      )
+
+      cy.deleteAllFleetRepos();
+
+    })
+  )
+});
