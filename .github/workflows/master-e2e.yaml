@@ -265,9 +265,6 @@ jobs:
           sudo zypper -n install --no-recommends git
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
           echo "::endgroup::"
-      - name: Install dbus
-        run: |
-          sudo zypper install -y dbus-1-glib
       - name: Checkout
         uses: actions/checkout@v5
       - name: Install Go
@@ -283,7 +280,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version: current
       - name: Install prerequisite components
         env:
           PUBLIC_DNS: ${{ needs.create-runner.outputs.public_dns }}
