@@ -267,7 +267,7 @@ jobs:
           echo "::endgroup::"
       - name: Install dbus
         run: |
-          sudo zypper -n install -y dbus
+          sudo zypper install -y dbus-1-glib
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install Go
