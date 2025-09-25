@@ -1230,12 +1230,12 @@ describe('Test non-yaml file into bundle.', { tags: '@p1_2'}, () => {
 
       cy.checkGitRepoStatus(repoName, '1 / 1', '3 / 3');
 
-      // Check only nginx application created on each cluster.
       dsAllClusterList.forEach(
         (dsCluster) => {
+          // Verify only nginx application created on each cluster.
           cy.checkApplicationStatus("nginx-not-to-be-ignore", dsCluster, 'All Namespaces');
-          // Check ConfigMaps are not present on clusters.
-          // cy.checkApplicationStatus(resourceName, clusterName, Namespace, Present: true/false, firstNav, resourceToCheck);
+
+          // Verify that No ConfigMaps is created which is present on the path.
           cy.checkApplicationStatus("test-config-map-ignored", dsCluster, 'All Namespaces', false, 'Storage', 'ConfigMaps');
           cy.checkApplicationStatus("config-map-ignored", dsCluster, 'All Namespaces', false, 'Storage', 'ConfigMaps');
         }
