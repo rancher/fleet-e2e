@@ -1405,3 +1405,58 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
     })
   )
 });
+
+describe('Test Fleet doNotDeploy.', { tags: '@p1_2'}, () => {
+  const key = "key_resources"
+  const value = "deploy_true"
+
+  beforeEach('Cleanup leftover GitRepo or cluster labels if any.', () => {
+    cy.login();
+    cy.visit('/');
+    cy.deleteAllFleetRepos();
+    // Remove labels from the clusters.
+    dsAllClusterList.forEach(
+      (dsCluster) => {
+        // Adding wait to load page correctly to avoid interference with hamburger-menu.
+        cy.wait(500);
+        cy.removeClusterLabels(dsCluster, key, value);
+      }
+    )
+  })
+
+  qase(88,
+
+    it("Fleet-88: Test bundle did not get deploy when doNotDeploy value set to true option is used in the fleet.yaml.", { tags: '@fleet-88' }, () => {
+
+      const repoName = 'test-donot-deploy-true'
+      const path = "qa-test-apps/do-not-deploy/true"
+
+      // Assign label (similar to label mentioned in fleet.yaml file.) to All the clusters
+      dsAllClusterList.forEach(
+        (dsCluster) => {
+          cy.assignClusterLabel(dsCluster, key, value);
+        }
+      )
+
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.clickButton('Create');
+
+      // Verify GitRepo is not targeting to any clusters as doNotDeploy is set true.
+      cy.verifyTableRow(0, 'Active', repoName);
+      cy.contains(repoName).click()
+      cy.get('.primaryheader > h1, h1 > span.resource-name.masthead-resource-title').contains(repoName).should('be.visible')
+      cy.get("[data-testid='banner-content']").should('exist').contains('This GitRepo is not targeting any clusters');
+
+      // Verify nginx application not deployed clusters as doNotDeploy is set true.
+      dsAllClusterList.forEach(
+        (dsCluster) => {
+          // 'false' option in below command is used to check the absence of given resource.
+          cy.checkApplicationStatus("nginx-donot-deploy", dsCluster, 'All Namespaces', false);
+        }
+      )
+
+      cy.deleteAllFleetRepos();
+
+    })
+  )
+});
