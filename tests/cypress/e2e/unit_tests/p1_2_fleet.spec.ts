@@ -1414,6 +1414,7 @@ describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.'
     cy.login();
     cy.visit('/');
     // Remove labels from the clusters.
+    cy.accesMenuSelection('Continuous Delivery', 'Clusters');
     dsAllClusterList.forEach(
       (dsCluster) => {
         // Adding wait to load page correctly to avoid interference with hamburger-menu.
@@ -1444,7 +1445,7 @@ describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.'
       cy.verifyTableRow(0, 'Active', repoName);
       cy.contains(repoName).click()
       cy.get('.primaryheader > h1, h1 > span.resource-name.masthead-resource-title').contains(repoName).should('be.visible')
-      cy.get("[data-testid='banner-content']").should('exist').contains('This GitRepo is not targeting any clusters');
+      cy.get("[data-testid='banner-content']").should('exist').contains('This git repo is not targeting any clusters');
 
       // Verify nginx application not deployed clusters as doNotDeploy is set true.
       dsAllClusterList.forEach(
