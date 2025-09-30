@@ -207,6 +207,42 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
   }
 });
 
+// Add Helm Op
+Cypress.Commands.add('addHelmOp', ({ local=false, repoName, repoUrl, chart, version, values, deployTo, serviceAccountName, targetNamespace, helmAuth }) => {
+
+  cy.accesMenuSelection('Continuous Delivery', 'Resources', 'Helm Ops');
+  cy.fleetNamespaceToggle(local);
+  cy.clickButton('Create Helm Op');
+
+    
+  cy.typeValue('Name', repoName);
+  cy.clickButton('Next');
+
+  cy.typeValue('Repository URL', repoUrl);
+  cy.typeValue('Chart', chart);
+  cy.typeValue('Version', version);
+
+  if (values) {
+    cy.typeIntoCanvasTermnal(values);
+    cy.clickButton('Next');
+  }
+  
+  if (deployTo) {
+    cy.contains(deployTo).should('be.visible').click();
+    cy.typeValue('Service Account Name', serviceAccountName);
+    cy.typeValue('Target Namespace', targetNamespace);
+    // Here we do not add click Next as is present in the follosing step
+  }
+
+  cy.get('div.step-sequence)').contains('Advanced').should('be.visible').click();
+
+  if (helmAuth) {
+    // Add logic
+  }
+
+  cy.clickButton('Create');
+});
+
 // Deploy To target functionality used in addGitRepo
 // TODO: Remove div.labeled-select.create.hoverable, div.labeled-select.edit.hoverable locators, once 2.8 is disabled.
 Cypress.Commands.add('deployToClusterOrClusterGroup', (deployToTarget) => {
