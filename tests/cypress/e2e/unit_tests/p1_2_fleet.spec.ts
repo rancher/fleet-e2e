@@ -1406,14 +1406,13 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
   )
 });
 
-describe('Test Fleet doNotDeploy.', { tags: '@p1_2'}, () => {
+describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.', { tags: '@p1_2'}, () => {
   const key = "key_resources"
   const value = "deploy_true"
 
-  beforeEach('Cleanup leftover GitRepo or cluster labels if any.', () => {
+  beforeEach('Cleanup leftover Cluster labels if any.', () => {
     cy.login();
     cy.visit('/');
-    cy.deleteAllFleetRepos();
     // Remove labels from the clusters.
     dsAllClusterList.forEach(
       (dsCluster) => {
