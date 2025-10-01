@@ -1064,7 +1064,7 @@ describe('Test move cluster to newly created workspace and deploy application to
   )
 });
 
-// Test to verify that HTML content from Helm Op's error messages is removed
+
 describe('Test no HTML error messages in HelmOps', { tags: '@p1_2' }, () => {
 
   qase(190,

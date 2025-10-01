@@ -230,6 +230,7 @@ Cypress.Commands.add('addHelmOp', ({ fleetNamespace='fleet-local', repoName, rep
     cy.clickButton('Next');
   }
   
+  // TODO: add logic if we want to select specific cluster.
   if (deployTo) {
     cy.contains(deployTo).should('be.visible').click();
     cy.typeValue('Service Account Name', serviceAccountName);
@@ -240,7 +241,7 @@ Cypress.Commands.add('addHelmOp', ({ fleetNamespace='fleet-local', repoName, rep
   cy.get('span.controls').contains('Advanced').should('be.visible').click();
 
   if (helmAuth) {
-    // Add logic
+    // TODO: Add logic
   }
 
   cy.clickButton('Create');
