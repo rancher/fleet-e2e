@@ -1407,6 +1407,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
 });
 
 describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.', { tags: '@p1_2'}, () => {
+
   const key = "key_resources"
   const value = "deploy_true"
 
@@ -1426,7 +1427,7 @@ describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.'
 
   qase(88,
 
-    it("Fleet-88: Test bundle did not get deploy when doNotDeploy value set to true option is used in the fleet.yaml.", { tags: '@fleet-88' }, () => {
+    it("Fleet-88: Test bundle did not get deployed when 'doNotDeploy' value set to `true` option is used in the 'fleet.yaml' file.", { tags: '@fleet-88' }, () => {
 
       const repoName = 'test-donot-deploy-true'
       const path = "qa-test-apps/do-not-deploy/true"
