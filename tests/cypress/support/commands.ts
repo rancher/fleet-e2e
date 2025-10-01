@@ -208,10 +208,10 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
 });
 
 // Add Helm Op
-Cypress.Commands.add('addHelmOp', ({ local=false, repoName, repoUrl, chart, version, values, deployTo, serviceAccountName, targetNamespace, helmAuth }) => {
+Cypress.Commands.add('addHelmOp', ({ fleetNamespace='fleet-local', repoName, repoUrl, chart, version, values, deployTo, serviceAccountName, targetNamespace, helmAuth }) => {
 
   cy.accesMenuSelection('Continuous Delivery', 'Resources', 'Helm Ops');
-  cy.fleetNamespaceToggle(local);
+  cy.fleetNamespaceToggle(fleetNamespace);
   cy.clickButton('Create Helm Op');
 
     
@@ -220,7 +220,10 @@ Cypress.Commands.add('addHelmOp', ({ local=false, repoName, repoUrl, chart, vers
 
   cy.typeValue('Repository URL', repoUrl);
   cy.typeValue('Chart', chart);
-  cy.typeValue('Version', version);
+
+  if (version) {
+    cy.typeValue('Version', version);
+  }
 
   if (values) {
     cy.typeIntoCanvasTermnal(values);
@@ -234,7 +237,7 @@ Cypress.Commands.add('addHelmOp', ({ local=false, repoName, repoUrl, chart, vers
     // Here we do not add click Next as is present in the follosing step
   }
 
-  cy.get('div.step-sequence)').contains('Advanced').should('be.visible').click();
+  cy.get('span.controls').contains('Advanced').should('be.visible').click();
 
   if (helmAuth) {
     // Add logic
