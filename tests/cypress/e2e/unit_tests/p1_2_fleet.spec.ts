@@ -1430,6 +1430,11 @@ describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.'
 
       const repoName = 'test-donot-deploy-true'
       const path = "qa-test-apps/do-not-deploy/true"
+      let gitRepoWord = "git repo"
+
+      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
+        gitRepoWord = "GitRepo"
+      }
 
       // Assign label (similar to label mentioned in fleet.yaml file.) to All the clusters
       dsAllClusterList.forEach(
@@ -1445,7 +1450,7 @@ describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.'
       cy.verifyTableRow(0, 'Active', repoName);
       cy.contains(repoName).click()
       cy.get('.primaryheader > h1, h1 > span.resource-name.masthead-resource-title').contains(repoName).should('be.visible')
-      cy.get("[data-testid='banner-content']").should('exist').contains('This git repo is not targeting any clusters');
+      cy.get("[data-testid='banner-content']").should('exist').contains(`This ${gitRepoWord} is not targeting any clusters`);
 
       // Verify nginx application not deployed clusters as doNotDeploy is set true.
       dsAllClusterList.forEach(
