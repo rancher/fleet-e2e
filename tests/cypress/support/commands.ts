@@ -46,7 +46,9 @@ Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPub
   }
 
   if (gitAuthType === 'http') {
-    cy.typeValue('Username', userOrPublicKey, false,  false );
+    if (userOrPublicKey) {
+      cy.typeValue('Username', userOrPublicKey, false,  false );
+    }
     cy.typeValue('Password', pwdOrPrivateKey, false,  false );
   }
   
@@ -181,6 +183,10 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
   if (gitAuthType) {
     cy.gitRepoAuth(gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex);
   }
+
+  // if (gitAuthType && !userOrPublicKey) {
+  //   cy.gitRepoAuth(gitOrHelmAuth, gitAuthType, pwdOrPrivateKey, helmUrlRegex);
+  // }
 
   if (tlsOption) {
     cy.contains(`TLS Certificate Verification`).click();
