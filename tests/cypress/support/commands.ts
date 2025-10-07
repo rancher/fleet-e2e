@@ -184,10 +184,6 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
     cy.gitRepoAuth(gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex);
   }
 
-  // if (gitAuthType && !userOrPublicKey) {
-  //   cy.gitRepoAuth(gitOrHelmAuth, gitAuthType, pwdOrPrivateKey, helmUrlRegex);
-  // }
-
   if (tlsOption) {
     cy.contains(`TLS Certificate Verification`).click();
     // Select the TLS option
