@@ -575,7 +575,7 @@ describe('Test GitRepo Bundle do not show hash mismatch error.', { tags: '@p1'},
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
       cy.clickButton('Create');
       cy.verifyTableRow(0, 'Active', repoName);
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '3 / 3');
 
       // Bundle hash mismatch error will occurs when bundle reconciler, 
       // reconciles bundle which has long description in Chart.yaml and/or
