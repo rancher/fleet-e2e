@@ -320,8 +320,31 @@ Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) =>
       cy.wait(500);
       cy.get('body', { timeout: 10000 }).then(($body) => {
         if ($body.find('.card-title > h4').text().includes('Force Update')) {
-          cy.get('[data-testid="deactivate-driver-confirm"] > span').should('be.visible').click();
-        }    
+          const buttonSelector = '[data-testid="deactivate-driver-confirm"] > span';
+
+          cy.get(buttonSelector)
+            .should('be.visible')
+            .and('contain.text', 'Update')
+            .click();
+
+          cy.get(buttonSelector, { timeout: 30000 }).then(($btn) => {
+            const text = $btn.text().trim();
+
+            if (text === 'Update') {
+              cy.log('No need to click on Update again.');
+            } else {
+              cy.get(buttonSelector, { timeout: 30000 })
+                .should(($btn) => {
+                  expect($btn.text().trim()).to.eq('Update');
+                });
+
+              cy.get(buttonSelector)
+                .should('be.visible')
+                .and('contain.text', 'Update')
+                .click();
+            }
+          });
+        }
       })
     };
     // Ensure dropdown is not present
