@@ -1086,7 +1086,7 @@ if (!/\/2\.11/.test(Cypress.env('rancher_version'))) {
 
         cy.addHelmOp({ 
           fleetNamespace: 'fleet-default', 
-          repoName: 'helmapp-grafana',
+          repoName: 'helmapp-grafana-fixed-version',
           repoUrl: 'https://grafana.github.io/helm-charts',
           chart: 'grafana',
           version: '10.1.0',
@@ -1102,7 +1102,7 @@ if (!/\/2\.11/.test(Cypress.env('rancher_version'))) {
 
         cy.addHelmOp({ 
           fleetNamespace: 'fleet-local', 
-          repoName: 'helmapp-grafana',
+          repoName: 'helmapp-grafana-bad-version',
           repoUrl: 'https://grafana.github.io/helm-charts',
           chart: 'grafana',
           version: '999999999'
