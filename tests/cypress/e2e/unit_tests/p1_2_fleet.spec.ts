@@ -1065,7 +1065,7 @@ describe('Test move cluster to newly created workspace and deploy application to
 });
 
 if (!/\/2\.11/.test(Cypress.env('rancher_version'))) {
-  describe.only('Test HelmOps', { tags: '@p1_2' }, () => {
+  describe('Test HelmOps', { tags: '@p1_2' }, () => {
 
     qase(165, 
       it('FLEET-165: Test basic HelmOps creation', { tags: '@fleet-165' }, () => {
@@ -1123,6 +1123,7 @@ if (!/\/2\.11/.test(Cypress.env('rancher_version'))) {
         });
 
         cy.contains('Could not get a chart version: failed to read helm repo from https://github.com/rancher/index.yaml, error code: 404').should('be.visible');      
+        cy.contains('DOCTYPE html').should('not.exist');
 
       })
     );
