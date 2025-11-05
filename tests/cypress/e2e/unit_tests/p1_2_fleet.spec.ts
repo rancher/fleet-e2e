@@ -1085,11 +1085,12 @@ if (!/\/2\.11/.test(Cypress.env('rancher_version'))) {
       it('FLEET-197: Test Helmops creation with a fixed version', { tags: '@fleet-197' }, () => {
 
         cy.addHelmOp({ 
-          fleetNamespace: 'fleet-local', 
+          fleetNamespace: 'fleet-default', 
           repoName: 'helmapp-grafana',
           repoUrl: 'https://grafana.github.io/helm-charts',
           chart: 'grafana',
-          version: '10.1.0'
+          version: '10.1.0',
+          deployTo: 'All Clusters'
         });
 
         cy.verifyTableRow(0, 'Active', '10.1.0');
