@@ -1546,7 +1546,7 @@ if (!/\/2\.11/.test(Cypress.env('rancher_version')) && !/\/2\.12/.test(Cypress.e
   
   describe('Test Git App wit Fleet', { tags: '@p1_2'}, () => {
     qase(199,
-      it.only("Fleet-199: Test Git App deployment using Fleet.", { tags: '@fleet-199' }, () => {
+      it("Fleet-199: Test Git App deployment using Fleet.", { tags: '@fleet-199' }, () => {
 
         const github_app_id = Cypress.env("gh_app_id")
         const github_app_installation_id = Cypress.env("gh_app_installation_id")
@@ -1573,7 +1573,7 @@ if (!/\/2\.11/.test(Cypress.env('rancher_version')) && !/\/2\.12/.test(Cypress.e
 
         cy.get("section[id='data'] input[placeholder='e.g. foo']").eq(2).type('github_app_private_key');
         cy.get("section[id='data'] textarea[placeholder='e.g. bar']").eq(2).type(github_app_private_key, false);
-        cy.wait(2000)
+        cy.wait(2000);
         cy.clickButton('Create');
 
         // Create GitRepo and validate active status
