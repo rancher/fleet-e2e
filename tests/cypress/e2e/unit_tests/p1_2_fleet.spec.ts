@@ -1556,7 +1556,11 @@ if (!/\/2\.11/.test(Cypress.env('rancher_version')) && !/\/2\.12/.test(Cypress.e
         cy.accesMenuSelection('local', 'Storage', 'Secrets');
         cy.clickButton('Create');
         cy.get('div.title.with-description').contains('Opaque').should('be.visible').click();
-        cy.typeValue('Name', 'github-app-secret');
+        cy.get('div[data-testid="name-ns-description-namespace"]').click();
+        cy.wait(500)
+        cy.get('li>div[class="vs__option-kind"]').contains('fleet-local').click();
+        cy.wait(500) 
+        cy.typeValue('Name', 'github-app-secret');  
 
         cy.get("section[id='data'] input[placeholder='e.g. foo']").type('github_app_id');
         cy.get("section[id='data'] textarea[placeholder='e.g. bar']").type(github_app_id);
