@@ -1554,12 +1554,13 @@ if (!/\/2\.11/.test(Cypress.env('rancher_version')) && !/\/2\.12/.test(Cypress.e
 
         // Create secret from UI
         cy.accesMenuSelection('local', 'Storage', 'Secrets');
+        cy.nameSpaceMenuToggle('All Namespaces');
         cy.clickButton('Create');
         cy.get('div.title.with-description').contains('Opaque').should('be.visible').click();
-        cy.get('div[data-testid="name-ns-description-namespace"]').click();
-        cy.wait(500)
-        cy.get('li>div[class="vs__option-kind"]').contains('fleet-local').click();
-        cy.wait(500) 
+        cy.get('div[data-testid="name-ns-description-namespace"]').should('exist').click();
+
+        // This is necessary to select 'fleet-local' from the dropdown and not 'cattle-fleet-local-system' option
+        cy.get("div.vs__option-kind").contains('fleet-local ').should('be.visible').click();
         cy.typeValue('Name', 'github-app-secret');  
 
         cy.get("section[id='data'] input[placeholder='e.g. foo']").type('github_app_id');
