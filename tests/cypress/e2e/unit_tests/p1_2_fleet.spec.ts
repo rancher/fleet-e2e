@@ -1544,7 +1544,7 @@ describe('Test Fleet `doNotDeploy: false` will deploy resources to all clusters.
 
 if (!/\/2\.11/.test(Cypress.env('rancher_version')) && !/\/2\.12/.test(Cypress.env('rancher_version'))) {
   
-  describe('Test Git App wit Fleet', { tags: '@p1_2'}, () => {
+  describe('Test Git App with Fleet', { tags: '@p1_2'}, () => {
     qase(199,
       it("Fleet-199: Test Git App deployment using Fleet.", { tags: '@fleet-199' }, () => {
 
