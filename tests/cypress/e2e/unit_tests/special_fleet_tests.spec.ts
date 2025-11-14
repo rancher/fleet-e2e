@@ -100,10 +100,16 @@ describe('Agent Scheduling Customization', { tags: '@special_tests' }, () => {
         cm.setValue(newYaml);
       });
       cy.clickButton('Save');
+      
+      // Verify the cluster is still Active
+      cy.accesMenuSelection('Continuous Delivery', 'Clusters ');
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.wait(2000); // Wait to allow time to the status to reach "Wait" before verifying"
       cy.verifyTableRow(0, 'Active', '1');
 
       // Verify PriorityClass and PodDisruptionBudget
       cy.accesMenuSelection('local', 'Policy', 'Pod Disruption Budgets');
+      cy.nameSpaceMenuToggle('All Namespaces');
       cy.verifyTableRow(0, 'fleet-agent', '3');
       cy.accesMenuSelection('local', 'More Resources', 'Scheduling');
       cy.contains('PriorityClasses').click();
