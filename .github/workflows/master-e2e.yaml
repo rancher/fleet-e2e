@@ -99,7 +99,7 @@ on:
         description: Grep tags. For multiple selection separate with spaces
         required: false
         type: string
-        default: '@login @p0 @p1 @p1_2 @rbac @special_tests'
+        default: '@login @p0 @p1 @p1_2 @p1_3 @rbac @special_tests'
       hardening:
         description: Select if desired hardened cluster (if 'true' use only @login @hardening-tests)
         required: false
