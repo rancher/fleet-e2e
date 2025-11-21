@@ -1583,3 +1583,50 @@ if (!/\/2\.11/.test(Cypress.env('rancher_version')) && !/\/2\.12/.test(Cypress.e
     )
   }); 
 };
+
+if (!/\/2\.11/.test(Cypress.env('rancher_version'))) {
+  describe('Test availability of annotation created-by-user-id in YAML not in UI.', { tags: '@p1_2'}, () => {
+
+  qase(192,
+
+    it("Fleet-192: Test username to log messages, created resources and user-id is only available in YAML not in UI.", { tags: '@fleet-192' }, () => {
+
+      const repoName = 'test-created-by-user-id'
+
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active', repoName);
+      cy.contains(repoName)
+        .click();
+
+      // Get the YAML view of GitRepo by clicking on Show Configuration.
+      // Verify annotation 'fleet.cattle.io/created-by-user-id: user-' is present on GitRepo YAML.
+      cy.clickButton('Show Configuration');
+      cy.get('[data-testid="btn-yaml-tab"]')
+        .contains('YAML')
+        .click();
+      cy.contains('fleet.cattle.io/created-by-user-id: user-')
+        .should('be.visible');
+
+      cy.clickButton('Close');
+
+      // Verify annotation 'fleet.cattle.io/created-by-user-id: user-' is present on Bundle YAML.
+      cy.continuousDeliveryBundlesMenu();
+      cy.filterInSearchBox(repoName);
+
+      cy.contains(repoName)
+        .click();
+
+      cy.clickButton('Show Configuration');
+      cy.get('[data-testid="btn-yaml-tab"]')
+        .contains('YAML')
+        .click();
+
+      cy.contains('fleet.cattle.io/created-by-user-id: user-')
+        .should('be.visible');
+
+      cy.clickButton('Close');
+      })
+  )
+  });
+}
