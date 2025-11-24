@@ -1607,3 +1607,83 @@ describe('Test GitRepo shows Active state for missing resources when `diff` used
     })
   )
 })
+
+describe('Test bundle deploy with overrideTargets by label availability on clusters.', { tags: '@p1_2'}, () => {
+
+  qase(92,
+    it("Fleet-92: Test bundle did not get deploy on the target mentioned in the GitRepo when `overrideTargets` is set in the `fleet.yaml` when label is missing on cluster.", { tags: '@fleet-92' }, () => {
+
+      const repoName = 'test-override-targets'
+      const path = "qa-test-apps/overrideTargets"
+
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active', repoName);
+
+      // Verify that the GitRepo is not targeting any cluster
+      // due to the absence of the label specified in `overrideTargets`.
+      cy.verifyTableRow(0, 'Active', repoName);
+      cy.contains(repoName).click();
+      cy.get('[data-testid="banner-content"]')
+        .should('be.visible')
+        .should('contain', 'This GitRepo is not targeting any clusters');
+
+      // Verify `nginx-override-test` deployment/pod is not present on clusters.
+      dsAllClusterList.forEach(
+        (dsCluster) => {
+          // 'false' option in below command is used to check the absence of given resource.
+          cy.checkApplicationStatus("nginx-override-test", dsCluster, 'All Namespaces', false);
+        }
+      )
+    })
+  )
+
+  qase(93,
+    it("Fleet-93: Test bundle get deploy on the target mentioned in the GitRepo provided that `overrideTargets` is present in the `fleet.yaml` after adding label on cluster.", { tags: '@fleet-93' }, () => {
+
+      const repoName = 'test-override-targets-with-label'
+      const path = "qa-test-apps/overrideTargets"
+      const key = 'env'
+      const value = 'override'
+
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active', repoName);
+
+      // Verify that the GitRepo is not targeting any cluster
+      // due to the absence of the label specified in `overrideTargets`.
+      cy.verifyTableRow(0, 'Active', repoName);
+      cy.contains(repoName).click();
+      cy.get('[data-testid="banner-content"]')
+        .should('be.visible')
+        .should('contain', 'This GitRepo is not targeting any clusters');
+
+      // Assign label (similar to label mentioned in fleet.yaml file.) to All the clusters
+      dsAllClusterList.forEach(
+        (dsCluster) => {
+          cy.assignClusterLabel(dsCluster, key, value);
+        }
+      )
+
+      cy.continuousDeliveryMenuSelection();
+      cy.verifyTableRow(0, 'Active', repoName);
+      cy.checkGitRepoStatus(repoName, '1 / 1', '3 / 3');
+
+      // Verify `nginx-override-test` deployment/pod is present on All clusters with label.
+      dsAllClusterList.forEach(
+        (dsCluster) => {
+          cy.checkApplicationStatus("nginx-override-test", dsCluster, 'All Namespaces');
+        }
+      )
+
+      // Remove labels from the clusters.
+      dsAllClusterList.forEach(
+        (dsCluster) => {
+          // Adding wait to load page correctly to avoid interference with hamburger-menu.
+          cy.wait(500);
+          cy.removeClusterLabels(dsCluster, key, value);
+        }
+      )
+    })
+  )
+});
