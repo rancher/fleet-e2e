@@ -1575,3 +1575,56 @@ if (!/\/2\.11/.test(Cypress.env('rancher_version'))) {
   )
   });
 }
+
+describe('Test helm chart dependency download with `disableDependencyUpdate: true/false`', { tags: '@p1_2'}, () => {
+
+  qase(129,
+
+    it("Fleet-129: Test dependency should be downloaded along with the application when `disableDependencyUpdate` is set to `true` in `fleet.yaml`.", { tags: '@fleet-129' }, () => {
+
+      const repoName = 'test-disable-dependency-false-helm-chart'
+      const path = "qa-test-apps/disable-dependency-update/true"
+
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active', repoName);
+
+      // Dependency will not installed, due to which resources count does not include dependencies in it.
+      cy.checkGitRepoStatus(repoName, '1 / 1', '18 / 18');
+
+      // Verify `postgresql` dependency is not installed as `disableDependencyUpdate` is set to `true`.
+      dsAllClusterList.forEach(
+        (dsCluster) => {
+          // 'false' option in below command is used to check the absence of given resource.
+          cy.checkApplicationStatus("no-dependency-download-postgresql", dsCluster, 'All Namespaces', false);
+        }
+      )
+
+    })
+  )
+
+  qase(130,
+
+    it("Fleet-130: Test dependency should be downloaded along with the application when `disableDependencyUpdate` is set to `false` in `fleet.yaml`.", { tags: '@fleet-130' }, () => {
+
+      const repoName = 'test-disable-dependency-true-helm-chart'
+      const path = "qa-test-apps/disable-dependency-update/false"
+      const timeout = 40000
+
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active', repoName);
+
+      // Dependency will get installed, due to which resources count includes dependencies in it.
+      cy.checkGitRepoStatus(repoName, '1 / 1', '39 / 39', timeout);
+
+      // Verify `postgresql` dependency is installed as `disableDependencyUpdate` is set to `false`.
+      dsAllClusterList.forEach(
+        (dsCluster) => {
+          cy.checkApplicationStatus("no-dependency-download-postgresql", dsCluster, 'All Namespaces');
+        }
+      )
+
+    })
+  )
+});
