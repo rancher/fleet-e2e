@@ -134,7 +134,7 @@ describe('Test move cluster to newly created workspace and deploy application to
       const flagName = "provisioningv2-fleet-workspace-back-population"
       const newWorkspaceName = "new-fleet-workspace"
       const fleetDefault = "fleet-default"
-      let timeout = 40000
+      let timeout = 30000
 
       //Version check for 2.12 (head)
       if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
