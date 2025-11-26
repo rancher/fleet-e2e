@@ -107,8 +107,6 @@ describe('Agent Scheduling Customization', { tags: '@special_tests' }, () => {
       cy.clickButton('Save');
       
       // Verify the cluster is still Active
-      cy.accesMenuSelection('Continuous Delivery', 'Clusters ');
-      cy.fleetNamespaceToggle('fleet-local');
       cy.wait(2000); // Wait to allow time to the status to reach "Wait" before verifying"
       cy.verifyTableRow(0, 'Active', '1');
 
