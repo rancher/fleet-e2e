@@ -1579,7 +1579,6 @@ if (!/\/2\.11/.test(Cypress.env('rancher_version'))) {
 describe('Test helm chart dependency download with `disableDependencyUpdate: true/false`', { tags: '@p1_2'}, () => {
 
   qase(129,
-
     it("Fleet-129: Test dependency should be downloaded along with the application when `disableDependencyUpdate` is set to `true` in `fleet.yaml`.", { tags: '@fleet-129' }, () => {
 
       const repoName = 'test-disable-dependency-false-helm-chart'
@@ -1599,12 +1598,10 @@ describe('Test helm chart dependency download with `disableDependencyUpdate: tru
           cy.checkApplicationStatus("no-dependency-download-postgresql", dsCluster, 'All Namespaces', false);
         }
       )
-
     })
   )
 
   qase(130,
-
     it("Fleet-130: Test dependency should be downloaded along with the application when `disableDependencyUpdate` is set to `false` in `fleet.yaml`.", { tags: '@fleet-130' }, () => {
 
       const repoName = 'test-disable-dependency-true-helm-chart'
@@ -1624,7 +1621,6 @@ describe('Test helm chart dependency download with `disableDependencyUpdate: tru
           cy.checkApplicationStatus("no-dependency-download-postgresql", dsCluster, 'All Namespaces');
         }
       )
-
     })
   )
 });
