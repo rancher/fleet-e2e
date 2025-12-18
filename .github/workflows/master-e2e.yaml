@@ -565,42 +565,42 @@ jobs:
             --delete-disks all \
             --zone ${{ inputs.zone }}
 
-  post-qase:
-    if: ${{ always() && needs.pre-qase.outputs.qase_run_id != '' }}
-    needs: [e2e, pre-qase]
-    runs-on: ubuntu-latest
-    env:
-      QASE_API_TOKEN: ${{ secrets.qase_api_token }}
-      QASE_PROJECT_CODE: FLEET
-      QASE_REPORT: 1
-      QASE_RUN_COMPLETE: 1
-      QASE_RUN_ID: ${{ needs.pre-qase.outputs.qase_run_id }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+  # post-qase:
+  #   if: ${{ always() && needs.pre-qase.outputs.qase_run_id != '' }}
+  #   needs: [e2e, pre-qase]
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     QASE_API_TOKEN: ${{ secrets.qase_api_token }}
+  #     QASE_PROJECT_CODE: FLEET
+  #     QASE_REPORT: 1
+  #     QASE_RUN_COMPLETE: 1
+  #     QASE_RUN_ID: ${{ needs.pre-qase.outputs.qase_run_id }}
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v5
 
-      - name: Setup Go
-        uses: actions/setup-go@v6
-        with:
-          cache-dependency-path: tests/go.sum
-          go-version-file: tests/go.mod
+  #     - name: Setup Go
+  #       uses: actions/setup-go@v6
+  #       with:
+  #         cache-dependency-path: tests/go.sum
+  #         go-version-file: tests/go.mod
 
-      - name: Finalize Qase Run and publish Results
-        if: ${{ always() && !contains(needs.e2e.result, 'cancelled') }}
-        run: |
-          REPORT=$(cd tests && make publish-qase-run)
-          echo "${REPORT}"
+  #     - name: Finalize Qase Run and publish Results
+  #       if: ${{ always() && !contains(needs.e2e.result, 'cancelled') }}
+  #       run: |
+  #         REPORT=$(cd tests && make publish-qase-run)
+  #         echo "${REPORT}"
 
-          # Extract report URL and put it in summary
-          REPORT_URL=$(awk '/available:/ { print $NF }' <<<${REPORT})
-          if [[ -n "${REPORT_URL}" ]]; then
-            echo "## QASE Reporting" >> ${GITHUB_STEP_SUMMARY}
-            echo "Public Qase report: ${REPORT_URL}" >> ${GITHUB_STEP_SUMMARY}
-          fi
+  #         # Extract report URL and put it in summary
+  #         REPORT_URL=$(awk '/available:/ { print $NF }' <<<${REPORT})
+  #         if [[ -n "${REPORT_URL}" ]]; then
+  #           echo "## QASE Reporting" >> ${GITHUB_STEP_SUMMARY}
+  #           echo "Public Qase report: ${REPORT_URL}" >> ${GITHUB_STEP_SUMMARY}
+  #         fi
 
-      - name: Delete Qase Run if job has been cancelled
-        if: ${{ always() && contains(needs.e2e.result, 'cancelled') }}
-        run: cd tests && make delete-qase-run
+  #     - name: Delete Qase Run if job has been cancelled
+  #       if: ${{ always() && contains(needs.e2e.result, 'cancelled') }}
+  #       run: cd tests && make delete-qase-run
 
   # Just to signify that something has been cancelled and it's not useful to check the test
   declare-cancelled:
