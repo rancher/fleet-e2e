@@ -12,7 +12,7 @@ limitations under the License.
 */
 
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
-import { qase } from 'cypress-qase-reporter/dist/mocha';
+import { qase } from 'cypress-qase-reporter/mocha';
 
 export const rancherVersion = Cypress.env('rancher_version');
 export const supported_versions_212_and_above = [

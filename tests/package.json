@@ -37,6 +37,7 @@
     "@cypress/grep": "^4.1.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
+    "cypress-qase-reporter": "^3.0.3",
     "eslint-plugin-cypress": "^2.15.2"
   }
 }

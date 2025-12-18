@@ -13,7 +13,7 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
-import { qase } from 'cypress-qase-reporter/dist/mocha';
+import { qase } from 'cypress-qase-reporter/mocha';
 
 export const branch = "master";
 export let upgrade = Cypress.env('upgrade') === 'true'

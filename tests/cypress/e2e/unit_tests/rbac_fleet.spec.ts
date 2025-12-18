@@ -14,7 +14,7 @@ limitations under the License.
 
 import 'cypress/support/commands';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
-import { qase } from 'cypress-qase-reporter/dist/mocha';
+import { qase } from 'cypress-qase-reporter/mocha';
 
 // General constants
 export const uiPassword    = "rancherpassword"

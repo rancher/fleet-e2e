@@ -28,7 +28,7 @@ module.exports = (on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions)
   const { isFileExist, findFiles } = require('cy-verify-downloads');
   on('task', { isFileExist, findFiles })
 
-  config.baseUrl                  = url.replace(/\/$/, );
+  config.baseUrl                  = url.replace(/\/$/, '' );
   config.env.cache_session        = process.env.CACHE_SESSION || false;
   config.env.cluster              = process.env.CLUSTER_NAME;
   config.env.k8s_version          = process.env.K8S_VERSION_TO_PROVISION;
