@@ -32,7 +32,7 @@ export const supported_versions_212_and_above = [
 Cypress.Commands.add('addPathOnGitRepoCreate', (path, index=0) => {
   //Index defaulting to 0, for first input box.
   cy.clickButton('Add Path');
-  cy.get(`[data-testid="array-list-box${ index }"] input[placeholder="e.g. /directory/in/your/repo"], [data-testid="array-list-box${ index }"] input[placeholder="e.g. /directory/in/your/repo"]`).type(path);
+  cy.get(`[data-testid="array-list-box${ index }"] input[placeholder="e.g. /directory/in/your/repo"], [data-testid="array-list-box${ index }"] input[placeholder="e.g. /directory/in/your/repo"]`).clear().type(path);
 })
 
 Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex ) => {
@@ -508,8 +508,8 @@ Cypress.Commands.add('deleteAllFleetRepos', (namespaceName) => {
 });
 
 // Check Git repo deployment status
-Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources, timeout=30000) => {
-  cy.verifyTableRow(0, 'Active', repoName);
+Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources, { timeout = 30000, repoStatus = 'Active'} = {}) => {
+  cy.verifyTableRow(0, repoStatus, repoName);
   cy.contains(repoName).click()
   cy.get('.primaryheader > h1, h1 > span.resource-name.masthead-resource-title').contains(repoName).should('be.visible')
   cy.log(`Checking ${bundles} Bundles and Resources`)
