@@ -190,8 +190,6 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
   )
 });
 
-// Perform this test only if rancher_version does not contain "/2.7"
-if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
   describe('Test local cluster behavior with New workspace', { tags: '@p1'}, () => {
     qase(107,
       it("Fleet-107: Test LOCAL CLUSTER cannot be moved to another workspace as no 'Change workspace' option available..", { tags: '@fleet-107' }, () => {
@@ -201,9 +199,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
       })
     )
   });
-}
 
-if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
   describe('Imagescan tests', { tags: '@p1'}, () => {
     qase(112,
       it("Fleet-112: Test imagescan app without expected semver range does not break fleet controller", { tags: '@fleet-112' }, () => {;
@@ -223,11 +219,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
       })
     )
   });
-}
 
-// RepoURLRegex is supported on v2.8 but error reporting is not working correctly there
-// Ref. https://github.com/rancher/fleet/issues/2462 but it wont be fixed in v2.8
-if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env('rancher_version'))) {
   describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () => {
 
     const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public.git'
@@ -288,7 +280,6 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         )
       })
   });
-}
 
   describe('Test OCI support', { tags: '@p1'}, () => {
     qase(60,
@@ -336,9 +327,6 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
     )  
   });
 
-// Error will occur when use ForceUpdate.
-// In 2.9 we are skipping due flakiness in the test.
-if (!/\/2\.9/.test(Cypress.env('rancher_version'))) {
   describe('Test Self-Healing on IMMUTABLE resources when correctDrift is enabled', { tags: '@p1'}, () => {
     const correctDriftTestData: testData[] = [
       { qase_id: 80,
@@ -449,9 +437,6 @@ if (!/\/2\.9/.test(Cypress.env('rancher_version'))) {
       }
     )
   });
-}
-
-if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env('rancher_version'))) {
 
   describe('Tests with disablePolling', { tags: '@p1' }, () => {
   
@@ -482,9 +467,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
         cy.log(result.stdout, result.stderr);
       });
     }
-    
-    if (!/\/2\.9/.test(Cypress.env('rancher_version'))) { 
-    // Skipping in 2.9 due to https://github.com/rancher/fleet/issues/3048
+
     qase(126,
       it(
         'Fleet-126: Test when `disablePolling=true` and forcing update Gitrepo will sync latest changes from Github',
@@ -520,7 +503,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
           cy.verifyTableRow(0, 'Active', '5/5');
         }
       )
-    )};
+    );
 
     qase(124,
       it(
@@ -566,7 +549,6 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
       )
     );
   });
-}
 
 describe('Test GitRepo Bundle do not show hash mismatch error.', { tags: '@p1'}, () => {
 

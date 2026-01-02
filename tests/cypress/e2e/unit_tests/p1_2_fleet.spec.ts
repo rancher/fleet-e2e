@@ -70,16 +70,6 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
             cy.addFleetGitRepo({repoName, repoUrl, branch, path});
             cy.clickButton('Create');
 
-            // Skipping this in 2.10 until this bug is resolved:
-            // https://github.com/rancher/dashboard/issues/12444
-            // TODO: decide what to do with this upon bug resolution
-            if (!/\/2\.10/.test(Cypress.env('rancher_version'))) {
-            // Assert errorMessage exists
-            cy.get('[data-testid="banner-content"] > span')
-              .should('contain', repoName)
-              .should('contain', 'RFC 1123')
-            }
-            
             // Navigate back to GitRepo page
             cy.clickButton('Cancel')
             cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible')
@@ -426,20 +416,6 @@ describe('Test application deployment based on clusterGroup', { tags: '@p1_2'}, 
       // Check application is present on third cluster i.e. imported-2
       cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
 
-      // Applying Force Update in 2.9 and 2.10 versions only as it doesn't have cluster sync logic
-      if (/\/2\.10/.test(Cypress.env('rancher_version')) || /\/2\.9/.test(Cypress.env('rancher_version'))) {
-        cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-        cy.contains('.title', 'Clusters').should('be.visible');
-        dsFirstTwoClusterList.forEach(
-          (dsCluster) => {
-            cy.filterInSearchBox(dsCluster);
-            cy.open3dotsMenu(dsCluster, 'Force Update');
-            cy.wait(2000); // It take some time to Update.
-            cy.verifyTableRow(0, 'Active');
-          }
-        )
-      }
-
       // Check application status on first 2 clusters i.e. imported-0 and imported-1
       // Application should be removed from first 2 clusters i.e. imported-0 and imported-1
       dsFirstTwoClusterList.forEach(
@@ -710,20 +686,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         // Check application is present on third cluster i.e. imported-2
         cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
 
-        // Applying Force Update in 2.9 and 2.10 versions only as it doesn't have cluster sync logic
-        if (/\/2\.10/.test(Cypress.env('rancher_version')) || /\/2\.9/.test(Cypress.env('rancher_version'))) {
-          cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-          cy.contains('.title', 'Clusters').should('be.visible');
-          dsFirstTwoClusterList.forEach(
-            (dsCluster) => {
-              cy.filterInSearchBox(dsCluster);
-              cy.open3dotsMenu(dsCluster, 'Force Update');
-              cy.wait(2000); // It take some time to Update.
-              cy.verifyTableRow(0, 'Active');
-            }
-          )
-        }
-
         // Check application status on first 2 clusters i.e. imported-0 and imported-1
         // Application should be removed from first 2 clusters i.e. imported-0 and imported-1
         dsFirstTwoClusterList.forEach(
@@ -898,116 +860,106 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
   })
 });
 
-if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env('rancher_version'))){
+describe('Test namespace deletion when bundle is deleted', { tags: '@p1_2'}, () => {
 
-  describe('Test namespace deletion when bundle is deleted', { tags: '@p1_2'}, () => {
-    
-    qase(131,
-      it("Fleet-131: Test NAMESPACE will be DELETED after GitRepo is deleted.", { tags: '@fleet-131' }, () => {
-        const repoName = 'test-ns-deleted-when-bundle-deleted'
-        const namespaceName = 'my-custom-namespace'
+  qase(131,
+    it("Fleet-131: Test NAMESPACE will be DELETED after GitRepo is deleted.", { tags: '@fleet-131' }, () => {
+      const repoName = 'test-ns-deleted-when-bundle-deleted'
+      const namespaceName = 'my-custom-namespace'
 
-        cy.fleetNamespaceToggle('fleet-local');
-        cy.clickCreateGitRepo();
-        cy.clickButton('Edit as YAML');
-        cy.addYamlFile('assets/131-ns-deleted-when-bundle-deleted.yaml');
-        cy.clickButton('Create');
-        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.clickCreateGitRepo();
+      cy.clickButton('Edit as YAML');
+      cy.addYamlFile('assets/131-ns-deleted-when-bundle-deleted.yaml');
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
 
-        // Check namespace is created 
-        cy.accesMenuSelection('local', 'Projects/Namespaces');
-        cy.filterInSearchBox(namespaceName);
-        cy.verifyTableRow(0, 'Active', namespaceName);
+      // Check namespace is created 
+      cy.accesMenuSelection('local', 'Projects/Namespaces');
+      cy.filterInSearchBox(namespaceName);
+      cy.verifyTableRow(0, 'Active', namespaceName);
 
-        // Delete GitRepo
-        cy.deleteAllFleetRepos();
+      // Delete GitRepo
+      cy.deleteAllFleetRepos();
 
-        // Check namespace is deleted
-        cy.accesMenuSelection('local', 'Projects/Namespaces');
-        cy.filterInSearchBox(namespaceName);
-        cy.contains(namespaceName).should('not.exist');
-      })
-    )
+      // Check namespace is deleted
+      cy.accesMenuSelection('local', 'Projects/Namespaces');
+      cy.filterInSearchBox(namespaceName);
+      cy.contains(namespaceName).should('not.exist');
+    })
+  )
 
-    qase(164,
-      it("Fleet-164: Test NAMESPACE will be DELETED after main NESTED GitRepo is deleted.", { tags: '@fleet-164' }, () => {
-        const repoName = 'test-ns-deleted-with-nested-bundle'
-        const repoName2= 'my-gitrepo'
-        const namespaceName = 'my-custom-namespace'
-        const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public'
-        const branch = 'main'
-        const path = 'bundles-delete-namespaces-nested'
+  qase(164,
+    it("Fleet-164: Test NAMESPACE will be DELETED after main NESTED GitRepo is deleted.", { tags: '@fleet-164' }, () => {
+      const repoName = 'test-ns-deleted-with-nested-bundle'
+      const repoName2= 'my-gitrepo'
+      const namespaceName = 'my-custom-namespace'
+      const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public'
+      const branch = 'main'
+      const path = 'bundles-delete-namespaces-nested'
 
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
-        cy.clickButton('Create');
-        // As 2 gitrepos are created, we need to wait for both to be displayed
-        // before we can check the status
-        cy.wait(2000);
-        cy.verifyTableRow(1, 'Active', repoName);
-        cy.verifyTableRow(0, 'Active', repoName2);
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+      cy.clickButton('Create');
+      // As 2 gitrepos are created, we need to wait for both to be displayed
+      // before we can check the status
+      cy.wait(2000);
+      cy.verifyTableRow(1, 'Active', repoName);
+      cy.verifyTableRow(0, 'Active', repoName2);
 
-        // Check namespace is created 
-        cy.accesMenuSelection('local', 'Projects/Namespaces');
-        cy.filterInSearchBox(namespaceName);
-        cy.verifyTableRow(0, 'Active', namespaceName);
+      // Check namespace is created 
+      cy.accesMenuSelection('local', 'Projects/Namespaces');
+      cy.filterInSearchBox(namespaceName);
+      cy.verifyTableRow(0, 'Active', namespaceName);
 
-        // Go back to the GitRepos and delete only the main one
-        cy.continuousDeliveryMenuSelection();
-        cy.fleetNamespaceToggle('fleet-local');
-        cy.filterInSearchBox(repoName); // this is the main one
-        
-        // Since whe expeect that the deletion of the main one also
-        // deletes the nested one, the 'deleteAll' function will check this
-        cy.deleteAll();
+      // Go back to the GitRepos and delete only the main one
+      cy.continuousDeliveryMenuSelection();
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.filterInSearchBox(repoName); // this is the main one
+      
+      // Since whe expeect that the deletion of the main one also
+      // deletes the nested one, the 'deleteAll' function will check this
+      cy.deleteAll();
 
-        // Check namespace is deleted
-        cy.accesMenuSelection('local', 'Projects/Namespaces');
-        cy.filterInSearchBox(namespaceName);
-        cy.contains(namespaceName, {timeout: 20000 }).should('not.exist');
-     })
-    )
-  })
-};
+      // Check namespace is deleted
+      cy.accesMenuSelection('local', 'Projects/Namespaces');
+      cy.filterInSearchBox(namespaceName);
+      cy.contains(namespaceName, {timeout: 20000 }).should('not.exist');
+    })
+  )
+});
 
-if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env('rancher_version'))) {
-  describe('Test Fleet Resource Count', { tags: '@p1_2'}, () => {
-    qase(155,
-      it("Fleet-155: Test clusters resource count is correct", { tags: '@fleet-155' }, () => {
+describe('Test Fleet Resource Count', { tags: '@p1_2'}, () => {
 
-        const repoName = 'default-cluster-count-155'
-        const branch = "master"
-        const path = "simple"
-        const repoUrl = "https://github.com/rancher/fleet-examples"
-        const timeout = 50000
-        let resourceCount = '18 / 18'
-        let multipliedResourceCount = true
+  qase(155,
+    it("Fleet-155: Test clusters resource count is correct", { tags: '@fleet-155' }, () => {
 
-        if (/\/2\.10/.test(Cypress.env('rancher_version')) || /\/2\.9/.test(Cypress.env('rancher_version'))) {
-          resourceCount = '6 / 6'
-          multipliedResourceCount = false
-        }
+      const repoName = 'default-cluster-count-155'
+      const branch = "master"
+      const path = "simple"
+      const repoUrl = "https://github.com/rancher/fleet-examples"
+      const timeout = 50000
+      const multipliedResourceCount = true
 
-        // Get Default Resources from single cluster before GitRepo.
-        cy.currentClusterResourceCount(dsFirstClusterName);
+      // Get Default Resources from single cluster before GitRepo.
+      cy.currentClusterResourceCount(dsFirstClusterName);
 
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
-        cy.clickButton('Create');
-        cy.checkGitRepoStatus(repoName, '1 / 1', resourceCount, timeout);
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '18 / 18', timeout);
 
-        // Get the Resource count from GitRepo and store it.
-        cy.gitRepoResourceCountAsInteger(repoName, 'fleet-default');
+      // Get the Resource count from GitRepo and store it.
+      cy.gitRepoResourceCountAsInteger(repoName, 'fleet-default');
 
-        // Get Actual Resources from single cluster by subtracting default resources.
-        cy.actualResourceOnCluster(dsFirstClusterName);
+      // Get Actual Resources from single cluster by subtracting default resources.
+      cy.actualResourceOnCluster(dsFirstClusterName);
 
-        // Compare Resource count from GitRepo with Cluster resource.
-        cy.compareClusterResourceCount(multipliedResourceCount);
+      // Compare Resource count from GitRepo with Cluster resource.
+      cy.compareClusterResourceCount(multipliedResourceCount);
 
-        cy.deleteAllFleetRepos();
-      })
-    )
-  });
-}
+      cy.deleteAllFleetRepos();
+    })
+  )
+});
 
 if (!/\/2\.11/.test(Cypress.env('rancher_version'))) {
   describe('Test HelmOps', { tags: '@p1_2' }, () => {
