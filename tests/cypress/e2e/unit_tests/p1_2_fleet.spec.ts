@@ -1577,7 +1577,7 @@ describe('Test helm chart dependency download with `disableDependencyUpdate: tru
   )
 });
 
-describe.only('Test bundle deploy with overrideTargets by label availability on clusters.', { tags: '@p1_2'}, () => {
+describe('Test bundle deploy with overrideTargets by label availability on clusters.', { tags: '@p1_2'}, () => {
 
   qase(92,
     it("Fleet-92: Test bundle did not get deployed on the target mentioned in the GitRepo when `overrideTargets` is set in the `fleet.yaml` when label is missing on cluster.", { tags: '@fleet-92' }, () => {
