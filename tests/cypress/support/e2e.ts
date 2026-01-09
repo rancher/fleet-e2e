@@ -31,7 +31,7 @@ declare global {
       filterInSearchBox(filterText: string): Chainable<Element>;
       deleteAll(fleetCheck?: boolean): Chainable<Element>;
       deleteAllFleetRepos(namespaceName?: string): Chainable<Element>;
-      checkGitRepoStatus(repoName: string, bundles?: string, resources?: string, timeout?:number): Chainable<Element>;
+      checkGitRepoStatus(repoName: string, bundles?: string, resources?: string, options?: {timeout?:number, repoStatus?: string}): Chainable<Element>;
       checkApplicationStatus(appName: string, clusterName?: string, appNamespace?: string, present?: boolean, firstNav?: string, resourceToCheck?: string): Chainable<Element>;
       deleteApplicationDeployment(clusterName?: string): Chainable<Element>;
       modifyDeployedApplication(appName: string, clusterName?: string): Chainable<Element>;
