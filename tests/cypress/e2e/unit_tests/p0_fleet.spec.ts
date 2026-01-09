@@ -127,8 +127,6 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }
   });
 });
 
-if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
-
   describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', 
     { tags: '@p0' }, () => {
 
@@ -324,8 +322,8 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
           cy.contains('Strict host key checks are enforced, but no known_hosts data was found').should('be.visible')
       })
     ); 
-  })
-};
+  }
+  );
 
 describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
 
@@ -398,8 +396,6 @@ describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
   );  
 
 });
-
-if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env('rancher_version'))) {
 
   describe('Test Fleet with Webhook', { tags: '@p0' }, () => {
 
@@ -479,7 +475,7 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
       })
     );
     
-    if (!/\/2\.9/.test(Cypress.env('rancher_version')) && !/\/2\.10/.test(Cypress.env('rancher_version')) && !/\/2\.11/.test(Cypress.env('rancher_version'))) {
+    if (!/\/2\.11/.test(Cypress.env('rancher_version'))) {
   
     qase(178,
 
@@ -593,30 +589,28 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
       })
     )}
   })
-};
 
-if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env('rancher_version'))) {
   // New tests for jobs cleanup
-  describe('Test Fleet job cleanup', { tags: '@p0' }, () => {
-    
-    const repoUrl = 'https://github.com/rancher/fleet-test-data/';
-    const branch = 'master';
-    const path = 'qa-test-apps/nginx-app';
+describe('Test Fleet job cleanup', { tags: '@p0' }, () => {
+  
+  const repoUrl = 'https://github.com/rancher/fleet-test-data/';
+  const branch = 'master';
+  const path = 'qa-test-apps/nginx-app';
 
-    qase(145,
-      it('Fleet-145: Test Fleet job cleanup', { tags: '@fleet-145' }, () => {
+  qase(145,
+    it('Fleet-145: Test Fleet job cleanup', { tags: '@fleet-145' }, () => {
 
-        const repoName = 'local-145-test-job-cleanup';
+      const repoName = 'local-145-test-job-cleanup';
 
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
-        cy.clickButton('Create');
-        cy.verifyTableRow(0, 'Active', '1/1');
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active', '1/1');
 
-        // Check jobs on recent events tab
-        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-        cy.verifyJobDeleted(repoName); 
-      })
-    );
+      // Check jobs on recent events tab
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      cy.verifyJobDeleted(repoName); 
+    })
+  );
 
   qase(146,
     it('Fleet-146: Test Fleet job clean-up works with Force Update', { tags: '@fleet-146' }, () => {
@@ -698,11 +692,9 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version')) && !/\/2\.8/.test(Cypress.env
       cy.filterInSearchBox(repoName);
       cy.get('table > tbody > tr').contains(repoName).should('be.visible');
     })
-  )});
-  
-};
+  )
+});
 
-if (!/\/2\.8/.test(Cypress.env('rancher_version')) && !/\/2\.9/.test(Cypress.env('rancher_version'))) {
   describe('Test GitJob security context',  { tags: '@p0' }, () => {
     qase(160,
       it('FLEET-160: Test GitJob pod security context', { tags: '@fleet-160' }, () => {
@@ -738,11 +730,9 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version')) && !/\/2\.9/.test(Cypress.env
           .should('be.visible')
       })
     );
-  });
-};
+  }
+);
 
-if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
- 
   describe('Test lifecycle secrets', { tags: '@p0' }, () => {
     
     const repoUrl = 'https://github.com/rancher/fleet-test-data/';
@@ -779,5 +769,3 @@ if (!/\/2\.8/.test(Cypress.env('rancher_version'))) {
       })
     )
   })
-};
-
