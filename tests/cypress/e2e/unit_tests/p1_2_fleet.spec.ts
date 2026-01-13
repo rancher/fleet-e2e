@@ -1626,7 +1626,8 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
       cy.contains(repoName).click();
       cy.get('[data-testid="banner-content"]')
         .should('be.visible')
-        .should('contain', 'This GitRepo is not targeting any clusters');
+        .invoke('text')
+        .should('match', /This\s+git\s*repo\s+is not targeting any clusters/i);
 
       // Verify `nginx-override-test` deployment/pod is not present on clusters.
       dsAllClusterList.forEach(
@@ -1654,7 +1655,8 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
       cy.contains(repoName).click();
       cy.get('[data-testid="banner-content"]')
         .should('be.visible')
-        .should('contain', 'This GitRepo is not targeting any clusters');
+        .invoke('text')
+        .should('match', /This\s+git\s*repo\s+is not targeting any clusters/i);
 
         // Open local terminal in Rancher UI
       cy.accesMenuSelection('local');
