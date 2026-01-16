@@ -943,9 +943,9 @@ describe('Test Fleet Resource Count', { tags: '@p1_2'}, () => {
       // Get Default Resources from single cluster before GitRepo.
       cy.currentClusterResourceCount(dsFirstClusterName);
 
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
-      cy.clickButton('Create');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '18 / 18', timeout);
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '18 / 18', { timeout: timeout });
 
       // Get the Resource count from GitRepo and store it.
       cy.gitRepoResourceCountAsInteger(repoName, 'fleet-default');
@@ -1565,7 +1565,7 @@ describe('Test helm chart dependency download with `disableDependencyUpdate: tru
       cy.verifyTableRow(0, 'Active', repoName);
 
       // Dependency will get installed, due to which resources count includes dependencies in it.
-      cy.checkGitRepoStatus(repoName, '1 / 1', '39 / 39', timeout);
+      cy.checkGitRepoStatus(repoName, '1 / 1', '39 / 39', { timeout: timeout });
 
       // Verify `postgresql` dependency is installed as `disableDependencyUpdate` is set to `false`.
       dsAllClusterList.forEach(
@@ -1576,3 +1576,34 @@ describe('Test helm chart dependency download with `disableDependencyUpdate: tru
     })
   )
 });
+
+describe('Test GitRepo shows Active state for missing resources when `diff` used in `fleet.yaml`', { tags: '@p1_2' }, () => {
+
+  qase(179,
+
+    it(`FLEET-179: Test GitRepo shows Active state for missing resources when 'diff' used in 'fleet.yaml'`, { tags: `@fleet-179}`}, () => {
+      const repoName = 'ds-cluster-fleet-179'
+      const pathWithoutDiff = 'qa-test-apps/ignore-missing-resources/without-diff'
+
+      // Create GitRepo without diff which will not ignore missing resources.
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.continuousDeliveryMenuSelection()
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path: pathWithoutDiff });
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Modified', repoName);
+      cy.checkGitRepoStatus(repoName, '0 / 1', '3 / 6', { repoStatus: 'Modified' });
+
+      // Update Path which has diff mentioned in the fleet.yaml
+      // On both Path data is same the only difference is diff part.
+      const pathWithDiff = 'qa-test-apps/ignore-missing-resources/with-diff'
+
+      cy.addFleetGitRepo({ repoName, path: pathWithDiff, fleetNamespace: 'fleet-default', editConfig: true });
+      cy.clickButton('Save');
+      cy.verifyTableRow(0, 'Active', repoName);
+      cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
+
+      // Delete GitRepo
+      cy.deleteAllFleetRepos();
+    })
+  )
+})
