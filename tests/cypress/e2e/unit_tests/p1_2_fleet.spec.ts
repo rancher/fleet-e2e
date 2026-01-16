@@ -1658,7 +1658,7 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
         .invoke('text')
         .should('match', /This\s+git\s*repo\s+is not targeting any clusters/i);
 
-        // Open local terminal in Rancher UI
+      // Open local terminal in Rancher UI
       cy.accesMenuSelection('local');
       cy.get('#btn-kubectl').click();
       cy.contains('Connected').should('be.visible');
