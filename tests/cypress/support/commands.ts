@@ -42,7 +42,7 @@ Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPub
   cy.get('ul.vs__dropdown-menu > li > div', { timeout: 15000 }).contains(gitAuthType, { matchCase: false }).should('be.visible').click();
   
   if (helmUrlRegex) {
-    cy.typeValue('Helm Repos (URL Regex)', helmUrlRegex, false,  false );
+    cy.typeValue('Helm Repos', helmUrlRegex, false,  false ); //not adding (URL Regex) after new regexp in "typeValue" function
   }
 
   if (gitAuthType === 'http') {
@@ -66,7 +66,7 @@ Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPub
 Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
   cypressLib.burgerMenuToggle();
   cy.get('div.cluster-name').contains(clusterName).click();
-  cy.wait(250);
+  cy.wait(500);
   cy.get('header').find('button').filter(':has(i.icon-upload)').click();
   cy.get('div.card-container').contains('Import YAML').should('be.visible');
 
