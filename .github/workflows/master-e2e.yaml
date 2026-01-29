@@ -268,11 +268,11 @@ jobs:
     steps:
       - name: Adding /usr/local/bin into PATH
         run: echo "/usr/local/bin/" >> ${GITHUB_PATH}
-      - name: Install latest helm-3 on runner
+      - name: Install latest helm-4 on runner
         run: |
-          echo "::group::Install git and helm-3"
+          echo "::group::Install git and helm-4"
           sudo zypper -n install --no-recommends git
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4 | bash
           echo "::endgroup::"
       - name: Checkout
         uses: actions/checkout@v5
