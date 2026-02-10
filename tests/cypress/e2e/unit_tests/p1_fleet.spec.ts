@@ -575,3 +575,82 @@ describe('Test GitRepo Bundle do not show hash mismatch error.', { tags: '@p1'},
     })
   )
 });
+
+describe('Test `dependsON` functionality in Fleet GitRepo', { tags: '@p1'}, () => {
+
+  qase(207,
+    it("Fleet-207: Test GitRepo with `dependsOn` works as expected.", { tags: '@fleet-207' }, () => {
+  
+      cy.addFleetGitRepo({
+        repoName: "root",
+        repoUrl: "https://github.com/fleetqa/fleet-qa-examples-public",
+        branch: "main",
+        path: "dependson/root",
+        local: true
+      });
+
+      // Creating root GitRepo which is dependency for leaf GitRepo and verifying it is active and healthy before creating leaf GitRepo.
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active', 'root');
+      cy.verifyTableRow(0, 'root', '1/1');
+      cy.addFleetGitRepo({
+        repoName: "leaf",
+        repoUrl: "https://github.com/fleetqa/fleet-qa-examples-public",
+        branch: "main",
+        path: "dependson/leaf",
+        local: true
+      });
+
+      // Verifying leaf GitRepo is in error state because of dependency on root GitRepo and then pausing root GitRepo to check leaf GitRepo is still in error state. After that unpausing root GitRepo and checking leaf GitRepo becomes active.
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Err Applied', 'leaf');
+      cy.verifyTableRow(0, 'Err Applied', '0/1');
+
+      cy.open3dotsMenu('root', 'Pause');
+      cy.wait(750);
+      cy.open3dotsMenu('root', 'Force Update');
+      cy.wait(750);
+
+      cy.verifyTableRow(0, 'Active', 'leaf');
+      cy.verifyTableRow(0, 'leaf', '1/1');
+      
+      // Clicking "Unpause" to ensure button Delete is visible to later delete both repos
+      cy.open3dotsMenu('root', 'Unpause');
+      cy.wait(1000);
+      cy.deleteAllFleetRepos();      
+    }
+  ));
+
+  qase(208,
+    it("Fleet-208: Verify GitRepo with `dependsOn` with invalid states display invalid error.", { tags: '@fleet-208' }, () => {
+  
+      cy.addFleetGitRepo({
+        repoName: "root",
+        repoUrl: "https://github.com/fleetqa/fleet-qa-examples-public",
+        branch: "main",
+        path: "dependson/root",
+        local: true
+      });
+
+      // Creating root GitRepo which is dependency for leaf GitRepo and verifying it is active and healthy before creating leaf GitRepo.
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active', 'root');
+      cy.verifyTableRow(0, 'root', '1/1');
+      cy.addFleetGitRepo({
+        repoName: "leaf-error-state",
+        repoUrl: "https://github.com/fleetqa/fleet-qa-examples-public",
+        branch: "main",
+        path: "dependson/leaf_bad_states",
+        local: true
+      });
+
+      // Verifying leaf GitRepo is in error state because of dependency and with an invalid state in acceptedStates and then checking error message is showing correct valid states.
+      cy.clickButton('Create');
+      cy.wait(2000) // Adding wait due to initial change to Git Updating, then Active.
+      cy.verifyTableRow(0, 'Git Updating', 'leaf-error-state');
+      cy.verifyTableRow(0, 'leaf-error-state', '0/0');
+      cy.contains('Failed to process bundle: validating fleet.yaml: dependsOn[0].acceptedStates[0]: invalid state "BadState", valid values are: [Ready NotReady Pending OutOfSync Modified WaitApplied ErrApplied]').should('be.visible');
+    }
+  ));
+
+});
