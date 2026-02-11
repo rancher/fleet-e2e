@@ -652,5 +652,4 @@ describe('Test `dependsON` functionality in Fleet GitRepo', { tags: '@p1'}, () =
       cy.contains('Failed to process bundle: validating fleet.yaml: dependsOn[0].acceptedStates[0]: invalid state "BadState", valid values are: [Ready NotReady Pending OutOfSync Modified WaitApplied ErrApplied]').should('be.visible');
     }
   ));
-
 });
