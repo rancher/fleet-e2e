@@ -576,7 +576,7 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local')
     cy.filterInSearchBox(appName);
     cy.contains(appName).click();
     
-    if (/\/2\.11/.test(Cypress.env('rancher_version')) && /\/2\.12/.test(Cypress.env('rancher_version')) && /\/2\.13/.test(Cypress.env('rancher_version'))) {
+    if (/\/2\.11/.test(Cypress.env('rancher_version')) || /\/2\.12/.test(Cypress.env('rancher_version')) || /\/2\.13/.test(Cypress.env('rancher_version'))) {
       cy.get('div.plus-minus.text-right > .value') .should('be.visible').contains('1');
       cy.get('div.plus-minus.text-right > .btn > .icon-plus').should('be.visible').click();
       cy.get('div.plus-minus.text-right > .value').should('be.visible').contains('2');
