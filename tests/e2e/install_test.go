@@ -136,7 +136,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				"upgrade", "--install", "cert-manager", "jetstack/cert-manager",
 				"--namespace", "cert-manager",
 				"--create-namespace",
-				"--set", "installCRDs=true",
+				"--set", "crds.enabled=true",
 				"--wait", "--wait-for-jobs",
 			}
 
