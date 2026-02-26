@@ -295,6 +295,7 @@ jobs:
           PUBLIC_DNS: ${{ needs.create-runner.outputs.public_dns }}
           PUBLIC_DOMAIN: bc.googleusercontent.com
           RANCHER_PASSWORD: ${{ secrets.rancher_password }}
+          KUBECONFIG: /etc/rancher/k3s/k3s.yaml
         run: |
           if ${{ inputs.hardening != '' }}; then
             cd tests && make e2e-install-rke2-hardened-cluster && make e2e-install-only-certs-and-rancher
