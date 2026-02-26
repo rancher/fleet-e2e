@@ -125,7 +125,12 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			err := tools.CopyFile(strings.Trim(string(file), "\n"), localKubeconfig)
 			Expect(err).To(Not(HaveOccurred()))
 
-			err = os.Setenv("KUBECONFIG", localKubeconfig)
+			if _, err := os.Stat("/etc/rancher/k3s/k3s.yaml"); err == nil {
+				os.Setenv("KUBECONFIG", "/etc/rancher/k3s/k3s.yaml")
+			} else if _, err := os.Stat("/etc/rancher/rke2/rke2.yaml"); err == nil {
+				os.Setenv("KUBECONFIG", "/etc/rancher/rke2/rke2.yaml")
+			}
+
 			Expect(err).To(Not(HaveOccurred()))
 
 			// DEBUG
