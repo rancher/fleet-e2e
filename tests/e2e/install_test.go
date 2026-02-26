@@ -46,6 +46,18 @@ func rolloutDeployment(ns, d string) {
 	}, tools.SetTimeout(2*time.Minute), 30*time.Second).Should(ContainSubstring("successfully rolled out"))
 }
 
+func waitForResourceCondition(ns, resource, condition string) {
+	// Wait for resource to be created
+	status, err := kubectl.Run("wait", "--namespace", ns, "--for=create", resource, "--timeout=300s")
+	GinkgoWriter.Printf("kubectl wait --for=create %s/%s: %s", ns, resource, status)
+	Expect(err).To(Not(HaveOccurred()), "kubectl wait --for=create %s failed: %s", resource, status)
+
+	// Wait for the requested condition
+	status, err = kubectl.Run("wait", "--namespace", ns, "--for=condition="+condition, resource, "--timeout=300s")
+	GinkgoWriter.Printf("kubectl wait --for=condition=%s %s/%s: %s", condition, ns, resource, status)
+	Expect(err).To(Not(HaveOccurred()), "kubectl wait --for=condition=%s %s failed: %s", condition, resource, status)
+}
+
 var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 	// Create kubectl context
 	// Default timeout is too small, so New() cannot be used
@@ -78,7 +90,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 
 			// Set command and arguments
 			installCmd := exec.Command("sh", fileName)
-			// installCmd.Env = append(os.Environ(), "INSTALL_K3S_EXEC=--disable metrics-server")
+			installCmd.Env = append(os.Environ(), "INSTALL_K3S_EXEC=--disable metrics-server --write-kubeconfig-mode 0644", "INSTALL_K3S_SKIP_SELINUX_RPM=true")
 
 			// Retry in case of (sporadic) failure...
 			count := 1
@@ -99,17 +111,10 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			time.Sleep(tools.SetTimeout(20 * time.Second))
 		})
 
-		By("Waiting for K3s to be started", func() {
-			// Wait for all pods to be started
-			checkList := [][]string{
-				{"kube-system", "app=local-path-provisioner"},
-				{"kube-system", "k8s-app=kube-dns"},
-				{"kube-system", "app.kubernetes.io/name=traefik"},
-				{"kube-system", "svccontroller.k3s.cattle.io/svcname=traefik"},
-			}
-			Eventually(func() error {
-				return rancher.CheckPod(k, checkList)
-			}, tools.SetTimeout(4*time.Minute), 30*time.Second).Should(BeNil())
+		By("Waiting for K3s resources", func() {
+			waitForResourceCondition("kube-system", "deployment/local-path-provisioner", "Available")
+			waitForResourceCondition("kube-system", "deployment/coredns", "Available")
+			waitForResourceCondition("kube-system", "deployment/traefik", "Available")
 		})
 
 		By("Configuring Kubeconfig file", func() {
@@ -150,20 +155,17 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			Eventually(func() error {
 				return rancher.CheckPod(k, checkList)
 			}, tools.SetTimeout(4*time.Minute), 30*time.Second).Should(BeNil())
+
+			waitForResourceCondition("cert-manager", "deployment/cert-manager", "Available")
 		})
 
 		By("Installing Rancher Manager", func() {
 			err := rancher.DeployRancherManager(rancherHostname, rancherChannel, rancherVersion, rancherHeadVersion, "none", "none")
 			Expect(err).To(Not(HaveOccurred()))
 
-			// Wait for all pods to be started
-			checkList := [][]string{
-				{"cattle-system", "app=rancher"},
-				{"cattle-system", "app=rancher-webhook"},
-			}
-			Eventually(func() error {
-				return rancher.CheckPod(k, checkList)
-			}, tools.SetTimeout(4*time.Minute), 30*time.Second).Should(BeNil())
+			// Wait for Rancher and Rancher webhook deployments to be available, otherwise the next steps can fail.
+			waitForResourceCondition("cattle-system", "deployment/rancher", "Available")
+			waitForResourceCondition("cattle-system", "deployment/rancher-webhook", "Available")
 		})
 
 		By("Waiting for fleet", func() {
