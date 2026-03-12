@@ -28,6 +28,8 @@ beforeEach(() => {
 });
 
 Cypress.config();
+
+cy.wait(600000); //TO be deleted. Just pausing for manual upgrade of kubernetes to 1.35
 describe('Test Fleet deployment on PUBLIC repos',  { tags: '@p0' }, () => {
   qase(62,
     it('FLEET-62: Deploy application to local cluster', { tags: '@fleet-62' }, () => {
