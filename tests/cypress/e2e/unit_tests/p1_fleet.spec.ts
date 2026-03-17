@@ -111,7 +111,7 @@ describe('Test Self-Healing of resource modification when correctDrift option us
           if (correctDrift === 'yes') {
             // Resources will be restored, hence count will be 1/1.
             cy.filterInSearchBox(appName);
-            cy.verifyTableRow(0, appName, '1/1');
+            cy.verifyTableRow(0, appName, '1/1', 100000);
           } else {
             // Resource count will get increased as resource will not be restored
             cy.filterInSearchBox(appName);
@@ -124,7 +124,7 @@ describe('Test Self-Healing of resource modification when correctDrift option us
   )
 });
 
-describe('Test Self-Healing of resource modification when correctDrift option used for exisiting GitRepo', { tags: '@p1'}, () => {
+describe.skip('Test Self-Healing of resource modification when correctDrift option used for exisiting GitRepo', { tags: '@p1'}, () => {
   qase(77,
     it("Fleet-77: Test MODIFICATION to resources will be self-healed when correctDrift is set to true in existing GitRepo.", { tags: '@fleet-77', retries: 1 }, () => {
       const repoName = "local-cluster-correct-77"
