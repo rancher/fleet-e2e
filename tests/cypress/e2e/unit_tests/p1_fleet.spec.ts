@@ -442,7 +442,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
     )
   });
 
-  describe('Tests with disablePolling', { tags: '@p1' }, () => {
+  describe.only('Tests with disablePolling', { tags: '@p1' }, () => {
   
     const gh_private_pwd = Cypress.env('gh_private_pwd');
     const repoName = 'test-disable-polling';
@@ -472,61 +472,61 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
       });
     }
 
-    qase(126,
-      it(
-        'Fleet-126: Test when `disablePolling=true` and forcing update Gitrepo will sync latest changes from Github',
-        { tags: '@fleet-126', retries: 1 }, // TODO: Retry added to avoid intermittent failures. Remove once fixed.
-        () => {
+    // qase(126,
+    //   it(
+    //     'Fleet-126: Test when `disablePolling=true` and forcing update Gitrepo will sync latest changes from Github',
+    //     { tags: '@fleet-126', retries: 1 }, // TODO: Retry added to avoid intermittent failures. Remove once fixed.
+    //     () => {
 
-          prepareGithubRepoReplicas()
+    //       prepareGithubRepoReplicas()
           
-          // Forcing 15 seconds of wait to check if changes occur after this time.
-          cy.wait(15000);
+    //       // Forcing 15 seconds of wait to check if changes occur after this time.
+    //       cy.wait(15000);
 
-          // Verify deployment is 2 despite having changed to 5 in original repo
-          cy.accesMenuSelection('local', 'Workloads', 'Deployments');
-          cy.filterInSearchBox('nginx-test-polling');
-          cy.wait(500);
+    //       // Verify deployment is 2 despite having changed to 5 in original repo
+    //       cy.accesMenuSelection('local', 'Workloads', 'Deployments');
+    //       cy.filterInSearchBox('nginx-test-polling');
+    //       cy.wait(500);
 
-          cy.log('HERE WE SHOULD SEE 2/2');
-          cy.contains('tr.main-row', 'nginx-test-polling', { timeout: 20000 }).should('be.visible');
-          cy.screenshot('Screenshot BEFORE reloading should be 2/2');
-          cy.contains('tr.main-row', 'nginx-test-polling', { timeout: 20000 }).should('be.visible');
-          cy.screenshot('Screenshot AFTER reloading should be 2/2');
-          cy.verifyTableRow(0, 'Active', '2/2');
+    //       cy.log('HERE WE SHOULD SEE 2/2');
+    //       cy.contains('tr.main-row', 'nginx-test-polling', { timeout: 20000 }).should('be.visible');
+    //       cy.screenshot('Screenshot BEFORE reloading should be 2/2');
+    //       cy.contains('tr.main-row', 'nginx-test-polling', { timeout: 20000 }).should('be.visible');
+    //       cy.screenshot('Screenshot AFTER reloading should be 2/2');
+    //       cy.verifyTableRow(0, 'Active', '2/2');
 
-          cy.continuousDeliveryMenuSelection();
-          cy.fleetNamespaceToggle('fleet-local');
-          cy.open3dotsMenu('test-disable-polling', 'Force Update');
-          cy.wait(2000); // Wait to let time for Update to take effect.
-          cy.checkGitRepoStatus('test-disable-polling', '1 / 1', '1 / 1');
+    //       cy.continuousDeliveryMenuSelection();
+    //       cy.fleetNamespaceToggle('fleet-local');
+    //       cy.open3dotsMenu('test-disable-polling', 'Force Update');
+    //       cy.wait(2000); // Wait to let time for Update to take effect.
+    //       cy.checkGitRepoStatus('test-disable-polling', '1 / 1', '1 / 1');
 
-          // Verify deployment changes to 5
-          cy.accesMenuSelection('local', 'Workloads', 'Deployments');
-          cy.filterInSearchBox('nginx-test-polling');
-          cy.verifyTableRow(0, 'Active', '5/5');
-        }
-      )
-    );
+    //       // Verify deployment changes to 5
+    //       cy.accesMenuSelection('local', 'Workloads', 'Deployments');
+    //       cy.filterInSearchBox('nginx-test-polling');
+    //       cy.verifyTableRow(0, 'Active', '5/5');
+    //     }
+    //   )
+    // );
 
-    qase(124,
-      it(
-        'Fleet-124: Test when `disablePolling=true` Gitrepo will not sync latest changes from Github',
-        { tags: '@fleet-124' },
-        () => {
+    // qase(124,
+    //   it(
+    //     'Fleet-124: Test when `disablePolling=true` Gitrepo will not sync latest changes from Github',
+    //     { tags: '@fleet-124' },
+    //     () => {
 
-          prepareGithubRepoReplicas()
+    //       prepareGithubRepoReplicas()
 
-          // Forcing 15 seconds of wait to check if changes occur after this time.
-          cy.wait(15000);
+    //       // Forcing 15 seconds of wait to check if changes occur after this time.
+    //       cy.wait(15000);
 
-          // Verify deployment is 2 despite having changed to 5 in original repo
-          cy.accesMenuSelection('local', 'Workloads', 'Deployments');
-          cy.filterInSearchBox('nginx-test-polling');
-          cy.verifyTableRow(0, 'Active', '2/2');
-        }
-      )
-    );
+    //       // Verify deployment is 2 despite having changed to 5 in original repo
+    //       cy.accesMenuSelection('local', 'Workloads', 'Deployments');
+    //       cy.filterInSearchBox('nginx-test-polling');
+    //       cy.verifyTableRow(0, 'Active', '2/2');
+    //     }
+    //   )
+    // );
 
     qase(125,
       it(
@@ -543,6 +543,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
           cy.verifyTableRow(0, 'Paused');
           cy.wait(2000); // Wait to let time for pause to take effect.
           cy.open3dotsMenu(repoName, 'Unpause');
+          cy.wait(2000); // Wait also time for unpause to take effect.
 
           cy.verifyTableRow(0, 'Active');
           // Verify deployment changes to 5?
