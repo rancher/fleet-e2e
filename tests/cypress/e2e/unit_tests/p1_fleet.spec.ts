@@ -466,10 +466,6 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
       cy.clickButton('Create');
       cy.checkGitRepoStatus('test-disable-polling', '1 / 1', '1 / 1');
 
-      // Change replicas to 5
-      cy.exec('bash assets/disable_polling_setting_5_replicas.sh').then((result) => {
-        cy.log(result.stdout, result.stderr);
-      });
     }
 
     qase(126,
@@ -479,9 +475,6 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
         () => {
 
           prepareGithubRepoReplicas()
-          
-          // Forcing 15 seconds of wait to check if changes occur after this time.
-          cy.wait(15000);
 
           // Verify deployment is 2 despite having changed to 5 in original repo
           cy.accesMenuSelection('local', 'Workloads', 'Deployments');
@@ -490,11 +483,22 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
 
           cy.log('HERE WE SHOULD SEE 2/2');
           cy.contains('tr.main-row', 'nginx-test-polling', { timeout: 20000 }).should('be.visible');
-          cy.screenshot('Screenshot BEFORE reloading should be 2/2');
-          cy.contains('tr.main-row', 'nginx-test-polling', { timeout: 20000 }).should('be.visible');
-          cy.screenshot('Screenshot AFTER reloading should be 2/2');
           cy.verifyTableRow(0, 'Active', '2/2');
 
+          // Change replicas to 5 in Github repo and then force update to sync changes immediately
+          cy.log('Changing replicas to 5 in Github repo and then force update to sync changes immediately');
+          cy.exec('bash assets/disable_polling_setting_5_replicas.sh').then((result) => {
+            cy.log(result.stdout, result.stderr);
+          });
+
+          // Forcing 15 seconds of wait to check if changes occur after this time.
+          cy.wait(15000);
+
+          cy.log('HERE WE SHOULD KEEP SEEING 2/2');
+          cy.contains('tr.main-row', 'nginx-test-polling', { timeout: 20000 }).should('be.visible');
+          cy.verifyTableRow(0, 'Active', '2/2');
+
+          // Now after force update, changes should be there and deployment should be 5/5
           cy.continuousDeliveryMenuSelection();
           cy.fleetNamespaceToggle('fleet-local');
           cy.open3dotsMenu('test-disable-polling', 'Force Update');
@@ -515,7 +519,9 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
         { tags: '@fleet-124' },
         () => {
 
-          prepareGithubRepoReplicas()
+          cy.exec('bash assets/disable_polling_reset_2_replicas.sh', { env: { gh_private_pwd } }).then((result) => {
+          cy.log(result.stdout, result.stderr);
+          });
 
           // Forcing 15 seconds of wait to check if changes occur after this time.
           cy.wait(15000);
