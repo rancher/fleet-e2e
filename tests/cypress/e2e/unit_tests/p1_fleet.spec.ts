@@ -576,7 +576,10 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
           cy.open3dotsMenu(repoName, 'Pause');
           cy.verifyTableRow(0, 'Paused');
           cy.wait(2000); // Wait to let time for pause to take effect.
-          cy.open3dotsMenu(repoName, 'Unpause');
+          // Unpausing using checkbox to avoid problems with dropdown in 3dots menu when state is paused.
+          cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
+          cy.wait(500);
+          cy.clickButton('Unpause');
           cy.wait(2000); // Wait also time for unpause to take effect.
           cy.verifyTableRow(0, 'Active');
           cy.checkGitRepoStatus('test-disable-polling', '1 / 1', '1 / 1');
