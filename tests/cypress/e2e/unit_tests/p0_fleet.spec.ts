@@ -266,6 +266,9 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }
           cy.continuousDeliveryMenuSelection();
           cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true});
           cy.clickButton('Create');
+          // Adding 15 seconds wait after latest changes in UI and BE in 2.14
+          // If this tests fails after this extended timeout let's consider opening an issue.
+          cy.wait(15000) 
           cy.verifyTableRow(0, /Error|Git Updating/, '0/0');
       })
     );  
@@ -711,18 +714,32 @@ describe('Test Fleet job cleanup', { tags: '@p0' }, () => {
           .contains('Security Context')
           .should("be.visible")
           .click()
+        if (/\/2\.14/.test(Cypress.env('rancher_version')) || /\/2\.15/.test(Cypress.env('rancher_version'))) {
+          // Check Run as Non-Root
+          cy.get('[data-testid="input-security-runasNonRoot"] [role="checkbox"]')
+            .should('have.attr', 'aria-checked', 'false');
+          
+          // Check Privilege Escalation
+          cy.get('[data-testid="input-security-allowPrivilegeEscalation"] [role="checkbox"]')
+            .should('have.attr', 'aria-checked', 'false');
 
-        // Check Run as Non-Root
-        cy.get('input[name="runasNonRoot"]:checked')
-          .should('have.value', 'false');
+          // Check Read Only Root File System
+          cy.get('[data-testid="input-security-readOnlyRootFilesystem"] [role="checkbox"]')
+          .should('have.attr', 'aria-checked', 'true');
+        }
+        else {
+          // Check Run as Non-Root
+          cy.get('input[name="runasNonRoot"]:checked')
+            .should('have.value', 'false');
 
-        // Check Privilege Escalation
-        cy.get('input[name="allowPrivilegeEscalation"]:checked')
-          .should('have.value', 'false');
+          // Check Privilege Escalation
+          cy.get('input[name="allowPrivilegeEscalation"]:checked')
+            .should('have.value', 'false');
 
-        // Check Read Only Root File System
-        cy.get('input[name="readOnlyRootFilesystem"]:checked')
+          // Check Read Only Root File System
+          cy.get('input[name="readOnlyRootFilesystem"]:checked')
           .should('have.value', 'true');
+        }
 
         // Check Drop Capabilities
         cy.get('[data-testid="input-security-drop"] .labeled-select .v-select span.vs__selected')
