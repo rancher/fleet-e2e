@@ -14,7 +14,7 @@ limitations under the License.
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 import { qase } from 'cypress-qase-reporter/dist/mocha';
 
-export const rancherVersion = Cypress.env('rancher_version');
+export const rancherVersion = cy.expose('rancher_version');
 export const supported_versions_212_and_above = [
   /^(prime|prime-optimus|prime-optimus-alpha|prime-alpha|prime-rc|alpha)\/2\.(1[2-9]|\d{2,})(\..*)?$/,
   /^head\/2\.(1[2-9]|\d{3,})$/
