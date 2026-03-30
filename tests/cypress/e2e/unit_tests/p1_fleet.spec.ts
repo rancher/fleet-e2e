@@ -314,8 +314,8 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
         const path = 'helm-oci-auth'
         const gitOrHelmAuth = 'Helm'
         const gitAuthType = "http"
-        const userOrPublicKey = cy.env("gh_private_user")
-        const pwdOrPrivateKey = cy.env("gh_private_pwd")
+        const userOrPublicKey = Cypress.expose("gh_private_user")
+        const pwdOrPrivateKey = Cypress.expose("gh_private_pwd")
     
         cy.fleetNamespaceToggle('fleet-default');
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey});
@@ -444,7 +444,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
 
   describe('Tests with disablePolling', { tags: '@p1' }, () => {
   
-    const gh_private_pwd = cy.env('gh_private_pwd');
+    const gh_private_pwd = Cypress.expose('gh_private_pwd');
     const repoName = 'test-disable-polling';
 
     // Function to prepare Github repo used in the test

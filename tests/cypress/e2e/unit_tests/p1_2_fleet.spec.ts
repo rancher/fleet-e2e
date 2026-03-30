@@ -1445,9 +1445,9 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypres
     qase(199,
       it("Fleet-199: Test Git App deployment using Fleet.", { tags: '@fleet-199' }, () => {
 
-        const github_app_id = cy.env("gh_app_id")
-        const github_app_installation_id = cy.env("gh_app_installation_id")
-        const github_app_private_key = cy.env("gh_app_private_key")
+        const github_app_id = Cypress.expose("gh_app_id")
+        const github_app_installation_id = Cypress.expose("gh_app_installation_id")
+        const github_app_private_key = Cypress.expose("gh_app_private_key")
 
         // Create secret from UI
         cy.accesMenuSelection('local', 'Storage', 'Secrets');

@@ -16,7 +16,7 @@ import 'cypress/support/commands';
 import { qase } from 'cypress-qase-reporter/dist/mocha';
 
 export const branch = "master";
-export let upgrade = cy.env('upgrade') === 'true'
+export let upgrade = Cypress.expose('upgrade') === 'true'
 
 beforeEach(() => {
   cy.login();
@@ -29,8 +29,8 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@upgra
     it(`FLEET-157: Test to install "NGINX" app using "SSH" auth on "GitLab" PRIVATE repository`, { tags: '@fleet-157', retries: 1 }, () => {
       const repoName = 'default-cluster-fleet-157'
       const gitAuthType = "ssh"
-      const userOrPublicKey = cy.env("rsa_public_key_qa")
-      const pwdOrPrivateKey = cy.env("rsa_private_key_qa")
+      const userOrPublicKey = Cypress.expose("rsa_public_key_qa")
+      const pwdOrPrivateKey = Cypress.expose("rsa_private_key_qa")
       const repoUrl = "git@gitlab.com:fleetqa/fleet-qa-examples.git"
       const appName = "nginx-keep"
       const branch = "main"

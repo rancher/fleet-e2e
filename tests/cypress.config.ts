@@ -27,7 +27,7 @@ export default defineConfig({
       // sendScreenshot: true,
     },
   },
-  env: {
+  expose: {
     "grepFilterSpecs": true
   },
   e2e: {
