@@ -142,7 +142,7 @@ describe('Test "fleet-agent" image version on each downstream cluster',  { tags:
       // For example 'fleet_app_version' is fleet-105.0.3+up0.11.3, after splitting
       // we get 'fleet_agent_version' is '0.11.3'.
       if (upgrade) {
-        const fleetAgentVersionBeforeUpgrade = cy.expose('fleet_app_version').split('+up')[1];
+        const fleetAgentVersionBeforeUpgrade = Cypress.expose('fleet_app_version').split('+up')[1];
         cy.log('Fleet Agent image version BEFORE upgrade:' + fleetAgentVersionBeforeUpgrade)
 
         // Check fleet-agent version of the downstream clusters.

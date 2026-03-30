@@ -619,7 +619,7 @@ describe('Test GitRepo Bundle do not show hash mismatch error.', { tags: '@p1'},
   )
 });
 
-if (!/\/2\.11/.test(cy.expose('rancher_version')) && !/\/2\.12/.test(cy.expose('rancher_version')) && !/\/2\.13/.test(cy.expose('rancher_version'))) {
+if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypress.expose('rancher_version')) && !/\/2\.13/.test(Cypress.expose('rancher_version'))) {
 
   describe('Test `dependsON` functionality in Fleet GitRepo', { tags: '@p1'}, () => {
 

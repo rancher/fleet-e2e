@@ -79,7 +79,7 @@ describe('Test Fleet deployment on PRIVATE repos with HTTP auth', { tags: '@p0' 
     );
   });
 
-  if (!/\/2\.11/.test(cy.expose('rancher_version'))) {
+  if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
   qase(191, 
     it('FLEET-191: Test Fleet can be deployed in private Github repo using solely private token', {tags : `@fleet-191` }, () => {
 
@@ -478,7 +478,7 @@ describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
       })
     );
     
-    if (!/\/2\.11/.test(cy.expose('rancher_version'))) {
+    if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
   
     qase(178,
 
@@ -714,7 +714,7 @@ describe('Test Fleet job cleanup', { tags: '@p0' }, () => {
           .contains('Security Context')
           .should("be.visible")
           .click()
-        if (/\/2\.14/.test(cy.expose('rancher_version')) || /\/2\.15/.test(cy.expose('rancher_version'))) {
+        if (/\/2\.14/.test(Cypress.expose('rancher_version')) || /\/2\.15/.test(Cypress.expose('rancher_version'))) {
           // Check Run as Non-Root
           cy.get('[data-testid="input-security-runasNonRoot"] [role="checkbox"]')
             .should('have.attr', 'aria-checked', 'false');

@@ -19,7 +19,7 @@ export const clusterName = "imported-0";
 export const branch = "main";
 export const path  = "nginx"
 export const sshString = ["Public key and private key for SSH", "Public key and private key for SSH authentication"]
-export const rancherVersion = cy.expose('rancher_version')
+export const rancherVersion = Cypress.expose('rancher_version')
 export const supported_versions_212_and_above = [
   /^(prime|prime-optimus|prime-optimus-alpha|prime-alpha|prime-rc|alpha)\/2\.(1[2-9]|[2-9]\d+)(\..*)?$/,
   /^head\/2\.(1[2-9])$/
@@ -80,7 +80,7 @@ describe('Test Fleet on AWS EC2 imported cluster', { tags: '@cloud_ds' }, () => 
     );
 });
 
-if (!/\/2\.11/.test(cy.expose('rancher_version')) && !/\/2\.12/.test(cy.expose('rancher_version'))) {
+if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypress.expose('rancher_version'))) {
 
 describe('Agent Scheduling Customization', { tags: '@special_tests' }, () => {
   qase(200,
