@@ -7,6 +7,7 @@ export default defineConfig({
   viewportHeight: 954,
   // defaultBrowser: 'chrome',
   defaultCommandTimeout: 10000,
+  allowCypressEnv: false,
   video: true,
   videoCompression: true,
   // numTestsKeptInMemory: 0, //This flag causes sporadic erros. Avoid using it.
