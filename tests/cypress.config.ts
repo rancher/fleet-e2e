@@ -1,4 +1,5 @@
 import { defineConfig } from 'cypress'
+import { plugin as cypressGrepPlugin } from '@cypress/grep/plugin'
 
 const qaseAPIToken = process.env.QASE_API_TOKEN
 
@@ -58,8 +59,8 @@ export default defineConfig({
       });  
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       require('cypress/plugins/index.ts')(on, config)
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      require('@cypress/grep/src/plugin')(config);
+      cypressGrepPlugin(config)
+      
       return config;
     },
     specPattern: 'cypress/e2e/unit_tests/*.spec.ts',
