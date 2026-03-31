@@ -22,7 +22,7 @@
   "homepage": "https://github.com/rancher/fleet-e2e",
   "overrides": {
     "diff": "8.0.2",
-    "serialize-javascript": "7.0.3"
+    "serialize-javascript": "7.0.5"
   },
   "dependencies": {
     "@rancher-ecp-qa/cypress-library": "^2.2.0",
@@ -39,8 +39,8 @@
   },
   "devDependencies": {
     "@cypress/grep": "^6.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.57.2",
-    "@typescript-eslint/parser": "^8.57.2",
-    "eslint-plugin-cypress": "^6.0.0"
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
+    "eslint-plugin-cypress": "^6.2.1"
   }
 }
