@@ -484,7 +484,6 @@ Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
 
   cy.get('body').then(($body) => {
 
-    // if ($body.text().includes('Actions')) {
     if ($body.text().match('/Actions/')) {
       cy.wait(250) // Add small wait to give time for things to settle
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
@@ -497,7 +496,6 @@ Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
       });
     };
 
-    // else if ($body.text().includes('Delete')) {
     if ($body.text().includes('Delete')) {
       cy.wait(250) // Add small wait to give time for things to settle
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
