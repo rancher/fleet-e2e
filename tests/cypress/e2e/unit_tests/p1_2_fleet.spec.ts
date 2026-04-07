@@ -13,7 +13,6 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
-import { qase } from 'cypress-qase-reporter/dist/mocha';
 
 export const appName = "nginx-keep"
 export const branch = "master"
@@ -962,7 +961,7 @@ describe('Test Fleet Resource Count', { tags: '@p1_2'}, () => {
 });
 
 if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
-  describe('Test HelmOps', { tags: ['@p1_2', '@pr-tests'] }, () => {
+  describe('Test HelmOps', { tags: ['@p1_2'] }, () => {
 
     qase(165, 
       it('FLEET-165: Test basic HelmOps creation', { tags: '@fleet-165' }, () => {
