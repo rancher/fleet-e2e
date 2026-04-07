@@ -382,7 +382,7 @@ describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
     it("Fleet-144 Test cabundle secrets are not created without TLS certificate", { tags: '@fleet-144' }, () => {;
       
       const repoName = 'local-144-test-cabundle-secrets-not-created'
-      const repoUrl = 'https://github.com/rancher/fleet-examples'@pr-tests
+      const repoUrl = 'https://github.com/rancher/fleet-examples'
       const branch = 'master'
       const path = 'simple'
 
