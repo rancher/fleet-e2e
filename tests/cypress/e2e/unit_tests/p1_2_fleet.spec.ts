@@ -483,6 +483,9 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         // Assign label to the first 2 clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
         cy.executeKubectlCommand(labelTwoImportedClsuters);
 
+        // Assign label to the first 2 clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
+        cy.executeKubectlCommand(labelTwoImportedClsuters);
+
         cy.continuousDeliveryMenuSelection();
 
         // Get GitRepo YAML file according to test.
@@ -557,10 +560,10 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       const dsSecondClusterName = dsAllClusterList[1]
       gitRepoFile = 'assets/git-repo-multiple-app-cluster-selector.yaml'
 
+      cy.continuousDeliveryMenuSelection();
+
       // Assign label to the clusters using kubectl command in terminal.
       cy.executeKubectlCommand(labelTwoImportedClsuters);
-
-      cy.continuousDeliveryMenuSelection();
 
       // Create a GitRepo targeting cluster group created from YAML.
       if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
