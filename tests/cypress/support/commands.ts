@@ -18,7 +18,7 @@ import 'cypress-file-upload';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 
 export const noRowsMessages = ['There are no rows to show.', 'There are no rows which match your search query.']
-export const NoAppBundleOrGitRepoPresentMessages = ['No repositories have been added', 'No App Bundles have been created']
+export const NoAppBundleOrGitRepoPresentMessages = ['No Git Repos have been added', 'No repositories have been added', 'No App Bundles have been created']
 export const rancherVersion = Cypress.expose('rancher_version');
 export const supported_versions_212_and_above = [
   /^(prime|prime-optimus|prime-optimus-alpha|prime-alpha|prime-rc|alpha)\/2\.(1[2-9]|[2-9]\d+)(\..*)?$/,
@@ -514,11 +514,58 @@ Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
 
 // Command to delete all repos pressent in Fleet local and default
 Cypress.Commands.add('deleteAllFleetRepos', (namespaceName) => {
+
   cy.continuousDeliveryMenuSelection();
-  cy.fleetNamespaceToggle('fleet-local')
-  cy.deleteAll();
-  cy.fleetNamespaceToggle('fleet-default')
-  cy.deleteAll();
+
+  // cy.fleetNamespaceToggle('fleet-local')
+  // cy.deleteAll();
+  // // Check the number of clusters into this fleet system and ensure the amount of bundles within resources is the same.
+  // // This way we ensure deletion is completed.
+  // cy.get('a[aria-label="Clusters"] span[data-testid="type-count"]').invoke('text').then((clusterCount) => {
+  //   cy.contains('Resources').should('be.visible').click();
+  //   cy.get('a[aria-label="Bundles"] span[data-testid="type-count"]').invoke('text').then((bundleCount) => {
+  //   cy.log(`###### Fleet-LOCAL: Cluster count is ${clusterCount} and Bundle count is ${bundleCount} ######`);    
+  //   cy.wrap(bundleCount, { timeout: 10000 }).should((subject) => {
+  //     expect(subject).to.equal(clusterCount);
+  //   })
+  //   });
+  // });
+
+  // cy.fleetNamespaceToggle('fleet-default')
+  // cy.deleteAll();
+  // // Check the number of clusters into this fleet system and ensure the amount of bundles within resources is the same.
+  // // This way we ensure deletion is completed.
+  // cy.get('a[aria-label="Clusters"] span[data-testid="type-count"]').invoke('text').then((clusterCount) => {
+
+  //   cy.contains('Resources').should('be.visible').click();
+  //   cy.get('a[aria-label="Bundles"] span[data-testid="type-count"]').invoke('text').then((bundleCount) => {
+  //   cy.log(`###### Fleet-DEFAULT: Cluster count is ${clusterCount} and Bundle count is ${bundleCount} ######`);
+  //   cy.wrap(bundleCount, { timeout: 10000 }).should((subject) => {
+  //     expect(subject).to.equal(clusterCount);
+  //   })
+  //   });
+  // });
+
+  const fleetNamespaces = ['fleet-local', 'fleet-default'];
+  
+  fleetNamespaces.forEach((namespace) => {
+    cy.fleetNamespaceToggle(namespace);
+    cy.deleteAll();
+    
+    cy.get('a[aria-label="Clusters"] span[data-testid="type-count"]')
+      .invoke('text')
+      .then((clusterCount) => {
+        cy.contains('Resources').should('be.visible').click();
+        cy.get('a[aria-label="Bundles"] span[data-testid="type-count"]')
+          .invoke('text')
+          .then((bundleCount) => {
+            cy.log(`###### Fleet-${namespace.toUpperCase()}: Cluster count is ${clusterCount} and Bundle count is ${bundleCount} ######`);
+            cy.wrap(bundleCount, { timeout: 10000 }).should((subject) => {
+              expect(subject).to.equal(clusterCount);
+            });
+          });
+      });
+  });
 
   // Delete all repos from newly created workspace if any.
   if (namespaceName) {
