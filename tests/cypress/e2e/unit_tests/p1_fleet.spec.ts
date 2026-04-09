@@ -302,7 +302,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
         cy.filterInSearchBox('fleet-test-configmap');
         cy.get('.col-link-detail').contains('fleet-test-configmap').should('be.visible').click({ force: true });
         cy.get('section#data').should('contain', 'default-name').and('contain', 'value');
-        cy.deleteAllFleetRepos();
+        // cy.deleteAllFleetRepos();
       })
     )
   
@@ -326,7 +326,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
         cy.filterInSearchBox('fleet-test-configmap');
         cy.get('.col-link-detail').contains('fleet-test-configmap').should('be.visible').click({ force: true });
         cy.get('section#data').should('contain', 'default-name').and('contain', 'value');
-        cy.deleteAllFleetRepos();
+        // cy.deleteAllFleetRepos();
       })
     )  
   });
