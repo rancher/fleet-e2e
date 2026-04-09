@@ -494,12 +494,16 @@ Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
             .should('exist')
             .click({ctrlKey: true, force: true});
       });
+      // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
+      cy.wait(2500);
     };
 
     if ($body.text().includes('Delete')) {
       cy.wait(250) // Add small wait to give time for things to settle
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
       cy.get('.btn').contains('Delete').click({ctrlKey: true, force: true});   
+      // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
+      cy.wait(2500);
     };
 
     if (fleetCheck === true) {
@@ -519,13 +523,13 @@ Cypress.Commands.add('deleteAllFleetRepos', (namespaceName) => {
 
   cy.fleetNamespaceToggle('fleet-local')
   cy.deleteAll();
-  // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
-  cy.wait(2500);
+  // // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
+  // cy.wait(2500);
 
   cy.fleetNamespaceToggle('fleet-default')
   cy.deleteAll();
-  // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
-  cy.wait(2500);
+  // // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
+  // cy.wait(2500);
 
   // const fleetNamespaces = ['fleet-local', 'fleet-default'];
   
