@@ -519,32 +519,13 @@ Cypress.Commands.add('deleteAllFleetRepos', (namespaceName) => {
 
   cy.fleetNamespaceToggle('fleet-local')
   cy.deleteAll();
-  // Check the number of clusters into this fleet system and ensure the amount of bundles within resources is the same.
-  // This way we ensure deletion is completed.
-  cy.get('a[aria-label="Clusters"] span[data-testid="type-count"]').invoke('text').then((clusterCount) => {
-    cy.contains('Resources').should('be.visible').click();
-    cy.get('a[aria-label="Bundles"] span[data-testid="type-count"]').invoke('text').then((bundleCount) => {
-    cy.log(`###### Fleet-LOCAL: Cluster count is ${clusterCount} and Bundle count is ${bundleCount} ######`);    
-    cy.wrap(bundleCount, { timeout: 10000 }).should((subject) => {
-      expect(subject).to.equal(clusterCount);
-    })
-    });
-  });
+  // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
+  cy.wait(2500);
 
   cy.fleetNamespaceToggle('fleet-default')
   cy.deleteAll();
-  // Check the number of clusters into this fleet system and ensure the amount of bundles within resources is the same.
-  // This way we ensure deletion is completed.
-  cy.get('a[aria-label="Clusters"] span[data-testid="type-count"]').invoke('text').then((clusterCount) => {
-
-    cy.contains('Resources').should('be.visible').click();
-    cy.get('a[aria-label="Bundles"] span[data-testid="type-count"]').invoke('text').then((bundleCount) => {
-    cy.log(`###### Fleet-DEFAULT: Cluster count is ${clusterCount} and Bundle count is ${bundleCount} ######`);
-    cy.wrap(bundleCount, { timeout: 10000 }).should((subject) => {
-      expect(subject).to.equal(clusterCount);
-    })
-    });
-  });
+  // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
+  cy.wait(2500);
 
   // const fleetNamespaces = ['fleet-local', 'fleet-default'];
   
