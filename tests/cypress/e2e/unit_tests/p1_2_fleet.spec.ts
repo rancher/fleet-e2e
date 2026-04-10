@@ -13,6 +13,7 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
+import { qase } from 'cypress-qase-reporter/dist/mocha';
 
 export const appName = "nginx-keep"
 export const branch = "master"
@@ -179,8 +180,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
 
 describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', '@pr-tests'] }, () => {
 
-  beforeEach('Cleanup leftover GitRepo, ClusterGroup etc. if any.', () => {
-    cy.deleteAllFleetRepos();
+  beforeEach('Cleanup leftover GitRepo, ClusterGroup or label etc. if any.', () => {
     cy.deleteClusterGroups();
   })
 
@@ -564,6 +564,8 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
 
       // Assign label to the clusters using kubectl command in terminal.
       cy.executeKubectlCommand(labelTwoImportedClsuters);
+
+      cy.continuousDeliveryMenuSelection();
 
       // Create a GitRepo targeting cluster group created from YAML.
       if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
