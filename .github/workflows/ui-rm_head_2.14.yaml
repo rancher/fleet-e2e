@@ -14,7 +14,7 @@ on:
         default: true
         type: boolean
       rancher_version:
-        description: Rancher version channel/version/head_version latest/latest, latest/2.13.x[-rc1], prime/2.13.x, prime/devel/2.13, alpha/2.14.0-alpha1, prime-alpha/2.x.x-alphaX
+        description: Rancher version channel/version/head_version latest/latest, latest/2.14.x[-rc1], prime/2.14.x, prime/devel/2.14, alpha/2.14.0-alpha1, prime-alpha/2.x.x-alphaX
         default: head/2.14
         type: string
         required: true
