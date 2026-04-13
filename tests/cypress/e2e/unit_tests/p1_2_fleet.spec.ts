@@ -179,7 +179,8 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
 
 describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', '@pr-tests'] }, () => {
 
-  beforeEach('Cleanup leftover GitRepo, ClusterGroup or label etc. if any.', () => {
+  beforeEach('Cleanup leftover GitRepo, ClusterGroup etc. if any.', () => {
+    cy.deleteAllFleetRepos();
     cy.deleteClusterGroups();
   })
 
