@@ -1350,5 +1350,9 @@ Cypress.Commands.add('executeKubectlCommand', (labelCommand) => {
 
   // Simulate typing the kubectl command to assign label to the cluster in the terminal
   cy.typeIntoCanvasTermnal(labelCommand);
+  cy.wait(500);
+
+  // Close local terminal
+  cy.get('i.closer.icon').click();
   }
 );
