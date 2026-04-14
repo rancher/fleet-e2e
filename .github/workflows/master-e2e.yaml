@@ -269,10 +269,7 @@ jobs:
         run: echo "/usr/local/bin/" >> ${GITHUB_PATH}
       - name: Install latest helm-4 on runner
         run: |
-          echo "::group::Install git and helm-4"
-          sudo zypper -n install --no-recommends git
-          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-4 | bash
-          echo "::endgroup::"
+          ./.github/scripts/install-git-helm-4.sh
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
       - name: Install Go

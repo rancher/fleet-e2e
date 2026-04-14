@@ -1,6 +1,4 @@
 deps: 
-	@go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo
-	@go install -mod=mod github.com/onsi/gomega
 	@go mod tidy
 
 # Qase commands
