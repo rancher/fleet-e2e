@@ -1,4 +1,9 @@
-deps: 
+GINKGO_VERSION = v2.19.0
+GOMEGA_VERSION = v1.33.1
+
+deps:
+	@go install github.com/onsi/ginkgo/v2/ginkgo@$(GINKGO_VERSION)
+	@go get github.com/onsi/gomega@$(GOMEGA_VERSION)
 	@go mod tidy
 
 # Qase commands
