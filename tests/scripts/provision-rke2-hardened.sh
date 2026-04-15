@@ -7,12 +7,19 @@ KUBECTL_VERSION="1.33.0"
 # renovate: datasource=github-releases depName=kubernetes/kubernetes digestVersion="1.33.0"
 KUBECTL_SHA256="9efe8d3facb23e1618cba36fb1c4e15ac9dc3ed5a2c2e18109e4a66b2bac12dc"
 
+HARDENED_VERSION="v1.33.0+rke2r1"
+HARDENED_SHA256="acf7c6f69c932b46313d84db862f3ff5583050036d63bb3d344fffff2037a39f"
+
+### Deploy Kubectl && alias
 
 ### Deploy Kubectl && alias
 echo "Downloading kubectl"
-curl -LO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
-echo "${KUBECTL_SHA256}  kubectl" | sha256sum -c
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+curl -sSfL "https://dl.k8s.io/release/v${KUBECTL_VERSION}/kubernetes-client-linux-amd64.tar.gz" -o kubernetes-client-linux-amd64.tar.gz
+echo "${KUBECTL_TARBALL_SHA256}  kubernetes-client-linux-amd64.tar.gz" | sha256sum -c -
+tar -xzf kubernetes-client-linux-amd64.tar.gz kubernetes/client/bin/kubectl
+echo "${KUBECTL_SHA256}  kubernetes/client/bin/kubectl" | sha256sum -c -
+sudo install -o root -g root -m 0755 kubernetes/client/bin/kubectl /usr/local/bin/kubectl
+rm -rf kubernetes kubernetes-client-linux-amd64.tar.gz
 alias k=kubectl
 
 
@@ -99,25 +106,27 @@ echo "profile: cis" | sudo tee -a /etc/rancher/rke2/config.yaml > /dev/null
 
 # Deploy RKE2
 echo "Downloading RKE2"
-# renovate: datasource=github-releases depName=rancher/rke2
-RKE2_INSTALLER=$(mktemp)
-wget --no-verbose https://get.rke2.io -O "${RKE2_INSTALLER}"
-chmod 700 "${RKE2_INSTALLER}"
+curl -sSfL "https://github.com/rancher/rke2/releases/download/${HARDENED_VERSION}/rke2.linux-amd64.tar.gz" -o rke2.tar.gz
+echo "${HARDENED_SHA256}  rke2.tar.gz" | sha256sum -c -
+curl -sSfL "https://get.rke2.io" -o install.sh
+chmod 700 install.sh
 
-# Use INSTALL_HARDENED_VERSION as the Kubernetes version if set, otherwise default to latest
-if [ -n "${INSTALL_HARDENED_VERSION:-}" ]; then
+# Use HARDENED_VERSION as the Kubernetes version if set, otherwise default to latest
+if [ -n "${HARDENED_VERSION:-}" ]; then
   if [ "$(id -u)" -eq 0 ]; then
-    INSTALL_RKE2_VERSION="${INSTALL_HARDENED_VERSION}" sh "${RKE2_INSTALLER}"
+    INSTALL_RKE2_VERSION="${HARDENED_VERSION}" INSTALL_RKE2_TAR_PREFIX="$PWD" sh install.sh
   else
-    sudo INSTALL_RKE2_VERSION="${INSTALL_HARDENED_VERSION}" sh "${RKE2_INSTALLER}"
+    sudo INSTALL_RKE2_VERSION="${HARDENED_VERSION}" INSTALL_RKE2_TAR_PREFIX="$PWD" sh install.sh
   fi
 else
   if [ "$(id -u)" -eq 0 ]; then
-    sh "${RKE2_INSTALLER}"
+    sh install.sh
   else
-    sudo sh "${RKE2_INSTALLER}"
+    sudo sh install.sh
   fi
 fi
+
+rm -f rke2.tar.gz install.sh
 
 sleep 40
 export PATH=$PATH:/opt/rke2/bin
