@@ -15,7 +15,6 @@ HARDENED_SHA256="acf7c6f69c932b46313d84db862f3ff5583050036d63bb3d344fffff2037a39
 ### Deploy Kubectl && alias
 echo "Downloading kubectl"
 curl -sSfL "https://dl.k8s.io/release/v${KUBECTL_VERSION}/kubernetes-client-linux-amd64.tar.gz" -o kubernetes-client-linux-amd64.tar.gz
-echo "${KUBECTL_TARBALL_SHA256}  kubernetes-client-linux-amd64.tar.gz" | sha256sum -c -
 tar -xzf kubernetes-client-linux-amd64.tar.gz kubernetes/client/bin/kubectl
 echo "${KUBECTL_SHA256}  kubernetes/client/bin/kubectl" | sha256sum -c -
 sudo install -o root -g root -m 0755 kubernetes/client/bin/kubectl /usr/local/bin/kubectl
