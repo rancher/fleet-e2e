@@ -1,11 +1,20 @@
 #!/bin/sh
 
-set -E -x
+set -euo pipefail
+
+# This script is used to provision a RKE2 cluster with hardened configuration for testing purposes.
+KUBECTL_VERSION="1.33.0"
+# renovate: datasource=github-releases depName=kubernetes/kubernetes digestVersion="1.33.0"
+KUBECTL_SHA256="9efe8d3facb23e1618cba36fb1c4e15ac9dc3ed5a2c2e18109e4a66b2bac12dc"
+
 
 ### Deploy Kubectl && alias
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+echo "Downloading kubectl"
+curl -LO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
+echo "${KUBECTL_SHA256}  kubectl" | sha256sum -c
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 alias k=kubectl
+
 
 # Node Setup
 sudo bash -c 'cat << EOF > /etc/sysctl.d/90-kubelet.conf
@@ -90,12 +99,24 @@ echo "profile: cis" | sudo tee -a /etc/rancher/rke2/config.yaml > /dev/null
 
 # Deploy RKE2
 echo "Downloading RKE2"
-# curl -sfL https://get.rke2.io | sudo -E sh -
-# Use INSTALL_K3S_VERSION as the Kubernetes version if set, otherwise default to latest
-if [ -n "$INSTALL_HARDENED_VERSION" ]; then
-  curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION="$INSTALL_HARDENED_VERSION" sudo -E sh -
+# renovate: datasource=github-releases depName=rancher/rke2
+RKE2_INSTALLER=$(mktemp)
+wget --no-verbose https://get.rke2.io -O "${RKE2_INSTALLER}"
+chmod 700 "${RKE2_INSTALLER}"
+
+# Use INSTALL_HARDENED_VERSION as the Kubernetes version if set, otherwise default to latest
+if [ -n "${INSTALL_HARDENED_VERSION:-}" ]; then
+  if [ "$(id -u)" -eq 0 ]; then
+    INSTALL_RKE2_VERSION="${INSTALL_HARDENED_VERSION}" sh "${RKE2_INSTALLER}"
+  else
+    sudo INSTALL_RKE2_VERSION="${INSTALL_HARDENED_VERSION}" sh "${RKE2_INSTALLER}"
+  fi
 else
-  curl -sfL https://get.rke2.io | sudo -E sh -
+  if [ "$(id -u)" -eq 0 ]; then
+    sh "${RKE2_INSTALLER}"
+  else
+    sudo sh "${RKE2_INSTALLER}"
+  fi
 fi
 
 sleep 40
