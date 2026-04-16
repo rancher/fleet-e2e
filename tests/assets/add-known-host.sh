@@ -11,7 +11,7 @@ YQ_SHA256="c529c33e6b545d95e39445c37f673e31ca110c3ca9310b47ccea78f9190b061e"
 
 # Get yq tool and install it
 echo "Downloading yq tool and installing it"
-curl -sSfL "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64.tar.gz" -o yq.tar.gz
+wget -q "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64.tar.gz" -O yq.tar.gz
 echo "${YQ_SHA256}  yq.tar.gz" | sha256sum -c -
 tar -xzf yq.tar.gz ./yq_linux_amd64
 sudo mv yq_linux_amd64 /usr/bin/yq
