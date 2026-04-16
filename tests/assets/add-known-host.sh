@@ -14,7 +14,7 @@ echo "Downloading yq tool and installing it"
 wget -q "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_amd64.tar.gz" -O yq.tar.gz
 echo "${YQ_SHA256}  yq.tar.gz" | sha256sum -c -
 tar -xzf yq.tar.gz ./yq_linux_amd64
-sudo mv yq_linux_amd64 /usr/bin/yq
+mv yq_linux_amd64 /usr/bin/yq
 chmod +x /usr/bin/yq
 rm -f yq.tar.gz
 
