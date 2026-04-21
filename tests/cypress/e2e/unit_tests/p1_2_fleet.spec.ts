@@ -453,9 +453,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
   let gitRepoFile
 
   beforeEach('Cleanup leftover GitRepo if any.', () => {
-    cy.login();
-    cy.visit('/');
-    cy.deleteAllFleetRepos();
     // Remove labels from the clusters.
     dsAllClusterList.forEach(
       (dsCluster) => {
@@ -489,7 +486,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
 
   clusterSelector.forEach(({ qase_id, app, test_explanation, bundle_count }) => {
     qase(qase_id,
-      it(`Test install ${test_explanation} using clusterSelector(matchLabels) in GitRepo`, { tags: `@fleet-${qase_id}` }, () => {
+      it(`Fleet-${qase_id}: Test install ${test_explanation} using clusterSelector(matchLabels) in GitRepo`, { tags: `@fleet-${qase_id}` }, () => {
 
         cy.continuousDeliveryMenuSelection();
         cy.clickNavMenu(['Clusters']);
