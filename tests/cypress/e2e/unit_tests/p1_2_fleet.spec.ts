@@ -192,6 +192,9 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
             cy.accesMenuSelection('Continuous Delivery', 'Clusters');
             cy.contains('.title', 'Clusters').should('be.visible');
 
+            //Toggle Fleet namespace on cluster page to `fleet-default` if not being selected already.
+            cy.fleetNamespaceToggle('fleet-default');
+
             // Add label to the third cluster i.e. imported-2
             cy.assignClusterLabel(dsThirdClusterName, key, value);
 
@@ -614,6 +617,10 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       // Remove label from the Second cluster i.e. imported-1
       cy.wait(500);
       cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+
+      //Toggle Fleet namespace on cluster page to `fleet-default` if not being selected already.
+      cy.fleetNamespaceToggle('fleet-default');
+
       cy.removeClusterLabels(dsSecondClusterName, key, value);
 
       // Check application is absent i.e. removed from second cluster i.e. imported-1
@@ -1666,6 +1673,10 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
       kubectl label clusters.management.cattle.io --all env=override{enter}');
 
       cy.continuousDeliveryMenuSelection();
+
+      //Toggle Fleet namespace on cluster page to `fleet-default` if not being selected already.
+      cy.fleetNamespaceToggle('fleet-default');
+
       cy.verifyTableRow(0, 'Active', repoName);
       cy.checkGitRepoStatus(repoName, '1 / 1', '3 / 3');
 
