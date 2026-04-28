@@ -306,6 +306,8 @@ jobs:
           GH_APP_ID: ${{ secrets.github_app_id }}
           GH_APP_INSTALLATION_ID: ${{ secrets.github_app_installation_id }}
           GH_APP_PRIVATE_KEY: ${{ secrets.github_app_private_key }}
+          QASE_TESTOPS_RUN_ID: ${{ inputs.qase_run_id }}
+          QASE_MODE: ${{ inputs.qase_report == true && 'testops' || 'off' }}
           GREPTAGS: ${{ inputs.grep_test_by_tag }}
           UPGRADE: 'false'
           # Add cypress/e2e/unit_tests/user.spec.ts again when implementing RBAC tests.
