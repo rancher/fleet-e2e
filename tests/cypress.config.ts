@@ -4,6 +4,8 @@ import { afterSpecHook } from 'cypress-qase-reporter/hooks';
 import { writeFileSync } from 'fs';
 
 const qaseAPIToken = process.env.QASE_API_TOKEN
+const qaseRunId = process.env.QASE_TESTOPS_RUN_ID
+const qaseMode = qaseAPIToken ? 'testops' : 'off'
 
 export default defineConfig({
   viewportWidth: 1596,
@@ -22,7 +24,7 @@ export default defineConfig({
       charts: true,
     },
     cypressQaseReporterReporterOptions: {
-      mode: "testops",
+      mode: qaseMode,
         debug: false,
         testops: {
           api: {
@@ -32,6 +34,7 @@ export default defineConfig({
           uploadAttachments: true,
           run: {
             complete: true,
+            id: qaseRunId ? parseInt(qaseRunId) : undefined,
           },
         },
       framework: {
