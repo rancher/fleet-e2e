@@ -85,6 +85,11 @@ on:
         description: Report to QASE
         default: false
         type: boolean
+      qase_run_id:
+        description: Existing QASE run ID to report into (leave empty to create a new one)
+        required: false
+        type: string
+        default: ''
       rancher_version:
         description: Rancher Manager channel/version/head_version to use for installation
         default: stable/latest/none
@@ -211,8 +216,12 @@ jobs:
       QASE_MODE: ${{ inputs.qase_report == true && 'testops' || 'off' }}
       # DELETE NOTES:
       # turtles_dev_chart not appearing for us. Removing. Not sure if we need an equivalent variable here.
-      QASE_TESTOPS_RUN_TITLE: ${{ format('[{3}] Rancher-{0} - {1} destroy={2} dev={3}', inputs.rancher_version, inputs.grep_test_by_tag, inputs.destroy_runner, github.run_number) }}
+      # QASE_TESTOPS_RUN_TITLE: ${{ format('[{3}] Rancher-{0} - {1} destroy={2} dev={3}', inputs.rancher_version, inputs.grep_test_by_tag, inputs.destroy_runner, github.run_number) }}
+      QASE_TESTOPS_RUN_TITLE: ${{ format('[{0}] Rancher-{1} - {2} destroy={3}', github.run_number, inputs.rancher_version, inputs.grep_test_by_tag, inputs.destroy_runner) }}
+
       QASE_TESTOPS_RUN_DESCRIPTION: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      QASE_TESTOPS_RUN_ID: ${{ inputs.qase_run_id }}
+      QASE_TESTOPS_COMPLETE_RUN: true
 
     steps:
       - name: Adding /usr/local/bin into PATH
@@ -310,11 +319,14 @@ jobs:
             cypress/e2e/unit_tests/hardened_fleet.spec.ts
             cypress/e2e/unit_tests/special_fleet_tests.spec.ts
         run: |
-          if ${{ inputs.qase_run_id == 'none' }}; then
-            # Unset default QASE_* variables when reporting is disabled
-            unset QASE_REPORT
+          # if ${{ inputs.qase_run_id == 'none' }}; then
+          #   # Unset default QASE_* variables when reporting is disabled
+          #   unset QASE_REPORT
+          #   unset QASE_API_TOKEN
+          #   # QASE_RUN_ID is empty string already
+          # fi
+          if [[ "${{ inputs.qase_report }}" != "true" ]]; then
             unset QASE_API_TOKEN
-            # QASE_RUN_ID is empty string already
           fi
           cd tests && make start-cypress-tests
       - name: Upload Cypress screenshots (Basics)
@@ -418,11 +430,14 @@ jobs:
             cypress/e2e/unit_tests/first_login_rancher.spec.ts
             cypress/e2e/unit_tests/upgrade_fleet.spec.ts
         run: |
-          if ${{ inputs.qase_run_id == 'none' }}; then
-            # Unset default QASE_* variables when reporting is disabled
-            unset QASE_REPORT
+          # if ${{ inputs.qase_run_id == 'none' }}; then
+          #   # Unset default QASE_* variables when reporting is disabled
+          #   unset QASE_REPORT
+          #   unset QASE_API_TOKEN
+          #   # QASE_RUN_ID is empty string already
+          # fi
+          if [[ "${{ inputs.qase_report }}" != "true" ]]; then
             unset QASE_API_TOKEN
-            # QASE_RUN_ID is empty string already
           fi
           cd tests && make start-cypress-tests
       - name: Upload Cypress screenshots (after-upgrade)
@@ -520,7 +535,7 @@ jobs:
           if [ -n "$RUN_ID" ]; then
             curl -X POST \
               --url https://api.qase.io/v1/run/FLEET/${RUN_ID}/complete \
-              -H "Token: ${{ secrets.QASE_API_TOKEN }}" \
+              -H "Token: ${{ secrets.qase_api_token }}" \
               -H 'accept: application/json'
           fi
           echo "QASE run $RUN_ID marked as Completed" >> ${GITHUB_STEP_SUMMARY}
