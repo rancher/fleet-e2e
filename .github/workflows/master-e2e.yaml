@@ -189,7 +189,7 @@ jobs:
     # Adapted from https://github.com/rancher/rancher-turtles-e2e/pull/269/changes#diff-24ccba33d5b3aea3f85952e4b5113c9546bf141bafee2c130d95abda98816d1bR233
     # Not sure how this worked after removal of qase_run_id
     outputs:
-      qase_run_id: ${{ steps.qase_run_id.outputs.qase_run_id }} 
+      qase_run_id: ${{ steps.qase_run_id.outputs.qase_run_id }}
     env:
       DS_CLUSTER_COUNT: 3
       ARCH: amd64
@@ -213,9 +213,7 @@ jobs:
       # turtles_dev_chart not appearing for us. Removing. Not sure if we need an equivalent variable here.
       QASE_TESTOPS_RUN_TITLE: ${{ format('[{3}] Rancher-{0} - {1} destroy={2} dev={3}', inputs.rancher_version, inputs.grep_test_by_tag, inputs.destroy_runner, github.run_number) }}
       QASE_TESTOPS_RUN_DESCRIPTION: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      QASE_RUN_ID: ${{ needs.pre-qase.outputs.qase_run_id }}
-      # NOTE: this REPORT var is needed for Cypress!
-      QASE_REPORT: 1
+
     steps:
       - name: Adding /usr/local/bin into PATH
         run: echo "/usr/local/bin/" >> ${GITHUB_PATH}
@@ -336,6 +334,7 @@ jobs:
           path: tests/cypress/videos
           retention-days: 7
       - name: Store QASE_TESTOPS_RUN_ID for later use
+        ## TODO: revise this step for QASE ID tracking
         if: ${{ always() && inputs.qase_report == true }}
         id: qase_run_id
         run: |
@@ -481,6 +480,7 @@ jobs:
           else
             echo -e "\n### Test not reported in QASE!" >> ${GITHUB_STEP_SUMMARY}
           fi
+
   delete-runner:
     if: ${{ always() && inputs.destroy_runner == true }}
     needs: [create-runner, e2e]
@@ -504,43 +504,6 @@ jobs:
           gcloud --quiet compute instances delete ${{ needs.create-runner.outputs.runner }} \
             --delete-disks all \
             --zone ${{ inputs.zone }}
-
-  # post-qase:
-  #   if: ${{ always() && needs.pre-qase.outputs.qase_run_id != '' }}
-  #   needs: [e2e, pre-qase]
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     QASE_API_TOKEN: ${{ secrets.qase_api_token }}
-  #     QASE_PROJECT_CODE: FLEET
-  #     QASE_REPORT: 1
-  #     QASE_RUN_COMPLETE: 1
-  #     QASE_RUN_ID: ${{ needs.pre-qase.outputs.qase_run_id }}
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
-
-  #     - name: Setup Go
-  #       uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
-  #       with:
-  #         cache-dependency-path: tests/go.sum
-  #         go-version-file: tests/go.mod
-
-  #     - name: Finalize Qase Run and publish Results
-  #       if: ${{ always() && !contains(needs.e2e.result, 'cancelled') }}
-  #       run: |
-  #         REPORT=$(cd tests && make publish-qase-run)
-  #         echo "${REPORT}"
-
-  #         # Extract report URL and put it in summary
-  #         REPORT_URL=$(awk '/available:/ { print $NF }' <<<${REPORT})
-  #         if [[ -n "${REPORT_URL}" ]]; then
-  #           echo "## QASE Reporting" >> ${GITHUB_STEP_SUMMARY}
-  #           echo "Public Qase report: ${REPORT_URL}" >> ${GITHUB_STEP_SUMMARY}
-  #         fi
-
-  #     - name: Delete Qase Run if job has been cancelled
-  #       if: ${{ always() && contains(needs.e2e.result, 'cancelled') }}
-  #       run: cd tests && make delete-qase-run
 
   # Just to signify that something has been cancelled and it's not useful to check the test
   declare-cancelled:
