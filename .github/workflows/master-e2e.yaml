@@ -427,7 +427,7 @@ jobs:
           fi
           cd tests && make start-cypress-tests
       - name: Upload Cypress screenshots (after-upgrade)
-        if: failure() && ${{ inputs.rancher_upgrade != '' }}
+        if: ${{ failure() && inputs.rancher_upgrade != '' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: cypress-screenshots-after-upgrade-${{ inputs.cluster_name }}
