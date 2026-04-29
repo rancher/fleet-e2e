@@ -90,7 +90,9 @@ export default defineConfig({
         const qaseRunId = process.env.QASE_TESTOPS_RUN_ID;
         if (qaseRunId) {
           // process.stdout.write(`QASE_TESTOPS_RUN_ID=${qaseRunId}\n`);
-          writeFileSync('./QASE_TESTOPS_RUN_ID.txt', qaseRunId, { encoding: 'utf8' });
+          // writeFileSync('./QASE_TESTOPS_RUN_ID.txt', qaseRunId, { encoding: 'utf8' });
+          writeFileSync('./cypress/e2e/unit_tests/QASE_TESTOPS_RUN_ID.txt', qaseRunId, { encoding: 'utf8' });
+
         } else {
           // process.stdout.write('QASE_TESTOPS_RUN_ID is not set.\n');
         }
