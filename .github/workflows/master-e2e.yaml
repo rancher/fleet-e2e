@@ -216,7 +216,7 @@ jobs:
       QASE_TESTOPS_RUN_DESCRIPTION: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       QASE_TESTOPS_RUN_ID: ${{ inputs.qase_run_id }}
       QASE_TESTOPS_COMPLETE_RUN: true
-      QASE_LOGGING: false
+      QASE_LOGGING_CONSOLE: false
 
     steps:
       - name: Adding /usr/local/bin into PATH

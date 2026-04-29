@@ -4,7 +4,8 @@ import { afterSpecHook } from 'cypress-qase-reporter/hooks';
 import { writeFileSync } from 'fs';
 
 const qaseAPIToken = process.env.QASE_API_TOKEN
-const qaseMode = qaseAPIToken ? 'testops' : 'off'
+const qaseMode = (process.env.QASE_MODE === 'testops' && qaseAPIToken) ? 'testops' : 'off'
+
 
 export default defineConfig({
   viewportWidth: 1596,
@@ -25,6 +26,9 @@ export default defineConfig({
     cypressQaseReporterReporterOptions: {
       mode: qaseMode,
         debug: false,
+        logging: {
+          console: false,
+        },
         testops: {
           api: {
            token: qaseAPIToken,
