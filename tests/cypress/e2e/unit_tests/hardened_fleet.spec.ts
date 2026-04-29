@@ -28,8 +28,7 @@ beforeEach(() => {
 
 Cypress.config();
 describe('Test Hardened Fleet deployment on PUBLIC repos',  { tags: '@hardening-tests' }, () => {
-  qase(128,
-    it('FLEET-128: Deploy application to LOCAL cluster is NOT possible', { tags: '@fleet-128' }, () => {
+  it(qase(128, 'FLEET-128: Deploy application to LOCAL cluster is NOT possible'), { tags: '@fleet-128' }, () => {
 
       const repoName = "local-cluster-error"
       const branch = "master"
@@ -45,11 +44,10 @@ describe('Test Hardened Fleet deployment on PUBLIC repos',  { tags: '@hardening-
       cy.verifyTableRow(0, 'Error', 'local-cluster-error-simple');
       cy.contains('NotReady(1) [Cluster fleet-local/local];').should('be.visible');
       cy.deleteAllFleetRepos();
-    })
+    }
   );
 
-  qase(185,
-    it('FLEET-185: Deploy application to DOWNSTREAM clusters IS possible', { tags: '@fleet-185' }, () => {
+  it(qase(185, 'FLEET-185: Deploy application to DOWNSTREAM clusters IS possible'), { tags: '@fleet-185' }, () => {
 
       const repoName = "downstream-clusters-ok"
       const branch = "master"
@@ -64,7 +62,7 @@ describe('Test Hardened Fleet deployment on PUBLIC repos',  { tags: '@hardening-
       cy.wait(20000);
       cy.checkGitRepoStatus(repoName, '1 / 1', '18 / 18');
       cy.verifyTableRow(0, 'Active', 'downstream-clusters-ok-simple');
-    })
+    }
   );
 
 });

@@ -24,8 +24,7 @@ beforeEach(() => {
 
 Cypress.config();
 describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@upgrade' }, () => {
-  qase(157,
-    it(`FLEET-157: Test to install "NGINX" app using "SSH" auth on "GitLab" PRIVATE repository`, { tags: '@fleet-157', retries: 1 }, () => {
+  it(qase(157, `FLEET-157: Test to install "NGINX" app using "SSH" auth on "GitLab" PRIVATE repository`), { tags: '@fleet-157', retries: 1 }, () => {
       const repoName = 'default-cluster-fleet-157'
       const gitAuthType = "ssh"
       const userOrPublicKey = Cypress.expose("rsa_public_key_qa")
@@ -54,8 +53,7 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@upgra
 });
 
 describe('Test Fleet deployment on PUBLIC repos',  { tags: '@upgrade' }, () => {
-  qase(158,
-    it('FLEET-158: Deploy application to local cluster', { tags: '@fleet-158' }, () => {
+  it(qase(158, 'FLEET-158: Deploy application to local cluster'), { tags: '@fleet-158' }, () => {
       const path = "simple"
       const repoUrl = 'https://github.com/rancher/fleet-examples'
       const repoName = "local-cluster-fleet-158"
@@ -83,8 +81,7 @@ describe('Test Fleet deployment on PUBLIC repos',  { tags: '@upgrade' }, () => {
 });
 
 describe('Test gitrepos with cabundle', { tags: '@upgrade' }, () => {
-  qase(159,
-    it("Fleet-159 Test cabundle secrets are not created without TLS certificate", { tags: '@fleet-159' }, () => {;
+  it(qase(159, "Fleet-159 Test cabundle secrets are not created without TLS certificate"), { tags: '@fleet-159' }, () => {;
       const repoName = 'default-159-test-cabundle-secrets-not-created'
       const path = "qa-test-apps/nginx-app"
       const repoUrl = "https://github.com/rancher/fleet-test-data/"
@@ -112,8 +109,7 @@ describe('Test gitrepos with cabundle', { tags: '@upgrade' }, () => {
 });
 
 describe('Test Crontab for Fleet job cleanup is present',  { tags: '@upgrade' }, () => {
-  qase(162,
-    it('FLEET-162: Test Crontab for Fleet job cleanup is present', { tags: '@fleet-162' }, () => {
+  it(qase(162, 'FLEET-162: Test Crontab for Fleet job cleanup is present'), { tags: '@fleet-162' }, () => {
       // This test doesnot require upgrade flag as it not creating anything,
       // only checking the existance of Crontab for Fleet cleanup job.
 
@@ -130,8 +126,7 @@ describe('Test Crontab for Fleet job cleanup is present',  { tags: '@upgrade' },
 });
 
 describe('Test "fleet-agent" image version on each downstream cluster',  { tags: '@upgrade' }, () => {
-  qase(163,
-    it('FLEET-163: Test "fleet-agent" image version on each downstream cluster after upgrade ', { tags: '@fleet-163' }, () => {
+  it(qase(163, 'FLEET-163: Test "fleet-agent" image version on each downstream cluster after upgrade '), { tags: '@fleet-163' }, () => {
       const dsAllClusterList = ['imported-0', 'imported-1', 'imported-2']
       cy.log("===========================");
       cy.log("Cluster Upgraded: " + upgrade);
@@ -176,12 +171,10 @@ describe('Test "fleet-agent" image version on each downstream cluster',  { tags:
         cy.log("This test has to run After Upgrade only")
       }
     })
-  );
 });
 
 describe('Test Upgrade Kubernetes version of imported cluster support for fleet',  { tags: '@k8supgrade' }, () => {
-  qase(90,
-    it('FLEET-90: Test Upgrade Kubernetes version of imported cluster support for fleet', { tags: '@fleet-90' }, () => {
+  it(qase(90, 'FLEET-90: Test Upgrade Kubernetes version of imported cluster support for fleet'), { tags: '@fleet-90' }, () => {
       const dsAllClusterList = ['imported-0','imported-1', 'imported-2']
       if (upgrade) {
         cy.log("K8s Version for all downstream cluster upgraded to given K8s version.")
@@ -193,5 +186,4 @@ describe('Test Upgrade Kubernetes version of imported cluster support for fleet'
         })
       }
     })
-  );
 });
