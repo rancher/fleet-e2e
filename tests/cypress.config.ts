@@ -4,7 +4,6 @@ import { afterSpecHook } from 'cypress-qase-reporter/hooks';
 import { writeFileSync } from 'fs';
 
 const qaseAPIToken = process.env.QASE_API_TOKEN
-// const qaseRunId = process.env.QASE_TESTOPS_RUN_ID
 const qaseMode = qaseAPIToken ? 'testops' : 'off'
 
 export default defineConfig({
@@ -63,6 +62,7 @@ export default defineConfig({
       on("before:browser:launch", (browser, launchOptions) => {
         
         if (["chrome", "edge"].includes(browser.name)) {
+          
           if (browser.isHeadless) {
             launchOptions.args.push("--no-sandbox");
             launchOptions.args.push("--disable-gl-drawing-for-tests");
@@ -81,25 +81,16 @@ export default defineConfig({
         await afterSpecHook(spec, config);
       });
       on('before:spec', () => {
-        // Writes QASE_TESTOPS_RUN_ID to a file before running each spec
-        // and overwrites it with the same content over and over again
-        // but it is ok as the value is the same during the whole run.
-        // Later this file is used as output value in .github/workflows/master-e2e.yaml for:
+        // Writes QASE_TESTOPS_RUN_ID to a file before running each spec.
+        // Used in .github/workflows/master-e2e.yaml for:
         // 1) Marking cancelled test run in Qase TestOps as Completed
         // 2) Linking the run in the summary
         const qaseRunId = process.env.QASE_TESTOPS_RUN_ID;
+
         if (qaseRunId) {
-          // process.stdout.write(`QASE_TESTOPS_RUN_ID=${qaseRunId}\n`);
-          // writeFileSync('./QASE_TESTOPS_RUN_ID.txt', qaseRunId, { encoding: 'utf8' });
           writeFileSync('./cypress/e2e/unit_tests/QASE_TESTOPS_RUN_ID.txt', qaseRunId, { encoding: 'utf8' });
 
-        } else {
-          // process.stdout.write('QASE_TESTOPS_RUN_ID is not set.\n');
-        }
-        // Output all environment variables to stdout for debugging purposes
-        // for (const [key, value] of Object.entries(process.env)) {
-        //   process.stdout.write(`${key}=${value}\n`);
-        // }Expand commentComment on lines R76 to R81Resolved
+        } 
       });
       
       return config;
