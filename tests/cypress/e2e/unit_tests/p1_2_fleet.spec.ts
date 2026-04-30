@@ -47,47 +47,31 @@ beforeEach(() => {
 Cypress.config();
 describe('Test GitRepo Bundle name validation and max character trimming behavior in bundle', { tags: ['@p1_2', '@pr-tests'] }, () => {
 
-  repoTestData.forEach(
-    ({ qase_id, repoName, test_explanation }) => {
-      if ((qase_id === 105 || qase_id === 61)) {
-        it(qase(qase_id, `Fleet-${qase_id}: Test GitRepo NAME with "${test_explanation}" displays ERROR message and does NOT get created`), { tags: `@fleet-${qase_id}` }, () => {
-            // Add Fleet repository and create it
-            cy.addFleetGitRepo({repoName, repoUrl, branch, path});
-            cy.clickButton('Create');
+  it(qase(103, "Fleet-103: Test GitRepo bundle name TRIMMING behavior. GitRepo with '47 characters long is NOT TRIMMED but PATH is added with '-' to 53 characters'"), { tags: '@fleet-103' }, () => {
+    const repoName = "test-test-test-test-test-test-test-test-test-t"
 
-            // Navigate back to GitRepo page
-            cy.clickButton('Cancel')
-            cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible')
-          })
-      } else {
-        it(qase(qase_id, `Fleet-${qase_id}: Test GitRepo bundle name TRIMMING behavior. GitRepo with "${test_explanation}"`), { tags: `@fleet-${qase_id}` }, () => {
-            // Change namespace to fleet-local
+    // Add Fleet repository and create it
+    cy.addFleetGitRepo({repoName, repoUrl, branch, path, local: true});
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', repoName);
 
-      // Add Fleet repository and create it
-      cy.addFleetGitRepo({repoName, repoUrl, branch, path, local: true});
-      cy.clickButton('Create');
-      cy.verifyTableRow(0, 'Active', repoName);
+    // Navigate to Bundles
+    cy.continuousDeliveryBundlesMenu();
 
-      // Navigate to Bundles
-      cy.continuousDeliveryBundlesMenu();
+    // Check bundle name trimed to less than 53 characters
+    cy.contains('tr.main-row[data-testid="sortable-table-1-row"]').should('not.be.empty', { timeout: 25000 });
+    cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-1-row"]`)
+      .children({ timeout: 300000 })
+      .should('not.have.text', 'fleet-agent-local')
+      .should('not.be.empty')
+      .should('include.text', 'test-')
+      .should(($ele) => {
+        expect($ele).have.length.lessThan(53)
+      })
+    cy.checkApplicationStatus(appName);
+  })
 
-      // Check bundle name trimed to less than 53 characters
-      cy.contains('tr.main-row[data-testid="sortable-table-1-row"]').should('not.be.empty', { timeout: 25000 });
-      cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-1-row"]`)
-        .children({ timeout: 300000 })
-        .should('not.have.text', 'fleet-agent-local')
-        .should('not.be.empty')
-        .should('include.text', 'test-')
-        .should(($ele) => {
-          expect($ele).have.length.lessThan(53)
-        })
-      cy.checkApplicationStatus(appName);
-    })
-  )
-
-  qase(104,
-
-    it("Fleet-104: Test GitRepo bundle name TRIMMING behavior. GitRepo with '59 characters long is TRIMMED to 53 characters max'", { tags: '@fleet-104' }, () => {
+  it(qase(104, "Fleet-104: Test GitRepo bundle name TRIMMING behavior. GitRepo with '59 characters long is TRIMMED to 53 characters max'"), { tags: '@fleet-104' }, () => {
       const repoName = "test-test-test-test-test-test-test-test-test-test-test-test"
 
       // Add Fleet repository and create it
@@ -109,12 +93,10 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
           expect($ele).have.length.lessThan(53)
         })
       cy.checkApplicationStatus(appName);
-    })
+    }
   )
 
-  qase(105,
-
-    it("Fleet-105: Test GitRepo NAME with 'INVALID and NORMAL characters' displays ERROR message and does NOT get created", { tags: '@fleet-105' }, () => {
+  it(qase(105, "Fleet-105: Test GitRepo NAME with 'INVALID and NORMAL characters' displays ERROR message and does NOT get created"), { tags: '@fleet-105' }, () => {
       const repoName = "Test.1-repo-local-cluster"
 
       // Add Fleet repository and create it
@@ -124,39 +106,35 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
       // Navigate back to GitRepo page
       cy.clickButton('Cancel')
       cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible')
-    })
+    }
   )
 
-  qase(106,
 
-    it("Fleet-106: Test GitRepo bundle name TRIMMING behavior. GitRepo with '54 characters long is TRIMMED to 53 characters max'", { tags: '@fleet-106' }, () => {
-      const repoName = "test-test-test-test-123-456-789-0--test-test-test-test"
+  it(qase(106, "Fleet-106: Test GitRepo bundle name TRIMMING behavior. GitRepo with '54 characters long is TRIMMED to 53 characters max'"), { tags: '@fleet-106' }, () => {
+    const repoName = "test-test-test-test-123-456-789-0--test-test-test-test"
 
-      // Add Fleet repository and create it
-      cy.addFleetGitRepo({repoName, repoUrl, branch, path, local: true});
-      cy.clickButton('Create');
-      cy.verifyTableRow(0, 'Active', repoName);
+    // Add Fleet repository and create it
+    cy.addFleetGitRepo({repoName, repoUrl, branch, path, local: true});
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', repoName);
 
-      // Navigate to Bundles
-      cy.continuousDeliveryBundlesMenu();
+    // Navigate to Bundles
+    cy.continuousDeliveryBundlesMenu();
 
-      // Check bundle name trimed to less than 53 characters
-      cy.contains('tr.main-row[data-testid="sortable-table-1-row"]').should('not.be.empty', { timeout: 25000 });
-      cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-1-row"]`)
-        .children({ timeout: 300000 })
-        .should('not.have.text', 'fleet-agent-local')
-        .should('not.be.empty')
-        .should('include.text', 'test-')
-        .should(($ele) => {
-          expect($ele).have.length.lessThan(53)
-        })
-      cy.checkApplicationStatus(appName);
-    })
-  )
+    // Check bundle name trimed to less than 53 characters
+    cy.contains('tr.main-row[data-testid="sortable-table-1-row"]').should('not.be.empty', { timeout: 25000 });
+    cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-1-row"]`)
+      .children({ timeout: 300000 })
+      .should('not.have.text', 'fleet-agent-local')
+      .should('not.be.empty')
+      .should('include.text', 'test-')
+      .should(($ele) => {
+        expect($ele).have.length.lessThan(53)
+      })
+    cy.checkApplicationStatus(appName);
+  })
 
-  qase(61,
-
-    it("Fleet-61: Test GitRepo NAME with 'INVALID and SPECIAL characters' displays ERROR message and does NOT get created", { tags: '@fleet-61' }, () => {
+  it(qase(61, "Fleet-61: Test GitRepo NAME with 'INVALID and SPECIAL characters' displays ERROR message and does NOT get created"), { tags: '@fleet-61' }, () => {
       const repoName = "Test.1-repo-local-cluster"
 
       // Add Fleet repository and create it
@@ -166,9 +144,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
       // Navigate back to GitRepo page
       cy.clickButton('Cancel')
       cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible')
-    })
-  )
-
+  })
 });
 
 describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', '@pr-tests'] }, () => {
