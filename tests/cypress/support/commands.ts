@@ -18,7 +18,7 @@ import 'cypress-file-upload';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 
 export const noRowsMessages = ['There are no rows to show.', 'There are no rows which match your search query.']
-export const NoAppBundleOrGitRepoPresentMessages = ['No repositories have been added', 'No App Bundles have been created']
+export const NoAppBundleOrGitRepoPresentMessages = ['No Git Repos have been added', 'No repositories have been added', 'No App Bundles have been created']
 export const rancherVersion = Cypress.expose('rancher_version');
 export const supported_versions_212_and_above = [
   /^(prime|prime-optimus|prime-optimus-alpha|prime-alpha|prime-rc|alpha)\/2\.(1[2-9]|[2-9]\d+)(\..*)?$/,
@@ -284,10 +284,10 @@ Cypress.Commands.add('deployToClusterOrClusterGroup', (deployToTarget) => {
 
 Cypress.Commands.add('clickCreateGitRepo', (local) => {
   if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-    cy.clickButton('Create App Bundle');
     if (local){
       cy.fleetNamespaceToggle('fleet-local');
     }
+    cy.clickButton('Create App Bundle');
     cy.contains('App Bundle: Create').should('be.visible');
     cy.contains('Git Repos').should('be.visible').click();
     cy.wait(1000);
@@ -481,23 +481,46 @@ cy.contains(toggleOption).should('be.visible').click({force: true});
 // Note: This function may be substituted by 'cypressLib.deleteAllResources' 
 // when hardcoded texts present can be parameterized
 Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
+
   cy.get('body').then(($body) => {
+
+    if ($body.text().match('/Actions/')) {
+      cy.wait(250) // Add small wait to give time for things to settle
+      cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
+      cy.get('.btn').contains('Actions').click().then(() => {
+          cy.wait(250) // Add small wait to allow dropdown to open and be interactable
+          cy.get('li.action > span, div.dropdownTarget, .list-unstyled.menu > li > span')
+            cy.contains('Delete')
+            .should('exist')
+            .click({ctrlKey: true, force: true});
+      });
+      // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
+      cy.wait(2500);
+    };
+
     if ($body.text().includes('Delete')) {
       cy.wait(250) // Add small wait to give time for things to settle
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
-      cy.get('.btn').contains('Delete').click({ctrlKey: true});
-      if (fleetCheck === true) {
-        cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|')), { timeout: 20000 }).should('be.visible')
-      } else {
-        cy.get('td > span, td.text-center > span', { timeout: 25000 }).invoke('text').should('be.oneOf', noRowsMessages)
-      }
+      cy.get('.btn').contains('Delete').click({ctrlKey: true, force: true});   
+      // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
+      cy.wait(2500);
     };
+
+    if (fleetCheck === true) {
+        cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|')), { timeout: 20000 }).should('be.visible')
+      }
+      
+    else {
+      cy.contains(new RegExp(noRowsMessages.join('|')), { timeout: 30000 }).should('be.visible');
+    }
   });
 });
 
 // Command to delete all repos pressent in Fleet local and default
 Cypress.Commands.add('deleteAllFleetRepos', (namespaceName) => {
+
   cy.continuousDeliveryMenuSelection();
+
   cy.fleetNamespaceToggle('fleet-local')
   cy.deleteAll();
   cy.fleetNamespaceToggle('fleet-default')
@@ -517,11 +540,13 @@ Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources, { time
   cy.get('.primaryheader > h1, h1 > span.resource-name.masthead-resource-title').contains(repoName).should('be.visible')
   cy.log(`Checking ${bundles} Bundles and Resources`)
   if (bundles) {
+    cy.contains('Bundles ready', { timeout: timeout }).should('be.visible');
     cy.get('div.fleet-status', { timeout: timeout }).eq(0).contains(` ${bundles} Bundles ready `, { timeout: timeout }).should('be.visible')
   }
   // Ensure this check is performed only for tests in 'fleet-local' namespace.
   if (resources) {
-      cy.get('div.fleet-status', { timeout: timeout }).eq(1).contains(` ${resources} Resources ready `, { timeout: timeout }).should('be.visible')
+    cy.contains('Resources ready', { timeout: timeout }).should('be.visible');
+    cy.get('div.fleet-status', { timeout: timeout }).eq(1).contains(` ${resources} Resources ready `, { timeout: timeout }).should('be.visible')
   } else {
     // On downstream clusters (v2.9+), resources are affected by cluster count.
     // Avoid specifying 'resources' for tests in 'fleet-default' to allow automatic verification.
@@ -1161,8 +1186,8 @@ Cypress.Commands.add('createConfigMap', (configMapName) => {
 })
 
 
-Cypress.Commands.add('deleteConfigMap', (configMapName) => {
-    cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
+Cypress.Commands.add('deleteConfigMap', (configMapName, clusterName="local") => {
+    cy.accesMenuSelection(clusterName, 'Storage', 'ConfigMaps');
     cy.filterInSearchBox(configMapName);
     cy.wait(1000);
     cy.get('body').then(($body) => {

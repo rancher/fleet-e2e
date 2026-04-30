@@ -1,15 +1,10 @@
-deps: 
-	@go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo
-	@go install -mod=mod github.com/onsi/gomega
-	@go mod tidy
+GINKGO_VERSION = v2.19.0
+GOMEGA_VERSION = v1.33.1
 
-# Qase commands
-create-qase-run: deps
-	@go run qase/qase_cmd.go -create
-delete-qase-run: deps
-	@go run qase/qase_cmd.go -delete
-publish-qase-run: deps
-	@go run qase/qase_cmd.go -publish
+deps:
+	@go install github.com/onsi/ginkgo/v2/ginkgo@$(GINKGO_VERSION)
+	@go get github.com/onsi/gomega@$(GOMEGA_VERSION)
+	@go mod tidy
 
 e2e-install-rancher: deps
 	ginkgo --label-filter install -r -v ./e2e
