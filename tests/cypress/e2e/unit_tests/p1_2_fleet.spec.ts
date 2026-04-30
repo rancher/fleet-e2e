@@ -46,68 +46,105 @@ beforeEach(() => {
 
 Cypress.config();
 describe('Test GitRepo Bundle name validation and max character trimming behavior in bundle', { tags: ['@p1_2', '@pr-tests'] }, () => {
-  const repoTestData: testData[] = [
-    { qase_id: 103,
-      repoName: "test-test-test-test-test-test-test-test-test-t",
-      test_explanation: "47 characters long is NOT TRIMMED but PATH is added with '-' to 53 characters" },
-    { qase_id: 104,
-      repoName: "test-test-test-test-test-test-test-test-test-test-test-test",
-      test_explanation: "59 characters long is TRIMMED to 53 characters max" },
-    { qase_id: 106,
-      repoName: "test-test-test-test-123-456-789-0--test-test-test-test",
-      test_explanation: "54 characters long is TRIMMED to 53 characters max" },
-    { qase_id: 105,
-      repoName: "Test.1-repo-local-cluster",
-      test_explanation: "INVALID and NORMAL characters" },
-    { qase_id: 61,
-      repoName: "ryhhskh-123456789+-+abdhg%^/",
-      test_explanation: "INVALID and SPECIAL characters" },
-  ]
 
-  repoTestData.forEach(
-    ({ qase_id, repoName, test_explanation }) => {
-      if ((qase_id === 105 || qase_id === 61)) {
-        qase(qase_id,
-          it(`Fleet-${qase_id}: Test GitRepo NAME with "${test_explanation}" displays ERROR message and does NOT get created`, { tags: `@fleet-${qase_id}` }, () => {
-            // Add Fleet repository and create it
-            cy.addFleetGitRepo({repoName, repoUrl, branch, path});
-            cy.clickButton('Create');
+  it(qase(103, "Fleet-103: Test GitRepo bundle name TRIMMING behavior. GitRepo with '47 characters long is NOT TRIMMED but PATH is added with '-' to 53 characters'"), { tags: '@fleet-103' }, () => {
+    const repoName = "test-test-test-test-test-test-test-test-test-t"
 
-            // Navigate back to GitRepo page
-            cy.clickButton('Cancel')
-            cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible')
-          })
-          )
-      } else {
-        qase(qase_id,
-          it(`Fleet-${qase_id}: Test GitRepo bundle name TRIMMING behavior. GitRepo with "${test_explanation}"`, { tags: `@fleet-${qase_id}` }, () => {
-            // Change namespace to fleet-local
+    // Add Fleet repository and create it
+    cy.addFleetGitRepo({repoName, repoUrl, branch, path, local: true});
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', repoName);
 
-            // Add Fleet repository and create it
-            cy.addFleetGitRepo({repoName, repoUrl, branch, path, local: true});
-            cy.clickButton('Create');
-            cy.verifyTableRow(0, 'Active', repoName);
+    // Navigate to Bundles
+    cy.continuousDeliveryBundlesMenu();
 
-            // Navigate to Bundles
-            cy.continuousDeliveryBundlesMenu();
+    // Check bundle name trimed to less than 53 characters
+    cy.contains('tr.main-row[data-testid="sortable-table-1-row"]').should('not.be.empty', { timeout: 25000 });
+    cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-1-row"]`)
+      .children({ timeout: 300000 })
+      .should('not.have.text', 'fleet-agent-local')
+      .should('not.be.empty')
+      .should('include.text', 'test-')
+      .should(($ele) => {
+        expect($ele).have.length.lessThan(53)
+      })
+    cy.checkApplicationStatus(appName);
+  })
 
-            // Check bundle name trimed to less than 53 characters
-            cy.contains('tr.main-row[data-testid="sortable-table-1-row"]').should('not.be.empty', { timeout: 25000 });
-            cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-1-row"]`)
-              .children({ timeout: 300000 })
-              .should('not.have.text', 'fleet-agent-local')
-              .should('not.be.empty')
-              .should('include.text', 'test-')
-              .should(($ele) => {
-                expect($ele).have.length.lessThan(53)
-              })
-            cy.checkApplicationStatus(appName);
-            cy.deleteAllFleetRepos();
-          })
-        )
-      }
+  it(qase(104, "Fleet-104: Test GitRepo bundle name TRIMMING behavior. GitRepo with '59 characters long is TRIMMED to 53 characters max'"), { tags: '@fleet-104' }, () => {
+      const repoName = "test-test-test-test-test-test-test-test-test-test-test-test"
+
+      // Add Fleet repository and create it
+      cy.addFleetGitRepo({repoName, repoUrl, branch, path, local: true});
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active', repoName);
+
+      // Navigate to Bundles
+      cy.continuousDeliveryBundlesMenu();
+
+      // Check bundle name trimed to less than 53 characters
+      cy.contains('tr.main-row[data-testid="sortable-table-1-row"]').should('not.be.empty', { timeout: 25000 });
+      cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-1-row"]`)
+        .children({ timeout: 300000 })
+        .should('not.have.text', 'fleet-agent-local')
+        .should('not.be.empty')
+        .should('include.text', 'test-')
+        .should(($ele) => {
+          expect($ele).have.length.lessThan(53)
+        })
+      cy.checkApplicationStatus(appName);
     }
   )
+
+  it(qase(105, "Fleet-105: Test GitRepo NAME with 'INVALID and NORMAL characters' displays ERROR message and does NOT get created"), { tags: '@fleet-105' }, () => {
+      const repoName = "Test.1-repo-local-cluster"
+
+      // Add Fleet repository and create it
+      cy.addFleetGitRepo({repoName, repoUrl, branch, path});
+      cy.clickButton('Create');
+
+      // Navigate back to GitRepo page
+      cy.clickButton('Cancel')
+      cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible')
+    }
+  )
+
+
+  it(qase(106, "Fleet-106: Test GitRepo bundle name TRIMMING behavior. GitRepo with '54 characters long is TRIMMED to 53 characters max'"), { tags: '@fleet-106' }, () => {
+    const repoName = "test-test-test-test-123-456-789-0--test-test-test-test"
+
+    // Add Fleet repository and create it
+    cy.addFleetGitRepo({repoName, repoUrl, branch, path, local: true});
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', repoName);
+
+    // Navigate to Bundles
+    cy.continuousDeliveryBundlesMenu();
+
+    // Check bundle name trimed to less than 53 characters
+    cy.contains('tr.main-row[data-testid="sortable-table-1-row"]').should('not.be.empty', { timeout: 25000 });
+    cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-1-row"]`)
+      .children({ timeout: 300000 })
+      .should('not.have.text', 'fleet-agent-local')
+      .should('not.be.empty')
+      .should('include.text', 'test-')
+      .should(($ele) => {
+        expect($ele).have.length.lessThan(53)
+      })
+    cy.checkApplicationStatus(appName);
+  })
+
+  it(qase(61, "Fleet-61: Test GitRepo NAME with 'INVALID and SPECIAL characters' displays ERROR message and does NOT get created"), { tags: '@fleet-61' }, () => {
+      const repoName = "Test.1-repo-local-cluster"
+
+      // Add Fleet repository and create it
+      cy.addFleetGitRepo({repoName, repoUrl, branch, path});
+      cy.clickButton('Create');
+
+      // Navigate back to GitRepo page
+      cy.clickButton('Cancel')
+      cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible')
+  })
 });
 
 describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', '@pr-tests'] }, () => {
@@ -115,8 +152,6 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
   let repoName
 
   beforeEach('Cleanup leftover GitRepo, ClusterGroup or label etc. if any.', () => {
-    cy.login();
-    cy.visit('/');
     cy.deleteAllFleetRepos();
     // Remove labels from the clusters.
     dsAllClusterList.forEach(
@@ -141,8 +176,7 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
   ]
 
   clusterGroup.forEach(({ qase_id, test_explanation }) => {
-      qase(qase_id,
-        it(`Fleet-${qase_id}: Test ${test_explanation}`, { tags: `@fleet-${qase_id}` }, () => {
+      it(qase(qase_id, `Fleet-${qase_id}: Test ${test_explanation}`), { tags: `@fleet-${qase_id}` }, () => {
           repoName = `default-single-app-cluster-group-${qase_id}`
           if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
             repoName = "default-single-app-cluster-group"
@@ -223,12 +257,10 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
           )
           cy.deleteClusterGroups();
         })
-      )
     }
   )
 
-  qase(26,
-    it("Fleet-26: Test install multiple applications to the all defined clusters in the 'clusterGroup'", { tags: '@fleet-26' }, () => {
+  it(qase(26, "Fleet-26: Test install multiple applications to the all defined clusters in the 'clusterGroup'"), { tags: '@fleet-26' }, () => {
       const repoName = 'default-single-app-cluster-group-26'
       const path2 = 'multiple-paths/config'
 
@@ -288,11 +320,11 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
           cy.removeClusterLabels(dsCluster, key, value);
         }
       )
-    })
+    }
   )
+  
 
-  qase(28,
-    it("Fleet-28: Test remove existing application from cluster-2 by removing it from an existing 'clusterGroup'", { tags: '@fleet-28' }, () => {
+  it(qase(28, "Fleet-28: Test remove existing application from cluster-2 by removing it from an existing 'clusterGroup'"), { tags: '@fleet-28' }, () => {
       let repoName
       repoName = 'default-single-app-cluster-group-28'
       if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
@@ -363,15 +395,14 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
       )
       // Delete clusterGroups.
       cy.deleteClusterGroups();
-    })
+    }
   )
 
   if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
     console.log({message: "UI for `clusterGroup` option is removed and available only via YAML. So Skipping tests."})
   }
   else {
-    qase(29,
-    it("Fleet-29: Test install app to new set of clusters from old set of clusters using 'clusterGroup'", { tags: '@fleet-29' }, () => {
+    it(qase(29, "Fleet-29: Test install app to new set of clusters from old set of clusters using 'clusterGroup'"), { tags: '@fleet-29' }, () => {
       const repoName = 'default-single-app-cluster-group-29'
       const new_key = 'key_third_cluster'
       const new_value = 'value_third_cluster'
@@ -446,7 +477,6 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
       // Delete clusterGroups.
       cy.deleteClusterGroups();
     })
-    )
   }
 });
 
@@ -488,8 +518,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
   ]
 
   clusterSelector.forEach(({ qase_id, app, test_explanation, bundle_count }) => {
-    qase(qase_id,
-      it(`Fleet-${qase_id}: Test install ${test_explanation} using clusterSelector(matchLabels) in GitRepo`, { tags: `@fleet-${qase_id}` }, () => {
+    it(qase(qase_id, `Fleet-${qase_id}: Test install ${test_explanation} using clusterSelector(matchLabels) in GitRepo`), { tags: `@fleet-${qase_id}` }, () => {
 
         cy.continuousDeliveryMenuSelection();
         cy.clickNavMenu(['Clusters']);
@@ -578,11 +607,9 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
           }
         )
       })
-    )
   })
 
-  qase(19,
-    it("Fleet-19: Test remove label from cluster-2 to remove application from it when application deployed using clusterSelector(matchLabels)", { tags: '@fleet-19' }, () => {
+  it(qase(19, "Fleet-19: Test remove label from cluster-2 to remove application from it when application deployed using clusterSelector(matchLabels)"), { tags: '@fleet-19' }, () => {
       const dsSecondClusterName = dsAllClusterList[1]
       gitRepoFile = 'assets/git-repo-multiple-app-cluster-selector.yaml'
 
@@ -638,10 +665,9 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
           cy.removeClusterLabels(dsCluster, key, value);
         }
       )
-    })
+    }
   )
-  qase(22,
-    it("Fleet-22: Test install app to new set of clusters from old set of clusters", { tags: '@fleet-22' }, () => {
+  it(qase(22, "Fleet-22: Test install app to new set of clusters from old set of clusters"), { tags: '@fleet-22' }, () => {
       if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
         console.log({message: "UI for `clusterGroup` option is removed and available only via YAML. So Skipping tests."})
       }
@@ -715,7 +741,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         cy.removeClusterLabels(dsThirdClusterName, new_key, new_value);
       }
     })
-  )
 });
 
 describe("Test Application deployment based on 'clusterGroupSelector'", { tags: '@p1_2'}, () => {
@@ -724,8 +749,6 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
   let clusterGroupSelectorFile
 
   beforeEach('Cleanup leftover GitRepo if any.', () => {
-    cy.login();
-    cy.visit('/');
     cy.deleteAllFleetRepos();
     // Remove labels from the clusters.
     dsAllClusterList.forEach(
@@ -761,8 +784,7 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
   ]
 
   clusterSelector.forEach(({ qase_id, app, test_explanation, bundle_count }) => {
-    qase(qase_id,
-      it(`Fleet-${qase_id}: Test install ${test_explanation}  cluster using "clusterGroupSelector"`, { tags: `@fleet-${qase_id}` }, () => {
+    it(qase(qase_id, `Fleet-${qase_id}: Test install ${test_explanation}  cluster using "clusterGroupSelector"`), { tags: `@fleet-${qase_id}` }, () => {
 
         cy.accesMenuSelection('Continuous Delivery', 'Clusters');
         cy.contains('.title', 'Clusters').should('be.visible');
@@ -863,14 +885,13 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
           }
         )
       })
-    )
   })
 });
 
+
 describe('Test namespace deletion when bundle is deleted', { tags: ['@p1_2', '@pr-tests'] }, () => {
 
-  qase(131,
-    it("Fleet-131: Test NAMESPACE will be DELETED after GitRepo is deleted.", { tags: '@fleet-131' }, () => {
+  it(qase(131, "Fleet-131: Test NAMESPACE will be DELETED after GitRepo is deleted."), { tags: '@fleet-131' }, () => {
       const repoName = 'test-ns-deleted-when-bundle-deleted'
       const namespaceName = 'my-custom-namespace'
 
@@ -893,11 +914,10 @@ describe('Test namespace deletion when bundle is deleted', { tags: ['@p1_2', '@p
       cy.accesMenuSelection('local', 'Projects/Namespaces');
       cy.filterInSearchBox(namespaceName);
       cy.contains(namespaceName, { timeout: 30000 }).should('not.exist');
-    })
+    }
   )
 
-  qase(164,
-    it("Fleet-164: Test NAMESPACE will be DELETED after main NESTED GitRepo is deleted.", { tags: '@fleet-164' }, () => {
+  it(qase(164, "Fleet-164: Test NAMESPACE will be DELETED after main NESTED GitRepo is deleted."), { tags: '@fleet-164' }, () => {
       const repoName = 'test-ns-deleted-with-nested-bundle'
       const repoName2= 'my-gitrepo'
       const namespaceName = 'my-custom-namespace'
@@ -932,13 +952,11 @@ describe('Test namespace deletion when bundle is deleted', { tags: ['@p1_2', '@p
       cy.filterInSearchBox(namespaceName);
       cy.contains(namespaceName, {timeout: 20000 }).should('not.exist');
     })
-  )
 });
 
 describe('Test Fleet Resource Count', { tags: '@p1_2'}, () => {
 
-  qase(155,
-    it("Fleet-155: Test clusters resource count is correct", { tags: '@fleet-155' }, () => {
+  it(qase(155, "Fleet-155: Test clusters resource count is correct"), { tags: '@fleet-155' }, () => {
 
       const repoName = 'default-cluster-count-155'
       const branch = "master"
@@ -965,14 +983,12 @@ describe('Test Fleet Resource Count', { tags: '@p1_2'}, () => {
 
       cy.deleteAllFleetRepos();
     })
-  )
 });
 
 if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
   describe('Test HelmOps', { tags: ['@p1_2'] }, () => {
 
-    qase(165, 
-      it('FLEET-165: Test basic HelmOps creation', { tags: '@fleet-165' }, () => {
+    it(qase(165, 'FLEET-165: Test basic HelmOps creation'), { tags: '@fleet-165' }, () => {
 
         cy.addHelmOp({ 
           fleetNamespace: 'fleet-local', 
@@ -982,11 +998,10 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
         });
 
         cy.verifyTableRow(0, 'Active', '1/1');
-      })
+      }
     );
 
-    qase(197,
-      it('FLEET-197: Test Helmops creation with a fixed version', { tags: '@fleet-197' }, () => {
+    it(qase(197, 'FLEET-197: Test Helmops creation with a fixed version'), { tags: '@fleet-197' }, () => {
 
         cy.addHelmOp({ 
           fleetNamespace: 'fleet-default', 
@@ -998,11 +1013,10 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
         });
 
         cy.verifyTableRow(0, 'Active', '10.1.0');
-      })
+      }
     );
         
-    qase(198,
-      it('FLEET-198: Test incorrect chart version cannot be installed', { tags: '@fleet-198' }, () => {
+    it(qase(198, 'FLEET-198: Test incorrect chart version cannot be installed'), { tags: '@fleet-198' }, () => {
 
         cy.addHelmOp({ 
           fleetNamespace: 'fleet-local', 
@@ -1014,11 +1028,10 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
 
         cy.verifyTableRow(0, 'Error', '0/0');
         cy.contains('Could not get a chart version: no chart version found for grafana-999999999').should('be.visible');
-      })
+      }
     );
 
-    qase(190,
-      it('FLEET-190: Test Faulty Helm Ops display short error message', { tags: '@fleet-190' }, () => { 
+    it(qase(190, 'FLEET-190: Test Faulty Helm Ops display short error message'), { tags: '@fleet-190' }, () => { 
 
         cy.addHelmOp({ 
           fleetNamespace: 'fleet-local', 
@@ -1031,9 +1044,8 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
         cy.contains('DOCTYPE html').should('not.exist');
 
       })
-    );
-  })
-};
+  });
+}
 
 describe('Test Helm app with Custom Values', { tags: '@p1_2' }, () => {
   const configMapName = "test-map"
@@ -1052,8 +1064,7 @@ describe('Test Helm app with Custom Values', { tags: '@p1_2' }, () => {
   })
 
   repoTestData.forEach(({ qase_id, message, path }) => {
-    qase(qase_id,
-      it(`FLEET-${qase_id}: Test helm-app using "${message}" values in the fleet.yaml file.`, { tags: `@fleet-${qase_id}`}, () => {
+    it(qase(qase_id, `FLEET-${qase_id}: Test helm-app using "${message}" values in the fleet.yaml file.`), { tags: `@fleet-${qase_id}`}, () => {
         const repoName = `local-cluster-fleet-${qase_id}`
 
         // Create ConfigMap before create GitRepo
@@ -1069,7 +1080,6 @@ describe('Test Helm app with Custom Values', { tags: '@p1_2' }, () => {
         cy.wait(1000);
         cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
       })
-    );
   });
 });
 
@@ -1139,7 +1149,7 @@ describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
     })
 
     repoTestData.forEach(({ qase_id, test_name, repoName, gitrepo_file, bundle_count, resource_count, expectedBundles }) => {
-      it(`FLEET-${qase_id}: ${test_name}`, { tags: `@fleet-${qase_id}`}, () => {
+      it(qase(qase_id, `FLEET-${qase_id}: ${test_name}`), { tags: `@fleet-${qase_id}`}, () => {
         // Create GitRepo
         cy.continuousDeliveryMenuSelection()
         cy.clickCreateGitRepo();
@@ -1156,16 +1166,14 @@ describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
 
         // Delete GitRepo
         cy.deleteAllFleetRepos();
-      })
+      });
     });
   }
 });
 
 describe('Test Fleet bundle status for longhorn-crd', { tags: '@p1_2'}, () => {
 
-  qase(139,
-
-    it("Fleet-139: Test CRD's for longhorn application should be in active state not in modified state when correctDrift enabled", { tags: '@fleet-139' }, () => {
+  it(qase(139, "Fleet-139: Test CRD's for longhorn application should be in active state not in modified state when correctDrift enabled"), { tags: '@fleet-139' }, () => {
 
       const repoName = 'default-longhorn-crd-bundle-status'
       const path = "qa-test-apps/longhorn-crd"
@@ -1182,14 +1190,11 @@ describe('Test Fleet bundle status for longhorn-crd', { tags: '@p1_2'}, () => {
       cy.deleteAllFleetRepos();
 
     })
-  )
 });
 
 describe('Test non-yaml file into bundle.', { tags: '@p1_2'}, () => {
 
-  qase(87,
-
-    it("Fleet-87: Test .fleetignore ignores content of non-yaml file into bundle.", { tags: '@fleet-87' }, () => {
+  it(qase(87, "Fleet-87: Test .fleetignore ignores content of non-yaml file into bundle."), { tags: '@fleet-87' }, () => {
 
       const repoName = 'test-resource-ignore'
       const path = "qa-test-apps/fleet-ignore-test"
@@ -1213,7 +1218,6 @@ describe('Test non-yaml file into bundle.', { tags: '@p1_2'}, () => {
       cy.deleteAllFleetRepos();
 
     })
-  )
 });
 
 describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.', { tags: '@p1_2' }, () => {
@@ -1229,8 +1233,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
     cy.deleteAllFleetRepos();
   })
 
-  qase(39,
-    it('Test "GitRepoRestrictions" on non-existent namespace throws error in the UI', { tags: '@fleet-39' }, () => {
+  it(qase(39, 'Test "GitRepoRestrictions" on non-existent namespace throws error in the UI'), { tags: '@fleet-39' }, () => {
       if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
         cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
       }
@@ -1247,11 +1250,10 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       cy.clickButton('Create');
       cy.get('[data-testid="banner-content"] > span').contains('namespaces "iamnotexists" not found');
       cy.clickButton('Cancel');
-    })
+    }
   )
 
-  qase(40,
-    it('Test "GitRepoRestrictions" override "defaultNamespace" in fleet.yaml of application over "allowedTargetNamespace"', { tags: '@fleet-40' }, () => {
+  it(qase(40, 'Test "GitRepoRestrictions" override "defaultNamespace" in fleet.yaml of application over "allowedTargetNamespace"'), { tags: '@fleet-40' }, () => {
       const repoName = 'local-gitreporestrictions-fleet-40'
 
       // Create GitRepoRestrictions with allowedTargetNamespace
@@ -1296,11 +1298,10 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
 
       // Delete GitRepo
       cy.deleteAllFleetRepos();
-    })
+    }
   )
 
-  qase(41,
-    it('Test "allowedTargetNamespace" from "GitRepoRestrictions" overrides "defaultNamespace" in fleet.yaml of application on existing GitRepo', { tags: '@fleet-41' }, () => {
+  it(qase(41, 'Test "allowedTargetNamespace" from "GitRepoRestrictions" overrides "defaultNamespace" in fleet.yaml of application on existing GitRepo'), { tags: '@fleet-41' }, () => {
       const repoName = 'local-gitreporestrictions-fleet-41'
 
       // Create GitRepoRestrictions with allowedTargetNamespace
@@ -1353,7 +1354,6 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       // Delete GitRepo
       cy.deleteAllFleetRepos();
     })
-  )
 });
 
 describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.', { tags: '@p1_2'}, () => {
@@ -1375,9 +1375,7 @@ describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.'
     )
   })
 
-  qase(88,
-
-    it("Fleet-88: Test bundle did not get deployed when 'doNotDeploy' value set to `true` option is used in the 'fleet.yaml' file.", { tags: '@fleet-88' }, () => {
+  it(qase(88, "Fleet-88: Test bundle did not get deployed when 'doNotDeploy' value set to `true` option is used in the 'fleet.yaml' file."), { tags: '@fleet-88' }, () => {
 
       const repoName = 'test-donot-deploy-true'
       const path = "qa-test-apps/do-not-deploy/true"
@@ -1414,14 +1412,11 @@ describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.'
       cy.deleteAllFleetRepos();
 
     })
-  )
 });
 
 describe('Test Fleet `doNotDeploy: false` will deploy resources to all clusters.', { tags: '@p1_2'}, () => {
 
-  qase(89,
-
-    it("Fleet-89: Test bundle gets deploy to all clusters when `doNotDeploy: false` is used in the fleet.yaml.", { tags: '@fleet-89' }, () => {
+  it(qase(89, "Fleet-89: Test bundle gets deploy to all clusters when `doNotDeploy: false` is used in the fleet.yaml."), { tags: '@fleet-89' }, () => {
 
       const repoName = 'test-donot-deploy-false'
       const path = "qa-test-apps/do-not-deploy/false"
@@ -1441,14 +1436,12 @@ describe('Test Fleet `doNotDeploy: false` will deploy resources to all clusters.
       cy.deleteAllFleetRepos();
 
     })
-  )
 });
 
 if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypress.expose('rancher_version'))) {
   
   describe('Test Git App with Fleet', { tags: '@p1_2'}, () => {
-    qase(199,
-      it("Fleet-199: Test Git App deployment using Fleet.", { tags: '@fleet-199' }, () => {
+    it(qase(199, "Fleet-199: Test Git App deployment using Fleet."), { tags: '@fleet-199' }, () => {
 
         const github_app_id = Cypress.expose("gh_app_id")
         const github_app_installation_id = Cypress.expose("gh_app_installation_id")
@@ -1482,16 +1475,13 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypres
         cy.addFleetRepoFromYaml('assets/gitapp-test/fleet.yaml');
         cy.verifyTableRow(0, 'Active', '1/1');
       })
-    )
   }); 
 };
 
 if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
   describe('Test availability of annotation created-by-user-id in YAML not in UI.', { tags: '@p1_2'}, () => {
 
-  qase(192,
-
-    it("Fleet-192: Test username to log messages, created resources and user-id is only available in YAML not in UI.", { tags: '@fleet-192' }, () => {
+  it(qase(192, "Fleet-192: Test username to log messages, created resources and user-id is only available in YAML not in UI."), { tags: '@fleet-192' }, () => {
 
       const repoName = 'test-created-by-user-id'
 
@@ -1529,14 +1519,12 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
 
       cy.clickButton('Close');
       })
-  )
   });
 }
 
 describe('Test helm chart dependency download with `disableDependencyUpdate: true/false`', { tags: '@p1_2'}, () => {
 
-  qase(129,
-    it("Fleet-129: Test dependency should be downloaded along with the application when `disableDependencyUpdate` is set to `true` in `fleet.yaml`.", { tags: '@fleet-129' }, () => {
+  it(qase(129, "Fleet-129: Test dependency should be downloaded along with the application when `disableDependencyUpdate` is set to `true` in `fleet.yaml`."), { tags: '@fleet-129' }, () => {
 
       const repoName = 'test-disable-dependency-false-helm-chart'
       const path = "qa-test-apps/disable-dependency-update/true"
@@ -1555,11 +1543,10 @@ describe('Test helm chart dependency download with `disableDependencyUpdate: tru
           cy.checkApplicationStatus("no-dependency-download-nginx", dsCluster, 'All Namespaces', false);
         }
       )
-    })
+    }
   )
 
-  qase(130,
-    it("Fleet-130: Test dependency should be downloaded along with the application when `disableDependencyUpdate` is set to `false` in `fleet.yaml`.", { tags: '@fleet-130' }, () => {
+  it(qase(130, "Fleet-130: Test dependency should be downloaded along with the application when `disableDependencyUpdate` is set to `false` in `fleet.yaml`."), { tags: '@fleet-130' }, () => {
 
       const repoName = 'test-disable-dependency-true-helm-chart'
       const path = "qa-test-apps/disable-dependency-update/false"
@@ -1579,14 +1566,11 @@ describe('Test helm chart dependency download with `disableDependencyUpdate: tru
         }
       )
     })
-  )
 });
 
 describe('Test GitRepo shows Active state for missing resources when `diff` used in `fleet.yaml`', { tags: '@p1_2' }, () => {
 
-  qase(179,
-
-    it(`FLEET-179: Test GitRepo shows Active state for missing resources when 'diff' used in 'fleet.yaml'`, { tags: `@fleet-179}`}, () => {
+  it(qase(179, `FLEET-179: Test GitRepo shows Active state for missing resources when 'diff' used in 'fleet.yaml'`), { tags: '@fleet-179'}, () => {
       const repoName = 'ds-cluster-fleet-179'
       const pathWithoutDiff = 'qa-test-apps/ignore-missing-resources/without-diff'
 
@@ -1610,13 +1594,11 @@ describe('Test GitRepo shows Active state for missing resources when `diff` used
       // Delete GitRepo
       cy.deleteAllFleetRepos();
     })
-  )
 })
 
 describe('Test bundle deploy with overrideTargets by label availability on clusters.', { tags: '@p1_2'}, () => {
 
-  qase(92,
-    it("Fleet-92: Test bundle did not get deployed on the target mentioned in the GitRepo when `overrideTargets` is set in the `fleet.yaml` when label is missing on cluster.", { tags: '@fleet-92' }, () => {
+  it(qase(92, "Fleet-92: Test bundle did not get deployed on the target mentioned in the GitRepo when `overrideTargets` is set in the `fleet.yaml` when label is missing on cluster."), { tags: '@fleet-92' }, () => {
 
       const repoName = 'test-override-targets'
       const path = "qa-test-apps/overrideTargets"
@@ -1641,11 +1623,10 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
           cy.checkApplicationStatus("nginx-override-test", dsCluster, 'All Namespaces', false);
         }
       )
-    })
+    }
   )
 
-  qase(93,
-    it("Fleet-93: Test bundle gets deployed on the target mentioned in the GitRepo provided that `overrideTargets` is present in the `fleet.yaml` after adding label on cluster.", { tags: '@fleet-93' }, () => {
+  it(qase(93, "Fleet-93: Test bundle gets deployed on the target mentioned in the GitRepo provided that `overrideTargets` is present in the `fleet.yaml` after adding label on cluster."), { tags: '@fleet-93' }, () => {
 
       const repoName = 'test-override-targets-with-label'
       const path = "qa-test-apps/overrideTargets"
@@ -1697,5 +1678,4 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
       cy.typeIntoCanvasTermnal('\
       kubectl label clusters.management.cattle.io --all env-{enter}');
     })
-  )
-});
+})
