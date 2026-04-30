@@ -115,8 +115,6 @@ describe('Test Self-Healing of resource modification when correctDrift option us
     });
   });
 
-
-
 describe('Test Self-Healing of resource modification when correctDrift option used for exisiting GitRepo', { tags: '@p1'}, () => {
   it(qase(77, "Fleet-77: Test MODIFICATION to resources will be self-healed when correctDrift is set to true in existing GitRepo."), { tags: '@fleet-77', retries: 1 }, () => {
       const repoName = "local-cluster-correct-77"
@@ -662,7 +660,6 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypres
         cy.verifyTableRow(0, 'leaf-error-state', '0/0');
         cy.contains('Failed to process bundle: validating fleet.yaml: dependsOn[0].acceptedStates[0]: invalid state "BadState", valid values are: [Ready NotReady Pending OutOfSync Modified WaitApplied ErrApplied]').should('be.visible');
     });
-
-    });
+  });
   }
 

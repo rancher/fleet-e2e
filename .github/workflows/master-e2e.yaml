@@ -526,3 +526,4 @@ jobs:
               -H 'accept: application/json'
           fi
           echo "QASE run $RUN_ID marked as Completed" >> ${GITHUB_STEP_SUMMARY}
+          

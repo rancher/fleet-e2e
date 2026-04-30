@@ -6,7 +6,6 @@ import { writeFileSync } from 'fs';
 const qaseAPIToken = process.env.QASE_API_TOKEN
 const qaseMode = (process.env.QASE_MODE === 'testops' && qaseAPIToken) ? 'testops' : 'off'
 
-
 export default defineConfig({
   viewportWidth: 1596,
   viewportHeight: 954,
@@ -93,7 +92,6 @@ export default defineConfig({
 
         if (qaseRunId) {
           writeFileSync('./cypress/e2e/unit_tests/QASE_TESTOPS_RUN_ID.txt', qaseRunId, { encoding: 'utf8' });
-
         } 
       });
       
