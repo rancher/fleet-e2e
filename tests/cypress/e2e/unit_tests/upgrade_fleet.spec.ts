@@ -49,7 +49,6 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@upgra
       cy.checkGitRepoStatus(repoName, '1 / 1');
       cy.checkApplicationStatus(appName, clusterName);
     })
-  );
 });
 
 describe('Test Fleet deployment on PUBLIC repos',  { tags: '@upgrade' }, () => {
@@ -77,7 +76,6 @@ describe('Test Fleet deployment on PUBLIC repos',  { tags: '@upgrade' }, () => {
       cy.verifyTableRow(3, 'Service', 'redis-master');
       cy.verifyTableRow(5, 'Service', 'redis-slave');
     })
-  );
 });
 
 describe('Test gitrepos with cabundle', { tags: '@upgrade' }, () => {
@@ -105,7 +103,6 @@ describe('Test gitrepos with cabundle', { tags: '@upgrade' }, () => {
       cy.filterInSearchBox(repoName+'-cabundle');
       cy.contains('There are no rows which match your search query.').should('be.visible');
     })
-  );
 });
 
 describe('Test Crontab for Fleet job cleanup is present',  { tags: '@upgrade' }, () => {
@@ -122,7 +119,6 @@ describe('Test Crontab for Fleet job cleanup is present',  { tags: '@upgrade' },
       // Check Crontab schedule is '@daily'
       cy.verifyTableRow(0, 'fleet-cleanup-gitrepo-jobs', '@daily');
     })
-  );
 });
 
 describe('Test "fleet-agent" image version on each downstream cluster',  { tags: '@upgrade' }, () => {
