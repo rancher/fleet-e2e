@@ -168,7 +168,6 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
 });
 
 describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', '@pr-tests'] }, () => {
-  const value = 'value_prod'
   let repoName
 
   beforeEach('Cleanup leftover GitRepo, ClusterGroup or label etc. if any.', () => {
@@ -352,9 +351,8 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
       cy.accesMenuSelection('Continuous Delivery', 'Clusters');
       cy.contains('.title', 'Clusters').should('be.visible');
 
-      // Remove label from the Second cluster i.e. imported-1
-      cy.wait(500);
-      cy.removeClusterLabels(dsSecondClusterName, key, value);
+      // Remove label from the Second cluster i.e. imported-1 using kubectl command in terminal.
+      cy.executeKubectlCommand(removeLabelSecondImportedCluster);
 
       // Check application is absent i.e. removed from second cluster i.e. imported-1
       cy.checkApplicationStatus(appName, dsSecondClusterName, 'All Namespaces', false);
