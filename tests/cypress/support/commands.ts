@@ -1341,3 +1341,18 @@ Cypress.Commands.add('deleteDownstreamCluster', (clusterName, deleteOption=false
 
   }
 );
+
+Cypress.Commands.add('executeKubectlCommand', (labelCommand) => {
+  // Open local terminal in Rancher UI
+  cy.accesMenuSelection('local');
+  cy.get('#btn-kubectl').click();
+  cy.contains('Connected').should('be.visible');
+
+  // Simulate typing the kubectl command to assign label to the cluster in the terminal
+  cy.typeIntoCanvasTermnal(labelCommand);
+  cy.wait(500);
+
+  // Close local terminal
+  cy.get('i.closer.icon').click();
+  }
+);
