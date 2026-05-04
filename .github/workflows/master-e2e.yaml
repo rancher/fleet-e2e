@@ -321,7 +321,7 @@ jobs:
           fi
           cd tests && make start-cypress-tests
       - name: Upload Cypress screenshots (Basics)
-        if: failure()
+        if: ${{ failure() || cancelled() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: cypress-screenshots-basics-${{ inputs.cluster_name }}
@@ -330,7 +330,7 @@ jobs:
           if-no-files-found: ignore
       - name: Upload Cypress videos (Basics)
         # Test run video is always captured, so this action uses "always()" condition
-        if: always()
+        if: ${{ failure() || cancelled() }}
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
           name: cypress-videos-basics-${{ inputs.cluster_name }}
@@ -449,7 +449,7 @@ jobs:
           name: webhook-setup-log-${{ inputs.cluster_name }}
           path: tests/assets/webhook-tests/webhook_setup.log
       - name: Add summary
-        if: ${{ always() }}
+        if: ${{ failure() || cancelled() }}
         run: |
           echo "## General information" >> ${GITHUB_STEP_SUMMARY}
           echo -e "***${{ inputs.test_description }}***\n" >> ${GITHUB_STEP_SUMMARY}
@@ -524,6 +524,8 @@ jobs:
               --url https://api.qase.io/v1/run/FLEET/${RUN_ID}/complete \
               -H "Token: ${{ secrets.qase_api_token }}" \
               -H 'accept: application/json'
+            echo -e "\n### QASE Report" >> ${GITHUB_STEP_SUMMARY}
+            echo "View the detailed report [here](https://app.qase.io/run/FLEET/dashboard/${RUN_ID})" >> ${GITHUB_STEP_SUMMARY}
           fi
           echo "QASE run $RUN_ID marked as Completed" >> ${GITHUB_STEP_SUMMARY}
           
