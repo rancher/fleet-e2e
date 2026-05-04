@@ -430,6 +430,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
   let gitRepoFile
 
   beforeEach('Cleanup leftover GitRepo if any.', () => {
+
     // Remove labels from the clusters.
     cy.executeKubectlCommand(removeLabelFromAllClusters);
   })
@@ -582,8 +583,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
       }
       else {
         const repoName = 'default-multiple-apps-cluster-selector'
-        const new_key = 'key_third_cluster'
-        const new_value = 'value_third_cluster'
 
         gitRepoFile = 'assets/git-repo-multiple-app-cluster-selector.yaml'
 
