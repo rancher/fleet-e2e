@@ -257,57 +257,6 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
     }
   )
 
-  it(qase(26, "Fleet-26: Test install multiple applications to the all defined clusters in the 'clusterGroup'"), { tags: '@fleet-26' }, () => {
-      const repoName = 'default-single-app-cluster-group-26'
-      const path2 = 'multiple-paths/config'
-
-      // Assign label to the first 2 clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
-      cy.executeKubectlCommand(labelFirstTwoImportedClusters);
-
-      // Create group of cluster consists of same label.
-      cy.continuousDeliveryMenuSelection();
-      cy.clickNavMenu(['Cluster Groups']);
-      cy.contains('.title', 'Cluster Groups').should('be.visible');
-      cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
-
-      // Create a GitRepo targeting cluster group created.
-      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-        cy.clickNavMenu(['Resources']);
-        cy.clickNavMenu(['Git Repos']);
-        cy.wait(1000);
-        cy.clickButton('Add Repository');
-        cy.wait(1000);
-        cy.clickButton('Edit as YAML');
-        cy.addYamlFile('assets/cluster-group-tests/clusterGroupMultipleApps.yaml');
-      }
-      else {
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, path2, deployToTarget: clusterGroupName });
-      }
-      cy.clickButton('Create');
-      cy.checkGitRepoStatus(repoName, '2 / 2');
-
-      // Check first application status on both clusters i.e. imported-0 and imported-1
-      dsFirstTwoClusterList.forEach((dsCluster) => {
-        cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
-      })
-
-      dsFirstTwoClusterList.forEach((dsCluster) => {
-        // Check second application status on both clusters i.e. imported-0 and imported-1
-        // Adding wait to load page correctly to avoid interference with hamburger-menu.
-        cy.wait(500);
-        cy.accesMenuSelection(dsCluster, "Storage", "ConfigMaps");
-        cy.nameSpaceMenuToggle("test-fleet-mp-config");
-        cy.filterInSearchBox("mp-app-config");
-        cy.get('td.col-link-detail > span').contains("mp-app-config").click();
-      })
-
-      // Remove labels from the clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
-      cy.executeKubectlCommand(removeLabelFirstTwoImportedClusters);
-      cy.deleteClusterGroups();
-    }
-  )
-  
-
   it(qase(28, "Fleet-28: Test remove existing application from cluster-2 by removing it from an existing 'clusterGroup'"), { tags: '@fleet-28' }, () => {
       let repoName
       repoName = 'default-single-app-cluster-group-28'
@@ -424,6 +373,63 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
       cy.deleteClusterGroups();
     })
   }
+});
+
+describe('Test multiple applications deployment based on clusterGroup', { tags: ['@p1_2', '@pr-tests'] }, () => {
+
+  beforeEach('Cleanup leftover GitRepo, ClusterGroup or label etc. if any.', () => {
+    cy.deleteAllFleetRepos();
+  })
+
+  it(qase(26, "Fleet-26: Test install multiple applications to the all defined clusters in the 'clusterGroup'"), { tags: '@fleet-26' }, () => {
+      const repoName = 'default-single-app-cluster-group-26'
+      const path2 = 'multiple-paths/config'
+
+      // Assign label to the first 2 clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
+      cy.executeKubectlCommand(labelFirstTwoImportedClusters);
+
+      // Create group of cluster consists of same label.
+      cy.continuousDeliveryMenuSelection();
+      cy.clickNavMenu(['Cluster Groups']);
+      cy.contains('.title', 'Cluster Groups').should('be.visible');
+      cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
+
+      // Create a GitRepo targeting cluster group created.
+      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
+        cy.clickNavMenu(['Resources']);
+        cy.clickNavMenu(['Git Repos']);
+        cy.wait(1000);
+        cy.clickButton('Add Repository');
+        cy.wait(1000);
+        cy.clickButton('Edit as YAML');
+        cy.addYamlFile('assets/cluster-group-tests/clusterGroupMultipleApps.yaml');
+      }
+      else {
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, path2, deployToTarget: clusterGroupName });
+      }
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '2 / 2');
+
+      // Check first application status on both clusters i.e. imported-0 and imported-1
+      dsFirstTwoClusterList.forEach((dsCluster) => {
+        cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+      })
+
+      dsFirstTwoClusterList.forEach((dsCluster) => {
+        // Check second application status on both clusters i.e. imported-0 and imported-1
+        // Adding wait to load page correctly to avoid interference with hamburger-menu.
+        cy.wait(500);
+        cy.accesMenuSelection(dsCluster, "Storage", "ConfigMaps");
+        cy.nameSpaceMenuToggle("test-fleet-mp-config");
+        cy.filterInSearchBox("mp-app-config");
+        cy.get('td.col-link-detail > span').contains("mp-app-config").click();
+      })
+
+      // Remove labels from the clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
+      cy.executeKubectlCommand(removeLabelFirstTwoImportedClusters);
+      cy.deleteClusterGroups();
+    }
+  )
 });
 
 describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_2'}, () => {
