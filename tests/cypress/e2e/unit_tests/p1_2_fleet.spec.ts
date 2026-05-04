@@ -426,6 +426,7 @@ describe('Test multiple applications deployment based on clusterGroup', { tags: 
       })
 
       // Remove labels from the clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
+      cy.wait(1000);
       cy.executeKubectlCommand(removeLabelFirstTwoImportedClusters);
       cy.deleteClusterGroups();
     }
@@ -464,12 +465,12 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
 
   clusterSelector.forEach(({ qase_id, app, test_explanation, bundle_count }) => {
     it(qase(qase_id, `Fleet-${qase_id}: Test install ${test_explanation} using clusterSelector(matchLabels) in GitRepo`), { tags: `@fleet-${qase_id}` }, () => {
+        // Assign label to the first 2 clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
+        cy.executeKubectlCommand(labelFirstTwoImportedClusters);
 
         cy.continuousDeliveryMenuSelection();
         cy.clickNavMenu(['Clusters']);
         cy.contains('.title', 'Clusters').should('be.visible');
-        // Assign label to the first 2 clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
-        cy.executeKubectlCommand(labelFirstTwoImportedClusters);
 
         // Get GitRepo YAML file according to test.
         if (qase_id === 9 || qase_id === 20) {
@@ -592,11 +593,11 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
 
         gitRepoFile = 'assets/git-repo-multiple-app-cluster-selector.yaml'
 
-        cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-        cy.contains('.title', 'Clusters').should('be.visible');
-
         // Assign label to the clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
         cy.executeKubectlCommand(labelFirstTwoImportedClusters);
+
+        cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+        cy.contains('.title', 'Clusters').should('be.visible');
 
         // Create a GitRepo targeting cluster selector created from YAML.
         if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
@@ -681,11 +682,11 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
   clusterSelector.forEach(({ qase_id, app, test_explanation, bundle_count }) => {
     it(qase(qase_id, `Fleet-${qase_id}: Test install ${test_explanation}  cluster using "clusterGroupSelector"`), { tags: `@fleet-${qase_id}` }, () => {
 
-        cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-        cy.contains('.title', 'Clusters').should('be.visible');
-
         // Assign label to the first 2 clusters i.e. imported-0 and imported-1
         cy.executeKubectlCommand(labelFirstTwoImportedClusters);
+
+        cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+        cy.contains('.title', 'Clusters').should('be.visible');
 
         // Create group of cluster consists of same label.
         cy.clickNavMenu(['Cluster Groups']);
@@ -760,6 +761,7 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
         }
 
         // Remove labels from the clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
+        cy.wait(1000);
         cy.executeKubectlCommand(removeLabelFirstTwoImportedClusters);
       })
   })
