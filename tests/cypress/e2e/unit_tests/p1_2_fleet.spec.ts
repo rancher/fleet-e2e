@@ -170,7 +170,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
 describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', '@pr-tests'] }, () => {
   let repoName
 
-  beforeEach('Cleanup leftover GitRepo, ClusterGroup or label etc. if any.', () => {
+  beforeEach('Cleanup leftover GitRepo, ClusterGroup etc. if any.', () => {
     cy.deleteAllFleetRepos();
     cy.deleteClusterGroups();
   })
@@ -377,7 +377,7 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
 
 describe('Test multiple applications deployment based on clusterGroup', { tags: ['@p1_2', '@pr-tests'] }, () => {
 
-  beforeEach('Cleanup leftover GitRepo, ClusterGroup or label etc. if any.', () => {
+  beforeEach('Cleanup leftover GitRepo if any.', () => {
     cy.deleteAllFleetRepos();
   })
 
@@ -436,9 +436,9 @@ describe('Test multiple applications deployment based on clusterGroup', { tags: 
 describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_2'}, () => {
   let gitRepoFile
 
-  beforeEach('Cleanup leftover GitRepo if any.', () => {
-
+  beforeEach('Remove labels from all clusters.', () => {
     // Remove labels from the clusters.
+    cy.accesMenuSelection('local');
     cy.executeKubectlCommand(removeLabelFromAllClusters);
   })
 
@@ -466,6 +466,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
   clusterSelector.forEach(({ qase_id, app, test_explanation, bundle_count }) => {
     it(qase(qase_id, `Fleet-${qase_id}: Test install ${test_explanation} using clusterSelector(matchLabels) in GitRepo`), { tags: `@fleet-${qase_id}` }, () => {
         // Assign label to the first 2 clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
+        cy.accesMenuSelection('local');
         cy.executeKubectlCommand(labelFirstTwoImportedClusters);
 
         cy.continuousDeliveryMenuSelection();
@@ -534,6 +535,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         }
 
         // Remove labels from the clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
+        cy.accesMenuSelection('local');
         cy.executeKubectlCommand(removeLabelFirstTwoImportedClusters);
       })
   })
@@ -541,11 +543,11 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
   it(qase(19, "Fleet-19: Test remove label from cluster-2 to remove application from it when application deployed using clusterSelector(matchLabels)"), { tags: '@fleet-19' }, () => {
       gitRepoFile = 'assets/git-repo-multiple-app-cluster-selector.yaml'
 
-      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-      cy.contains('.title', 'Clusters').should('be.visible');
-
       // Assign label to the clusters using kubectl command in terminal.
       cy.executeKubectlCommand(labelFirstTwoImportedClusters);
+
+      cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+      cy.contains('.title', 'Clusters').should('be.visible');
 
       // Create a GitRepo targeting cluster group created from YAML.
       if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
