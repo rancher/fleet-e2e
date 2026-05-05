@@ -449,7 +449,7 @@ jobs:
           name: webhook-setup-log-${{ inputs.cluster_name }}
           path: tests/assets/webhook-tests/webhook_setup.log
       - name: Add summary
-        if: ${{ failure() || cancelled() }}
+        if: ${{ always() }}
         run: |
           echo "## General information" >> ${GITHUB_STEP_SUMMARY}
           echo -e "***${{ inputs.test_description }}***\n" >> ${GITHUB_STEP_SUMMARY}
