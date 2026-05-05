@@ -392,6 +392,7 @@ describe('Test multiple applications deployment based on clusterGroup', { tags: 
       cy.continuousDeliveryMenuSelection();
       cy.clickNavMenu(['Cluster Groups']);
       cy.contains('.title', 'Cluster Groups').should('be.visible');
+      cy.fleetNamespaceToggle('fleet-default');
       cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
 
       // Create a GitRepo targeting cluster group created.
@@ -472,6 +473,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
         cy.continuousDeliveryMenuSelection();
         cy.clickNavMenu(['Clusters']);
         cy.contains('.title', 'Clusters').should('be.visible');
+        cy.fleetNamespaceToggle('fleet-default');
 
         // Get GitRepo YAML file according to test.
         if (qase_id === 9 || qase_id === 20) {
@@ -548,6 +550,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
 
       cy.accesMenuSelection('Continuous Delivery', 'Clusters');
       cy.contains('.title', 'Clusters').should('be.visible');
+      cy.fleetNamespaceToggle('fleet-default');
 
       // Create a GitRepo targeting cluster group created from YAML.
       if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
@@ -600,6 +603,7 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
 
         cy.accesMenuSelection('Continuous Delivery', 'Clusters');
         cy.contains('.title', 'Clusters').should('be.visible');
+        cy.fleetNamespaceToggle('fleet-default');
 
         // Create a GitRepo targeting cluster selector created from YAML.
         if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
