@@ -465,10 +465,10 @@ jobs:
           echo "### Kubernetes" >> ${GITHUB_STEP_SUMMARY}
           echo "K3s version for Rancher Manager: ${{ env.INSTALL_K3S_VERSION }}" >> ${GITHUB_STEP_SUMMARY}
           echo "K3d version for downstream cluster: ${{ env.INSTALL_K3S_VERSION }}" >> ${GITHUB_STEP_SUMMARY}
-          if ${{ inputs.hardening != '' }}; then
+          if [[ -n "${{ inputs.hardening }}" ]]; then
             echo "Version for HARDENING upstream cluster: ${{ env.INSTALL_HARDENED_VERSION }}" >> ${GITHUB_STEP_SUMMARY}
           fi
-          if ${{ inputs.rancher_upgrade != '' }}; then
+          if [[ -n "${{ inputs.rancher_upgrade }}" ]]; then
             echo "### Rancher Manager Upgrade Information" >> ${GITHUB_STEP_SUMMARY}
             echo "Rancher Manager Installed Version: ${{ steps.component.outputs.rm_version }}" >> ${GITHUB_STEP_SUMMARY}
             echo "Rancher Manager Upgraded Version: ${{ steps.upgraded_component.outputs.rm_upgraded_version }}" >> ${GITHUB_STEP_SUMMARY}
