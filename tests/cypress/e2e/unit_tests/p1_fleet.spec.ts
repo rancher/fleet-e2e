@@ -207,7 +207,7 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
       })
   });
 
-  describe.only('Private Helm Repository tests (helmRepoURLRegex)', { tags: ['@p1', '@pr-tests'] }, () => {
+  describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: ['@p1', '@pr-tests'] }, () => {
 
     const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public.git'
     const branch = 'main'
