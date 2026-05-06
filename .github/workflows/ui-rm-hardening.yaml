@@ -1,6 +1,6 @@
 # This workflow calls the master E2E workflow with custom variables
 name: UI-rm-hardening-tests
-run-name: ${{ github.event_name == 'workflow_dispatch' && format('`{0}` on `{1}` - `{2}` destroy={3}', inputs.rancher_version, inputs.upstream_cluster_version, inputs.grep_test_by_tag, inputs.destroy_runner) || github.workflow }}
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('`{0}` on `{1}` - `{2}` destroy={3}{4}', inputs.rancher_version, inputs.upstream_cluster_version, inputs.grep_test_by_tag, inputs.destroy_runner, contains(inputs.runner_template, 'dedicated') && ' (runner=dedicated)' || '') || github.workflow }}
 
 on:
   workflow_dispatch:
