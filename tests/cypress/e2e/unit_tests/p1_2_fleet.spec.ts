@@ -439,7 +439,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
 
   beforeEach('Remove labels from all clusters.', () => {
     // Remove labels from the clusters.
-    cy.accesMenuSelection('local');
     cy.executeKubectlCommand(removeLabelFromAllClusters);
   })
 
