@@ -30,53 +30,15 @@ sed -i "s/{{EXTERNAL_IP}}/${EXTERNAL_IP}/g" assets/webhook-tests/webhook_ingress
 echo "Current directory: $(pwd)"
 echo "PATH: $PATH"
 
-# Install gh CLI if not available
+# Verify gh CLI is available (should be mounted from host)
 if ! command -v gh &> /dev/null; then
-  echo "gh CLI not found, installing..."
-
-  # Detect OS and install accordingly
-  if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    case "$ID" in
-      opensuse*|sles)
-        echo "Installing gh CLI on openSUSE/SLES..."
-        # Add official GitHub CLI repository for openSUSE/SLES
-        # Using official repo with GPG signature verification via zypper
-        sudo zypper -n addrepo https://cli.github.com/packages/rpm/gh-cli.repo
-        sudo zypper -n --gpg-auto-import-keys refresh
-        sudo zypper -n install --no-recommends gh
-        ;;
-      ubuntu|debian)
-        echo "Installing gh CLI on Ubuntu/Debian..."
-        # Using official GitHub CLI repository with GPG keyring verification
-        # Using wget instead of curl for better compatibility in minimal environments
-        wget --quiet -O - https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-        sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-        sudo apt-get update
-        sudo apt-get install -y gh
-        ;;
-      *)
-        echo "Error: Unsupported OS '$ID' for automatic gh CLI installation"
-        echo "Please install gh CLI manually from: https://github.com/cli/cli/releases"
-        echo "Or use a supported OS (openSUSE, SLES, Ubuntu, Debian)"
-        exit 1
-        ;;
-    esac
-  else
-    echo "Error: Cannot detect OS to install gh CLI"
-    echo "Please install gh CLI manually from: https://github.com/cli/cli/releases"
-    exit 1
-  fi
-
-  # Verify installation
-  if ! command -v gh &> /dev/null; then
-    echo "Error: gh CLI installation failed"
-    exit 1
-  fi
-
-  echo "gh CLI installed successfully (version: $(gh --version | head -n1))"
+  echo "Error: gh CLI not found"
+  echo "gh CLI should be installed on the host and mounted into the container"
+  echo "Please ensure gh is installed on the GCP runner"
+  exit 1
 fi
+
+echo "Using gh CLI: $(gh --version | head -n1)"
 
 # Set GH_TOKEN from GH_PRIVATE_PWD for gh CLI authentication
 # This avoids passing tokens in command-line arguments
