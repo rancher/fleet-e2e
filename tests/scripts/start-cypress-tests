@@ -9,7 +9,7 @@ npm install
 # Mount gh CLI from host if available for webhook tests
 GH_MOUNT=""
 if command -v gh &> /dev/null; then
-  GH_PATH=$(which gh)
+  GH_PATH=$(command -v gh)
   GH_MOUNT="-v ${GH_PATH}:/usr/local/bin/gh:ro"
   echo "Mounting gh CLI from host: ${GH_PATH}"
 fi
