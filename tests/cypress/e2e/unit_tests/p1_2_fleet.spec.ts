@@ -1570,10 +1570,6 @@ describe('Test helm chart dependency download with `disableDependencyUpdate: tru
 
 describe('Test GitRepo state for missing resources with and without `diff` used in `fleet.yaml`', { tags: '@p1_2' }, () => {
 
-  beforeEach('Cleanup leftover GitRepo if any.', () => {
-    cy.deleteAllFleetRepos();
-  });
-
   it(qase(179, `FLEET-179: Test GitRepo shows 'Modified' state for missing resources without using 'diff' in 'fleet.yaml'`), { tags: '@fleet-179'}, () => {
       const repoName = 'ds-cluster-fleet-179'
       const pathWithoutDiff = 'qa-test-apps/ignore-missing-resources/without-diff'
