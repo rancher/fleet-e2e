@@ -1,8 +1,8 @@
 #!/bin/bash
 
-set -exo pipefail
+set -eo pipefail
 
-# Redirect all output to a log file
+# Redirect all output to a log file (excluding sensitive commands)
 exec > >(tee -i $PWD/assets/webhook-tests/webhook_setup.log)
 exec 2>&1
 
@@ -10,8 +10,11 @@ exec 2>&1
 export REPO_OWNER="fleetqa"
 export REPO_NAME="webhook-github-test"
 export SECRET_VALUE="webhooksecretvalue"
+
 # Get the external IP of the Google Cloud instance
-export EXTERNAL_IP=$(wget --quiet --header="Metadata-Flavor: Google" -O - http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip) 
+# Using wget as curl may not be available in minimal GCP environments
+export EXTERNAL_IP=$(wget --quiet --header="Metadata-Flavor: Google" -O - \
+  http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip)
 echo "External IP: ${EXTERNAL_IP}"
 
 # Confirm the external IP is not empty
@@ -27,26 +30,98 @@ sed -i "s/{{EXTERNAL_IP}}/${EXTERNAL_IP}/g" assets/webhook-tests/webhook_ingress
 echo "Current directory: $(pwd)"
 echo "PATH: $PATH"
 
-# Delete any previous webhook
-# 1 - Get all webhooks
-webhooks=$(wget --quiet --header="Authorization: Bearer ${GH_PRIVATE_PWD}" \
- -O - https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/hooks)
+# Install gh CLI if not available
+if ! command -v gh &> /dev/null; then
+  echo "gh CLI not found, installing..."
 
-# 2- Extract webhook IDs and delete each one
-echo "$webhooks" | grep -o '"id": *[0-9]*' | awk -F ': ' '{print $2}' | while read webhook_id; do
-  echo "Deleting webhook ID: $webhook_id"
-  wget --quiet --method=DELETE --header="Authorization: Bearer ${GH_PRIVATE_PWD}" \
-  -O - https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/hooks/${webhook_id}
+  # Detect OS and install accordingly
+  if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    case "$ID" in
+      opensuse*|sles)
+        echo "Installing gh CLI on openSUSE/SLES..."
+        # Add official GitHub CLI repository for openSUSE/SLES
+        # Using official repo with GPG signature verification via zypper
+        sudo zypper -n addrepo https://cli.github.com/packages/rpm/gh-cli.repo
+        sudo zypper -n --gpg-auto-import-keys refresh
+        sudo zypper -n install --no-recommends gh
+        ;;
+      ubuntu|debian)
+        echo "Installing gh CLI on Ubuntu/Debian..."
+        # Using official GitHub CLI repository with GPG keyring verification
+        # Using wget instead of curl for better compatibility in minimal environments
+        wget --quiet -O - https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+        sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        sudo apt-get update
+        sudo apt-get install -y gh
+        ;;
+      *)
+        echo "Error: Unsupported OS '$ID' for automatic gh CLI installation"
+        echo "Please install gh CLI manually from: https://github.com/cli/cli/releases"
+        echo "Or use a supported OS (openSUSE, SLES, Ubuntu, Debian)"
+        exit 1
+        ;;
+    esac
+  else
+    echo "Error: Cannot detect OS to install gh CLI"
+    echo "Please install gh CLI manually from: https://github.com/cli/cli/releases"
+    exit 1
+  fi
+
+  # Verify installation
+  if ! command -v gh &> /dev/null; then
+    echo "Error: gh CLI installation failed"
+    exit 1
+  fi
+
+  echo "gh CLI installed successfully (version: $(gh --version | head -n1))"
+fi
+
+# Set GH_TOKEN from GH_PRIVATE_PWD for gh CLI authentication
+# This avoids passing tokens in command-line arguments
+# Handle both uppercase (from workflow) and lowercase (from Cypress) variable names
+if [ -n "${GH_PRIVATE_PWD}" ]; then
+  export GH_TOKEN="${GH_PRIVATE_PWD}"
+elif [ -n "${gh_private_pwd}" ]; then
+  export GH_TOKEN="${gh_private_pwd}"
+else
+  echo "Error: GH_PRIVATE_PWD or gh_private_pwd environment variable not set"
+  exit 1
+fi
+
+# Verify gh CLI authentication
+if ! gh auth status &> /dev/null; then
+  echo "Error: gh CLI authentication failed"
+  exit 1
+fi
+
+echo "Successfully authenticated with GitHub CLI"
+
+# Delete any previous webhooks using gh CLI
+echo "Deleting existing webhooks..."
+gh api "repos/${REPO_OWNER}/${REPO_NAME}/hooks" --jq '.[].id' | while read -r webhook_id; do
+  if [ -n "$webhook_id" ]; then
+    echo "Deleting webhook ID: $webhook_id"
+    gh api --method DELETE "repos/${REPO_OWNER}/${REPO_NAME}/hooks/$webhook_id"
+  fi
 done
 
 echo "All webhooks deleted."
 
 sleep 3 # Adding a bit of sleep to get things to settle
 
-# Create new adhock webhook with the specific Google External IP
-wget --quiet \
-     --method=POST \
-     --header="Authorization: Bearer ${GH_PRIVATE_PWD}" \
-     --header="Content-Type: application/json" \
-     --body-data='{"name":"web","active":true,"events":["push"],"config":{"url":"https://'"${EXTERNAL_IP}"'.nip.io/","content_type":"json","secret":"'"${SECRET_VALUE}"'","insecure_ssl":"1"}}' \
-     -O - https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/hooks
+# Create new webhook with the specific Google External IP using gh CLI
+echo "Creating new webhook..."
+gh api \
+  --method POST \
+  "repos/${REPO_OWNER}/${REPO_NAME}/hooks" \
+  -f name='web' \
+  -F active=true \
+  -f events[]='push' \
+  -f config[url]="https://${EXTERNAL_IP}.nip.io/" \
+  -f config[content_type]='json' \
+  -f config[secret]="${SECRET_VALUE}" \
+  -f config[insecure_ssl]='1'
+
+echo "Webhook created successfully"
