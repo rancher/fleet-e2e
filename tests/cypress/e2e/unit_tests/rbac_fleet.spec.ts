@@ -90,14 +90,15 @@ describe('Test Fleet access with RBAC with custom roles using all verbs for User
 
 describe('Test Fleet access with RBAC with custom roles using Standard User', { tags: '@rbac' }, () => {
   it(qase(43, 'Test "Standard Base" role user with "list" and "create" verbs for "fleetworkspaces" resource. User can NOT "edit" nor "delete" them'), { tags: '@fleet-43' }, () => {
-      
+
       const stduser = "std-user-43"
       const customRoleName = "fleetworkspaces-list-and-create-role"
 
       //  Create "Standard User"
       cypressLib.burgerMenuToggle();
       cy.createNewUser(stduser, uiPassword);
-      
+      cy.wait(2000);
+
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
         roleName: customRoleName,
@@ -139,6 +140,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
       cy.createNewUser(stduser, uiPassword);
+      cy.wait(2000);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -175,7 +177,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
   )
 
   it(qase(45, 'Test "Standard-Base" role user with RESOURCE "fleetworkspaces" with ACTIONS "List", "Delete" can "list and delete" but can NOT "edit" them'), { tags: '@fleet-45' }, () => {
-      
+
       const stduser = "std-user-45"
       const customRoleName = "fleetworkspaces-list-and-delete-role"
 
@@ -281,9 +283,9 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
     })
     
   it(qase(46, 'Fleet-46: Test "Standard-user" | Custom Role | Fleetworkspaces), Bundles = [ALL] | GitRepos = [List]'), { tags: '@fleet-46' }, () => {
-      
+
       const stduser = "std-user-46"
-      
+
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
       cy.createNewUser(stduser, uiPassword);
@@ -330,9 +332,9 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
   )
 
   it(qase(47, 'Fleet-47: Test "Standard-user" | Custom Role | Fleetworkspaces), Bundles = [ALL] | GitRepos = [List, Create]'), { tags: '@fleet-47' }, () => {
-      
-      const stduser = "std-user-47"     
-      
+
+      const stduser = "std-user-47"
+
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
       cy.createNewUser(stduser, uiPassword);
@@ -380,9 +382,9 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
   )
 
   it(qase(48, 'Fleet-48: Test "Standard-user" | Custom Role | Fleetworkspaces), Bundles = [ALL] | GitRepos = [List, Create, Update, Get]'), { tags: '@fleet-48' }, () => {
-      
+
       const stduser = "std-user-48"
-      
+
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
       cy.createNewUser(stduser, uiPassword);
@@ -433,9 +435,9 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
   )
 
   it(qase(50, 'Fleet-50: Test "Standard-user" | Custom Role | Fleetworkspaces), Bundles = [ALL] | GitRepos = [List, Delete]'), { tags: '@fleet-50' }, () => {
-      
+
       const stduser = "std-user-50"
-      
+
       // Create "Standard User"
       cypressLib.burgerMenuToggle();
       cy.createNewUser(stduser, uiPassword);
@@ -505,9 +507,9 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
   })
 
   it(qase(13, 'Fleet-13: Test "Base-user" | Custom Role | Fleetworkspaces), Bundles = [ALL] | GitRepos = [List]'), { tags: '@fleet-13' }, () => {
-      
+
       const baseUser = "base-user-13"
-      
+
       // Create "Base User"
       cypressLib.burgerMenuToggle();
       cy.createNewUser(baseUser, uiPassword, "User-Base", true);
@@ -563,9 +565,9 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
   )
 
   it(qase(14, 'Fleet-14: Test "Base-user" | Custom Role | Fleetworkspaces), Bundles = [ALL] | GitRepos = [List, Create]'), { tags: '@fleet-14' }, () => {
-      
-      const baseUser = "base-user-14"     
-      
+
+      const baseUser = "base-user-14"
+
       // Create "Base User"
       cypressLib.burgerMenuToggle();
       cy.createNewUser(baseUser, uiPassword, "User-Base", true);
@@ -614,9 +616,9 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
   )
 
   it(qase(15, 'Fleet-15: Test "Base-user" | Custom Role | Fleetworkspaces), Bundles = [ALL] | GitRepos = [List, Create, Update, Get]'), { tags: '@fleet-15' }, () => {
-      
-      const baseUser = "base-user-15"     
-      
+
+      const baseUser = "base-user-15"
+
       // Create "Base User"
       cypressLib.burgerMenuToggle();
       cy.createNewUser(baseUser, uiPassword, "User-Base", true);
@@ -668,9 +670,9 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
   )
 
   it(qase(16, 'Fleet-16: Test "Base-user" | Custom Role | Fleetworkspaces), Bundles = [ALL] | GitRepos = [List, Delete]'), { tags: '@fleet-16' }, () => {
-      
-      const baseUser = "base-user-16"     
-      
+
+      const baseUser = "base-user-16"
+
       // Create "Base User"
       cypressLib.burgerMenuToggle();
       cy.createNewUser(baseUser, uiPassword, "User-Base", true);
@@ -724,12 +726,13 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
 describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "USER-BASE" user', { tags: '@rbac' }, () => {
 
   it(qase(10, 'Fleet-10: Test "Base-user" | Custom Role | Fleetworkspaces = [List), Create] | Bundles, Gitrepos = [ALL]'), { tags: '@fleet-10' }, () => {
-      
-      const baseUser = "base-user-10"     
-      
+
+      const baseUser = "base-user-10"
+
       // Create "Base User"
       cypressLib.burgerMenuToggle();
       cy.createNewUser(baseUser, uiPassword, "User-Base", true);
+      cy.wait(2000);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -765,12 +768,13 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
   )
 
   it(qase(11, 'Fleet-11: Test "Base-user" | Custom Role | Fleetworkspaces = [All except Delete] | Bundles), Gitrepos = [ALL]'), { tags: '@fleet-11' }, () => {
-      
-      const baseUser = "base-user-11"     
-      
+
+      const baseUser = "base-user-11"
+
       // Create "Base User"
       cypressLib.burgerMenuToggle();
       cy.createNewUser(baseUser, uiPassword, "User-Base", true);
+      cy.wait(2000);
 
       cy.createRoleTemplate({
         roleType: roleTypeTemplate,
@@ -807,9 +811,9 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
   )
 
   it(qase(12, 'Fleet-12: Test "Base-user" | Custom Role | Fleetworkspaces = [List), Delete] | Bundles, Gitrepos = [ALL]'), { tags: '@fleet-12' }, () => {
-      
+
       const baseUser = "base-user-12"
-      
+
       // Create "Base User"
       cypressLib.burgerMenuToggle();
       cy.createNewUser(baseUser, uiPassword, "User-Base", true);
