@@ -1330,9 +1330,9 @@ Cypress.Commands.add('deleteDownstreamCluster', (clusterName, deleteOption=false
   }
 );
 
-Cypress.Commands.add('executeKubectlCommand', (labelCommand) => {
+Cypress.Commands.add('executeKubectlCommand', (labelCommand, clusterName='local') => {
   // Open local terminal in Rancher UI
-  cy.accesMenuSelection('local');
+  cy.accesMenuSelection(clusterName);
   cy.get('#btn-kubectl').click();
   cy.contains('Connected').should('be.visible');
 

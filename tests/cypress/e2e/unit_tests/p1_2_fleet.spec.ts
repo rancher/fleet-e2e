@@ -52,6 +52,7 @@ export const removeNewLabelThirdImportedCluster = `kubectl label -n fleet-defaul
     'management.cattle.io/cluster-display-name=${dsThirdClusterName}' ${new_key}- {enter}`
 export const removeLabelFromAllClusters = `kubectl label -n fleet-default clusters.fleet.cattle.io -l \
     'management.cattle.io/cluster-display-name in (${dsAllClusterList.join(',')})' ${key}- ${new_key}- {enter}`
+export const removeClusterGroupCommand = `kubectl delete clustergroups.fleet.cattle.io ${clusterGroupName} -n fleet-default {enter}`
 
 beforeEach(() => {
   cy.session('admin', () => {
@@ -170,9 +171,9 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
 describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', '@pr-tests'] }, () => {
   let repoName
 
-  beforeEach('Cleanup leftover GitRepo, ClusterGroup etc. if any.', () => {
-    cy.deleteAllFleetRepos();
-    cy.deleteClusterGroups();
+  beforeEach('Cleanup leftover GitRepo, ClusterGroup or label etc. if any.', () => {
+    cy.executeKubectlCommand(removeClusterGroupCommand);
+    cy.executeKubectlCommand(removeLabelFromAllClusters);
   })
 
   const clusterGroup: testData[] = [
@@ -249,10 +250,6 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
             cy.accesMenuSelection('Continuous Delivery', 'Clusters');
             cy.executeKubectlCommand(removeLabelThirdImportedCluster);
           }
-
-          // Remove labels from the clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
-          cy.executeKubectlCommand(removeLabelFirstTwoImportedClusters);
-          cy.deleteClusterGroups();
         })
     }
   )
@@ -305,10 +302,6 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
 
       // Check application is absent i.e. removed from second cluster i.e. imported-1
       cy.checkApplicationStatus(appName, dsSecondClusterName, 'All Namespaces', false);
-
-      // Remove labels from the clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
-      cy.executeKubectlCommand(removeLabelFirstTwoImportedClusters);
-      cy.deleteClusterGroups();
     }
   )
 
@@ -362,23 +355,15 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
           cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces', false);
         }
       )
-
-      // Remove labels from the clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
-      cy.executeKubectlCommand(removeLabelFirstTwoImportedClusters);
-
-      // Remove labels from third cluster i.e. imported-2
-      cy.executeKubectlCommand(removeLabelThirdImportedCluster);
-
-      // Delete clusterGroups.
-      cy.deleteClusterGroups();
     })
   }
 });
 
 describe('Test multiple applications deployment based on clusterGroup', { tags: ['@p1_2', '@pr-tests'] }, () => {
 
-  beforeEach('Cleanup leftover GitRepo if any.', () => {
-    cy.deleteAllFleetRepos();
+  beforeEach('Cleanup leftover clusterGroups or labels if any.', () => {
+    cy.executeKubectlCommand(removeClusterGroupCommand);
+    cy.executeKubectlCommand(removeLabelFromAllClusters);
   })
 
   it(qase(26, "Fleet-26: Test install multiple applications to the all defined clusters in the 'clusterGroup'"), { tags: '@fleet-26' }, () => {
@@ -425,11 +410,6 @@ describe('Test multiple applications deployment based on clusterGroup', { tags: 
         cy.filterInSearchBox("mp-app-config");
         cy.get('td.col-link-detail > span').contains("mp-app-config").click();
       })
-
-      // Remove labels from the clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
-      cy.wait(1000);
-      cy.executeKubectlCommand(removeLabelFirstTwoImportedClusters);
-      cy.deleteClusterGroups();
     }
   )
 });
@@ -438,7 +418,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
   let gitRepoFile
 
   beforeEach('Remove labels from all clusters.', () => {
-    // Remove labels from the clusters.
     cy.executeKubectlCommand(removeLabelFromAllClusters);
   })
 
@@ -534,10 +513,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
             cy.get('td.col-link-detail > span').contains("mp-app-config").click();
           })
         }
-
-        // Remove labels from the clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
-        cy.accesMenuSelection('local');
-        cy.executeKubectlCommand(removeLabelFirstTwoImportedClusters);
       })
   })
 
@@ -583,9 +558,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
 
       // Check application is available on first cluster i.e. imported-0
       cy.checkApplicationStatus(appName, dsFirstClusterName, 'All Namespaces');
-
-      // Remove labels from the clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
-      cy.executeKubectlCommand(removeLabelFirstTwoImportedClusters);
     }
   )
   it(qase(22, "Fleet-22: Test install app to new set of clusters from old set of clusters"), { tags: '@fleet-22' }, () => {
@@ -642,12 +614,6 @@ describe("Test Application deployment based on 'clusterSelector'", { tags: '@p1_
             cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces', false);
           }
         )
-
-        // Remove labels from the clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
-        cy.executeKubectlCommand(removeLabelFirstTwoImportedClusters);
-
-        // Remove labels from third cluster i.e. imported-2 using kubectl command in terminal.
-        cy.executeKubectlCommand(removeLabelThirdImportedCluster);
       }
     })
 });
@@ -659,7 +625,7 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
 
   beforeEach('Cleanup leftover GitRepo if any.', () => {
     cy.deleteAllFleetRepos();
-    cy.deleteClusterGroups();
+    cy.executeKubectlCommand(removeClusterGroupCommand);
     cy.executeKubectlCommand(removeLabelFromAllClusters);
   })
 
@@ -764,10 +730,6 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
             cy.get('td.col-link-detail > span').contains("mp-app-config").click();
           })
         }
-
-        // Remove labels from the clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
-        cy.wait(1000);
-        cy.executeKubectlCommand(removeLabelFirstTwoImportedClusters);
       })
   })
 });
