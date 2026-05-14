@@ -1205,19 +1205,13 @@ describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.'
 
   const key = "key_resources"
   const value = "deploy_true"
+  const addDeployLabelToAllClusters = `kubectl label -n fleet-default clusters.fleet.cattle.io -l \
+    'management.cattle.io/cluster-display-name in (${dsAllClusterList.join(',')})' ${key}=${value} {enter}`
+  const removeDeployLabelFromAllClusters = `kubectl label -n fleet-default clusters.fleet.cattle.io -l \
+    'management.cattle.io/cluster-display-name in (${dsAllClusterList.join(',')})' ${key}- {enter}`
 
   beforeEach('Cleanup leftover Cluster labels if any.', () => {
-    cy.login();
-    cy.visit('/');
-    // Remove labels from the clusters.
-    cy.accesMenuSelection('Continuous Delivery', 'Clusters');
-    dsAllClusterList.forEach(
-      (dsCluster) => {
-        // Adding wait to load page correctly to avoid interference with hamburger-menu.
-        cy.wait(500);
-        cy.removeClusterLabels(dsCluster, key, value);
-      }
-    )
+    cy.executeKubectlCommand(removeDeployLabelFromAllClusters);
   })
 
   it(qase(88, "Fleet-88: Test bundle did not get deployed when 'doNotDeploy' value set to `true` option is used in the 'fleet.yaml' file."), { tags: '@fleet-88' }, () => {
@@ -1230,12 +1224,9 @@ describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.'
         gitRepoWord = "GitRepo"
       }
 
-      // Assign label (similar to label mentioned in fleet.yaml file.) to All the clusters
-      dsAllClusterList.forEach(
-        (dsCluster) => {
-          cy.assignClusterLabel(dsCluster, key, value);
-        }
-      )
+      // Assign label (similar to label mentioned in fleet.yaml file.) to all the clusters
+      // i.e. imported-0, imported-1 and imported-2 using kubectl command in terminal.
+      cy.executeKubectlCommand(addDeployLabelToAllClusters);
 
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
       cy.clickButton('Create');
@@ -1253,9 +1244,6 @@ describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.'
           cy.checkApplicationStatus("nginx-donot-deploy", dsCluster, 'All Namespaces', false);
         }
       )
-
-      cy.deleteAllFleetRepos();
-
     })
 });
 
@@ -1277,9 +1265,6 @@ describe('Test Fleet `doNotDeploy: false` will deploy resources to all clusters.
           cy.checkApplicationStatus("nginx-donot-deploy", dsCluster, 'All Namespaces');
         }
       )
-
-      cy.deleteAllFleetRepos();
-
     })
 });
 
