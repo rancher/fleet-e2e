@@ -171,7 +171,7 @@ describe('Test GitRepo Bundle name validation and max character trimming behavio
 describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', '@pr-tests'] }, () => {
   let repoName
 
-  beforeEach('Cleanup leftover GitRepo, ClusterGroup or label etc. if any.', () => {
+  beforeEach('Cleanup leftover cluster groups and labels etc. if any.', () => {
     cy.executeKubectlCommand(removeClusterGroupCommand);
     cy.executeKubectlCommand(removeLabelFromAllClusters);
   })
@@ -623,8 +623,7 @@ describe("Test Application deployment based on 'clusterGroupSelector'", { tags: 
   const clusterGroupLabelValue = 'cluster_group_selector_test'
   let clusterGroupSelectorFile
 
-  beforeEach('Cleanup leftover GitRepo if any.', () => {
-    cy.deleteAllFleetRepos();
+  beforeEach('Cleanup leftover cluster groups and labels if any.', () => {
     cy.executeKubectlCommand(removeClusterGroupCommand);
     cy.executeKubectlCommand(removeLabelFromAllClusters);
   })
