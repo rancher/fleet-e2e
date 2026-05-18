@@ -947,22 +947,13 @@ describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
       cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
       cy.continuousDeliveryBundlesMenu();
 
-      // Verify all expected bundles with Active state in a single query
-      cy.get('table tbody tr').should(($rows) => {
-        const rowTexts = $rows.toArray().map(row => row.textContent);
-
-        expect(rowTexts.some(text =>
-          text.includes('Active') && text.includes('test-bundle-driven-helm')
-        ), 'test-bundle-driven-helm should be Active').to.be.true;
-
-        expect(rowTexts.some(text =>
-          text.includes('Active') && text.includes('test-bundle-driven-kustomize')
-        ), 'test-bundle-driven-kustomize should be Active').to.be.true;
-
-        expect(rowTexts.some(text =>
-          text.includes('Active') && text.includes('test-bundle-driven-simple')
-        ), 'test-bundle-driven-simple should be Active').to.be.true;
-      });
+      // Verify all expected bundles
+      cy.filterInSearchBox('test-bundle-driven-helm');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-driven-helm');
+      cy.filterInSearchBox('test-bundle-driven-kustomize');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-driven-kustomize');
+      cy.filterInSearchBox('test-bundle-driven-simple');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-driven-simple');
     });
 
     it(qase(181, "FLEET-181: Test GitRepo creates bundles specified under bundles: with option: field"), { tags: '@fleet-181' }, () => {
@@ -981,26 +972,15 @@ describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
       cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
       cy.continuousDeliveryBundlesMenu();
 
-      // Verify all expected bundles with Active state in a single query
-      cy.get('table tbody tr').should(($rows) => {
-        const rowTexts = $rows.toArray().map(row => row.textContent);
-
-        expect(rowTexts.some(text =>
-          text.includes('Active') && text.includes('test-bundle-dev-prod-driven-helm')
-        ), 'test-bundle-dev-prod-driven-helm should be Active').to.be.true;
-
-        expect(rowTexts.some(text =>
-          text.includes('Active') && text.includes('test-bundle-dev-prod-driven-kustomize-dev')
-        ), 'test-bundle-dev-prod-driven-kustomize-dev should be Active').to.be.true;
-
-        expect(rowTexts.some(text =>
-          text.includes('Active') && text.includes('test-bundle-dev-prod-driven-kustomize-prod')
-        ), 'test-bundle-dev-prod-driven-kustomize-prod should be Active').to.be.true;
-
-        expect(rowTexts.some(text =>
-          text.includes('Active') && text.includes('test-bundle-dev-prod-driven-simple')
-        ), 'test-bundle-dev-prod-driven-simple should be Active').to.be.true;
-      });
+      // Verify all expected bundles
+      cy.filterInSearchBox('test-bundle-dev-prod-driven-helm');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-prod-driven-helm');
+      cy.filterInSearchBox('test-bundle-dev-prod-driven-kustomize-dev');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-prod-driven-kustomize-dev');
+      cy.filterInSearchBox('test-bundle-dev-prod-driven-kustomize-prod');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-prod-driven-kustomize-prod');
+      cy.filterInSearchBox('test-bundle-dev-prod-driven-simple');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-prod-driven-simple');
     });
 
     it(qase(182, "FLEET-182: Test update GitRepo by removing prod.yaml from option and verify that prod bundle should not be created."), { tags: '@fleet-182' }, () => {
@@ -1019,22 +999,13 @@ describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
       cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
       cy.continuousDeliveryBundlesMenu();
 
-      // Verify all expected bundles with Active state in a single query
-      cy.get('table tbody tr').should(($rows) => {
-        const rowTexts = $rows.toArray().map(row => row.textContent);
-
-        expect(rowTexts.some(text =>
-          text.includes('Active') && text.includes('test-bundle-dev-driven-helm')
-        ), 'test-bundle-dev-driven-helm should be Active').to.be.true;
-
-        expect(rowTexts.some(text =>
-          text.includes('Active') && text.includes('test-bundle-dev-driven-kustomize-dev')
-        ), 'test-bundle-dev-driven-kustomize-dev should be Active').to.be.true;
-
-        expect(rowTexts.some(text =>
-          text.includes('Active') && text.includes('test-bundle-dev-driven-simple')
-        ), 'test-bundle-dev-driven-simple should be Active').to.be.true;
-      });
+      // Verify all expected bundles
+      cy.filterInSearchBox('test-bundle-dev-driven-helm');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-driven-helm');
+      cy.filterInSearchBox('test-bundle-dev-driven-kustomize-dev');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-driven-kustomize-dev');
+      cy.filterInSearchBox('test-bundle-dev-driven-simple');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-driven-simple');
     });
 
     it(qase(183, "FLEET-183: Test update GitRepo by adding test.yaml under option and verify that prod bundle should not be created."), { tags: '@fleet-183' }, () => {
@@ -1053,26 +1024,15 @@ describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
       cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
       cy.continuousDeliveryBundlesMenu();
 
-      // Verify all expected bundles with Active state in a single query
-      cy.get('table tbody tr').should(($rows) => {
-        const rowTexts = $rows.toArray().map(row => row.textContent);
-
-        expect(rowTexts.some(text =>
-          text.includes('Active') && text.includes('test-bundle-dev-test-driven-helm')
-        ), 'test-bundle-dev-test-driven-helm should be Active').to.be.true;
-
-        expect(rowTexts.some(text =>
-          text.includes('Active') && text.includes('test-bundle-dev-test-driven-kustomize-dev')
-        ), 'test-bundle-dev-test-driven-kustomize-dev should be Active').to.be.true;
-
-        expect(rowTexts.some(text =>
-          text.includes('Active') && text.includes('test-bundle-dev-test-driven-kustomize-test')
-        ), 'test-bundle-dev-test-driven-kustomize-test should be Active').to.be.true;
-
-        expect(rowTexts.some(text =>
-          text.includes('Active') && text.includes('test-bundle-dev-test-driven-simple')
-        ), 'test-bundle-dev-test-driven-simple should be Active').to.be.true;
-      });
+      // Verify all expected bundles
+      cy.filterInSearchBox('test-bundle-dev-test-driven-helm');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-test-driven-helm');
+      cy.filterInSearchBox('test-bundle-dev-test-driven-kustomize-dev');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-test-driven-kustomize-dev');
+      cy.filterInSearchBox('test-bundle-dev-test-driven-kustomize-test');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-test-driven-kustomize-test');
+      cy.filterInSearchBox('test-bundle-dev-test-driven-simple');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-test-driven-simple');
     });
   }
 });
