@@ -894,37 +894,71 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
 
 describe('Test Helm app with Custom Values', { tags: '@p1_2' }, () => {
   const configMapName = "test-map"
-  const repoTestData: testData[] = [
-    {qase_id: 173, message: '`valuesFrom` with empty', path:'qa-test-apps/helm-app/values-from-with-empty-values' },
-    {qase_id: 174, message: '`valuesFrom` with NO', path:'qa-test-apps/helm-app/values-from-with-no-values' },
-    {qase_id: 175, message: '`valuesFiles` with empty', path: 'qa-test-apps/helm-app/values-files-with-empty-values' },
-    {qase_id: 176, message: '`valuesFiles` with NO', path: 'qa-test-apps/helm-app/values-files-with-no-values' }
-  ]
 
   beforeEach('Cleanup leftover GitRepo and ConfigMap if any.', () => {
-    cy.login();
-    cy.visit('/');
     cy.deleteConfigMap(configMapName);
-    cy.deleteAllFleetRepos();
   })
 
-  repoTestData.forEach(({ qase_id, message, path }) => {
-    it(qase(qase_id, `FLEET-${qase_id}: Test helm-app using "${message}" values in the fleet.yaml file.`), { tags: `@fleet-${qase_id}`}, () => {
-        const repoName = `local-cluster-fleet-${qase_id}`
+  it(qase(173, 'FLEET-173: Test helm-app using "`valuesFrom` with empty" values in the fleet.yaml file.'), { tags: '@fleet-173' }, () => {
+    const qase_id = 173;
+    const testPath = 'qa-test-apps/helm-app/values-from-with-empty-values';
+    const repoName = `local-cluster-fleet-${qase_id}`
 
-        // Create ConfigMap before create GitRepo
-        if (qase_id === 173 || qase_id === 174) {
-          cy.createConfigMap(configMapName);
-        }
+    // Create ConfigMap before create GitRepo
+    cy.createConfigMap(configMapName);
 
-        // Create GitRepo
-        cy.continuousDeliveryMenuSelection();
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
-        cy.clickButton('Create');
-        cy.verifyTableRow(0, 'Active', repoName);
-        cy.wait(1000);
-        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-      })
+    // Create GitRepo
+    cy.continuousDeliveryMenuSelection();
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path: testPath, local: true });
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', repoName);
+    cy.wait(1000);
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+  });
+
+  it(qase(174, 'FLEET-174: Test helm-app using "`valuesFrom` with NO" values in the fleet.yaml file.'), { tags: '@fleet-174' }, () => {
+    const qase_id = 174;
+    const testPath = 'qa-test-apps/helm-app/values-from-with-no-values';
+    const repoName = `local-cluster-fleet-${qase_id}`
+
+    // Create ConfigMap before create GitRepo
+    cy.createConfigMap(configMapName);
+
+    // Create GitRepo
+    cy.continuousDeliveryMenuSelection();
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path: testPath, local: true });
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', repoName);
+    cy.wait(1000);
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+  });
+
+  it(qase(175, 'FLEET-175: Test helm-app using "`valuesFiles` with empty" values in the fleet.yaml file.'), { tags: '@fleet-175' }, () => {
+    const qase_id = 175;
+    const testPath = 'qa-test-apps/helm-app/values-files-with-empty-values';
+    const repoName = `local-cluster-fleet-${qase_id}`
+
+    // Create GitRepo
+    cy.continuousDeliveryMenuSelection();
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path: testPath, local: true });
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', repoName);
+    cy.wait(1000);
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+  });
+
+  it(qase(176, 'FLEET-176: Test helm-app using "`valuesFiles` with NO" values in the fleet.yaml file.'), { tags: '@fleet-176' }, () => {
+    const qase_id = 176;
+    const testPath = 'qa-test-apps/helm-app/values-files-with-no-values';
+    const repoName = `local-cluster-fleet-${qase_id}`
+
+    // Create GitRepo
+    cy.continuousDeliveryMenuSelection();
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path: testPath, local: true });
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', repoName);
+    cy.wait(1000);
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
   });
 });
 
@@ -1093,19 +1127,8 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
   const appName = 'nginx-keep'
   const allowedTargetNamespace = 'allowed-namespace'
 
-  beforeEach('Cleanup leftover GitRepo if any.', () => {
-    cy.login();
-    cy.visit('/');
-    cy.deleteAllFleetRepos();
-  })
-
-  it(qase(39, 'Test "GitRepoRestrictions" on non-existent namespace throws error in the UI'), { tags: '@fleet-39' }, () => {
-      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
-      }
-      else {
-        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
-      }
+  it(qase(39, 'Fleet-39: Test "GitRepoRestrictions" on non-existent namespace throws error in the UI'), { tags: '@fleet-39' }, () => {
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.clickButton('Create from YAML');
       cy.readFile('assets/git-repo-restrictions-non-exists-ns.yaml').then((content) => {
         cy.get('.CodeMirror').then((codeMirrorElement) => {
@@ -1119,16 +1142,11 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
     }
   )
 
-  it(qase(40, 'Test "GitRepoRestrictions" override "defaultNamespace" in fleet.yaml of application over "allowedTargetNamespace"'), { tags: '@fleet-40' }, () => {
+  it(qase(40, 'Fleet-40: Test "GitRepoRestrictions" override "defaultNamespace" in fleet.yaml of application over "allowedTargetNamespace"'), { tags: '@fleet-40' }, () => {
       const repoName = 'local-gitreporestrictions-fleet-40'
 
       // Create GitRepoRestrictions with allowedTargetNamespace
-      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
-      }
-      else {
-        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
-      }
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.clickButton('Create from YAML');
       cy.readFile('assets/git-repo-restrictions-allowed-target-ns.yaml').then((content) => {
         cy.get('.CodeMirror').then((codeMirrorElement) => {
@@ -1153,30 +1171,17 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       cy.get('.col-link-detail').contains(appName).should('be.visible');
 
       // Deleting GitRepoRestrictions from the fleet-local namespace
-      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
-      }
-      else {
-        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
-      }
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.fleetNamespaceToggle('fleet-local');
       cy.deleteAll(false);
-
-      // Delete GitRepo
-      cy.deleteAllFleetRepos();
     }
   )
 
-  it(qase(41, 'Test "allowedTargetNamespace" from "GitRepoRestrictions" overrides "defaultNamespace" in fleet.yaml of application on existing GitRepo'), { tags: '@fleet-41' }, () => {
+  it(qase(41, 'Fleet-41: Test "allowedTargetNamespace" from "GitRepoRestrictions" overrides "defaultNamespace" in fleet.yaml of application on existing GitRepo'), { tags: '@fleet-41' }, () => {
       const repoName = 'local-gitreporestrictions-fleet-41'
 
       // Create GitRepoRestrictions with allowedTargetNamespace
-      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
-      }
-      else {
-        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
-      }
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.clickButton('Create from YAML');
       cy.readFile('assets/git-repo-restrictions-allowed-target-ns.yaml').then((content) => {
         cy.get('.CodeMirror').then((codeMirrorElement) => {
@@ -1208,17 +1213,9 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       cy.get('.col-link-detail').contains(appName).should('be.visible');
 
       // Deleting GitRepoRestrictions from the fleet-local namespace
-      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
-      }
-      else {
-        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
-      }
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.fleetNamespaceToggle('fleet-local');
       cy.deleteAll(false);
-
-      // Delete GitRepo
-      cy.deleteAllFleetRepos();
     })
 });
 

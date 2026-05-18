@@ -136,6 +136,21 @@ Cypress.Commands.add('continuousDeliveryBundlesMenu', () => {
   });
 });
 
+Cypress.Commands.add('continuousDeliveryGitRepoRestrictionsMenu', () => {
+  cy.get('body', { timeout: 15000 }).then(($body) => {
+    if ($body.text().includes('App Bundles')) {
+      cy.contains('App Bundles').should('be.visible');
+      cy.clickNavMenu(['Resources']);
+      cy.get('nav').contains(/^GitRepoRestrictions$/).click();
+    } else if ($body.text().includes('Git Repos')) {
+      cy.contains('Git Repos').should('be.visible');
+      cy.clickNavMenu(['Advanced', 'GitRepoRestrictions']);
+    } else {
+      throw new Error('Neither "App Bundles" nor "Git Repos" found');
+    }
+  });
+});
+
 // Command to add Fleet Repo from YAML file
 Cypress.Commands.add('addFleetRepoFromYaml', (yamlFilePath, fleetNamespace='fleet-local') => {
   cy.continuousDeliveryMenuSelection();
