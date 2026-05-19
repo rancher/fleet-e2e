@@ -66,7 +66,7 @@ describe('Test Fleet deployment on PRIVATE repos with HTTP auth', { tags: ['@p0'
         const userOrPublicKey = Cypress.expose(`${provider.toLowerCase()}_private_user`)
         const pwdOrPrivateKey = Cypress.expose(`${provider.toLowerCase()}_private_pwd`)
 
-        cy.fleetNamespaceToggle('fleet-local')
+        cy.fleetNamespaceToggle('fleet-default')
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
         cy.clickButton('Create');
         cy.checkGitRepoStatus(repoName, '1 / 1');
