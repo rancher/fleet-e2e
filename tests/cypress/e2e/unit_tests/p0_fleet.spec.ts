@@ -55,7 +55,7 @@ describe('Test Fleet deployment on PRIVATE repos with HTTP auth', { tags: ['@p0'
   const repoTestData: testData[] = [
     {qase_id: 6, provider: 'GitLab',  repoUrl: 'https://gitlab.com/fleetqa/fleet-qa-examples.git'},
     {qase_id: 7, provider: 'Gh',  repoUrl: 'https://github.com/fleetqa/fleet-qa-examples.git'},
-    {qase_id: 8, provider: 'Bitbucket', repoUrl: 'https://bitbucket.org/fleetqa-bb/fleet-qa-examples.git'},
+    // {qase_id: 8, provider: 'Bitbucket', repoUrl: 'https://bitbucket.org/fleetqa1/fleet-qa-examples.git'},
     {qase_id: 98, provider: 'Azure',  repoUrl: 'https://dev.azure.com/fleetqateam/fleet-qa-examples/_git/fleet-qa-examples'}
   ]
 
@@ -66,7 +66,7 @@ describe('Test Fleet deployment on PRIVATE repos with HTTP auth', { tags: ['@p0'
         const userOrPublicKey = Cypress.expose(`${provider.toLowerCase()}_private_user`)
         const pwdOrPrivateKey = Cypress.expose(`${provider.toLowerCase()}_private_pwd`)
 
-        cy.fleetNamespaceToggle('fleet-default')
+        cy.fleetNamespaceToggle('fleet-local')
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
         cy.clickButton('Create');
         cy.checkGitRepoStatus(repoName, '1 / 1');
