@@ -80,4 +80,5 @@ jobs:
       qase_run_id: ${{ inputs.qase_run_id || '' }}
       grep_test_by_tag: ${{ inputs.grep_test_by_tag }}
       hardening: ${{ inputs.hardening }}
+      hardening_cluster_version: ${{ inputs.hardening_cluster_version }}
       runner_template: ${{ inputs.runner_template || 'fleet-e2e-ci-runner-spot-x86-64-template-v3' }}

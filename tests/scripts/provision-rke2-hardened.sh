@@ -7,8 +7,13 @@ KUBECTL_VERSION="1.33.0"
 # renovate: datasource=github-releases depName=kubernetes/kubernetes digestVersion="1.33.0"
 KUBECTL_SHA256="9efe8d3facb23e1618cba36fb1c4e15ac9dc3ed5a2c2e18109e4a66b2bac12dc"
 
-HARDENED_VERSION="v1.33.0+rke2r1"
-HARDENED_SHA256="acf7c6f69c932b46313d84db862f3ff5583050036d63bb3d344fffff2037a39f"
+HARDENED_VERSION="${INSTALL_HARDENED_VERSION:-${HARDENING_CLUSTER_VERSION:-v1.33.0+rke2r1}}"
+HARDENED_SHA256="$(curl -sSfL "https://github.com/rancher/rke2/releases/download/${HARDENED_VERSION}/sha256sum-amd64.txt" | awk '$2 == "rke2.linux-amd64.tar.gz" { print $1; exit }')"
+
+if [ -z "${HARDENED_SHA256}" ]; then
+  echo "Failed to resolve the RKE2 checksum for ${HARDENED_VERSION}" >&2
+  exit 1
+fi
 
 ### Deploy Kubectl && alias
 
