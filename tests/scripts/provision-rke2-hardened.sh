@@ -7,8 +7,31 @@ KUBECTL_VERSION="1.33.0"
 # renovate: datasource=github-releases depName=kubernetes/kubernetes digestVersion="1.33.0"
 KUBECTL_SHA256="9efe8d3facb23e1618cba36fb1c4e15ac9dc3ed5a2c2e18109e4a66b2bac12dc"
 
-HARDENED_VERSION="v1.33.0+rke2r1"
-HARDENED_SHA256="acf7c6f69c932b46313d84db862f3ff5583050036d63bb3d344fffff2037a39f"
+# Get version from environment variable or use default
+HARDENED_VERSION="${HARDENING_CLUSTER_VERSION:-v1.33.0+rke2r1}"
+
+# Function to get checksum for a given version
+get_checksum_for_version() {
+  local version="$1"
+  case "$version" in
+    "v1.33.0+rke2r1")
+      echo "acf7c6f69c932b46313d84db862f3ff5583050036d63bb3d344fffff2037a39f"
+      ;;
+    "v1.32.8+rke2r1")
+      echo "c6b6362ac5638cabfe7674e99cf31db07c11bfee1386ec45c8df4c4f8fc4c9e3"
+      ;;
+    *)
+      echo "ERROR: Unknown RKE2 version: $version" >&2
+      echo "Supported versions:" >&2
+      echo "  - v1.33.0+rke2r1" >&2
+      echo "  - v1.32.8+rke2r1" >&2
+      exit 1
+      ;;
+  esac
+}
+
+# Get the checksum for the requested version
+HARDENED_SHA256=$(get_checksum_for_version "$HARDENED_VERSION")
 
 ### Deploy Kubectl && alias
 
@@ -104,7 +127,8 @@ echo "pod-security-admission-config-file: $PWD/psa.yaml" | sudo tee -a /etc/ranc
 echo "profile: cis" | sudo tee -a /etc/rancher/rke2/config.yaml > /dev/null
 
 # Deploy RKE2
-echo "Downloading RKE2"
+echo "Downloading RKE2 version: ${HARDENED_VERSION}"
+echo "Expected SHA256: ${HARDENED_SHA256}"
 curl -sSfL "https://github.com/rancher/rke2/releases/download/${HARDENED_VERSION}/rke2.linux-amd64.tar.gz" -o rke2.tar.gz
 echo "${HARDENED_SHA256}  rke2.tar.gz" | sha256sum -c -
 curl -sSfL "https://get.rke2.io" -o install.sh
