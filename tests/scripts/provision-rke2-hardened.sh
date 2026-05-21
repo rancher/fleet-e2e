@@ -18,7 +18,7 @@ get_checksum_for_version() {
       echo "acf7c6f69c932b46313d84db862f3ff5583050036d63bb3d344fffff2037a39f"
       ;;
     "v1.32.8+rke2r1")
-      echo "c6b6362ac5638cabfe7674e99cf31db07c11bfee1386ec45c8df4c4f8fc4c9e3"
+      echo "8a4494e75b41433fb01b8dab3673f60639b503df1adbb917f2b674068de6e72e"
       ;;
     *)
       echo "ERROR: Unknown RKE2 version: $version" >&2
@@ -128,8 +128,8 @@ echo "profile: cis" | sudo tee -a /etc/rancher/rke2/config.yaml > /dev/null
 
 # Deploy RKE2
 echo "Downloading RKE2 version: ${HARDENED_VERSION}"
-echo "Expected SHA256: ${HARDENED_SHA256}"
 curl -sSfL "https://github.com/rancher/rke2/releases/download/${HARDENED_VERSION}/rke2.linux-amd64.tar.gz" -o rke2.tar.gz
+echo "Validating SHA256: ${HARDENED_SHA256}"
 echo "${HARDENED_SHA256}  rke2.tar.gz" | sha256sum -c -
 curl -sSfL "https://get.rke2.io" -o install.sh
 chmod 700 install.sh

@@ -41,7 +41,7 @@ on:
         type: boolean
         default: true
       hardening_cluster_version:
-        description: Upstream cluster version for HARDENING where to install Rancher
+        description: 'Upstream cluster version for HARDENING where to install Rancher (for Rancher 2.11 use <K8s 1.33)'
         default: 'v1.33.0+rke2r1'
         type: choice
         options:
