@@ -13,7 +13,7 @@ on:
         description: Qase run ID where the results will be reported
         default: auto
       qase_complete_run:
-        description: Complete the QASE run after tests (false = append mode for multiple runs)
+        description: "`Uncheck` when appending test runs. `Check` on final run to close QASE. For daily runs, keep it checked."
         default: true
         type: boolean
         type: string
