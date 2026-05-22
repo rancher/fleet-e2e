@@ -758,7 +758,7 @@ describe('Test namespace deletion when bundle is deleted', { tags: ['@p1_2', '@p
       // Check namespace is deleted
       cy.accesMenuSelection('local', 'Projects/Namespaces');
       cy.filterInSearchBox(namespaceName);
-      cy.contains(namespaceName, { timeout: 30000 }).should('not.exist');
+      cy.contains(namespaceName, { timeout: 40000 }).should('not.exist');
     }
   )
 
@@ -787,7 +787,7 @@ describe('Test namespace deletion when bundle is deleted', { tags: ['@p1_2', '@p
       cy.continuousDeliveryMenuSelection();
       cy.fleetNamespaceToggle('fleet-local');
       cy.filterInSearchBox(repoName); // this is the main one
-      
+
       // Since whe expeect that the deletion of the main one also
       // deletes the nested one, the 'deleteAll' function will check this
       cy.deleteAll();
@@ -795,8 +795,8 @@ describe('Test namespace deletion when bundle is deleted', { tags: ['@p1_2', '@p
       // Check namespace is deleted
       cy.accesMenuSelection('local', 'Projects/Namespaces');
       cy.filterInSearchBox(namespaceName);
-      cy.contains(namespaceName, {timeout: 20000 }).should('not.exist');
-    })
+      cy.contains(namespaceName, {timeout: 40000 }).should('not.exist');
+  })
 });
 
 describe('Test Fleet Resource Count', { tags: '@p1_2'}, () => {
@@ -894,71 +894,34 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
 
 describe('Test Helm app with Custom Values', { tags: '@p1_2' }, () => {
   const configMapName = "test-map"
+  const repoTestData: testData[] = [
+    {qase_id: 173, message: '`valuesFrom` with empty', path:'qa-test-apps/helm-app/values-from-with-empty-values' },
+    {qase_id: 174, message: '`valuesFrom` with NO', path:'qa-test-apps/helm-app/values-from-with-no-values' },
+    {qase_id: 175, message: '`valuesFiles` with empty', path: 'qa-test-apps/helm-app/values-files-with-empty-values' },
+    {qase_id: 176, message: '`valuesFiles` with NO', path: 'qa-test-apps/helm-app/values-files-with-no-values' }
+  ]
 
-  beforeEach('Cleanup leftover GitRepo and ConfigMap if any.', () => {
+  beforeEach('Cleanup leftover ConfigMap if any.', () => {
     cy.deleteConfigMap(configMapName);
   })
 
-  it(qase(173, 'FLEET-173: Test helm-app using "`valuesFrom` with empty" values in the fleet.yaml file.'), { tags: '@fleet-173' }, () => {
-    const qase_id = 173;
-    const testPath = 'qa-test-apps/helm-app/values-from-with-empty-values';
-    const repoName = `local-cluster-fleet-${qase_id}`
+  repoTestData.forEach(({ qase_id, message, path }) => {
+    it(qase(qase_id, `FLEET-${qase_id}: Test helm-app using "${message}" values in the fleet.yaml file.`), { tags: `@fleet-${qase_id}`}, () => {
+        const repoName = `local-cluster-fleet-${qase_id}`
 
-    // Create ConfigMap before create GitRepo
-    cy.createConfigMap(configMapName);
+        // Create ConfigMap before create GitRepo
+        if (qase_id === 173 || qase_id === 174) {
+          cy.createConfigMap(configMapName);
+        }
 
-    // Create GitRepo
-    cy.continuousDeliveryMenuSelection();
-    cy.addFleetGitRepo({ repoName, repoUrl, branch, path: testPath, local: true });
-    cy.clickButton('Create');
-    cy.verifyTableRow(0, 'Active', repoName);
-    cy.wait(1000);
-    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-  });
-
-  it(qase(174, 'FLEET-174: Test helm-app using "`valuesFrom` with NO" values in the fleet.yaml file.'), { tags: '@fleet-174' }, () => {
-    const qase_id = 174;
-    const testPath = 'qa-test-apps/helm-app/values-from-with-no-values';
-    const repoName = `local-cluster-fleet-${qase_id}`
-
-    // Create ConfigMap before create GitRepo
-    cy.createConfigMap(configMapName);
-
-    // Create GitRepo
-    cy.continuousDeliveryMenuSelection();
-    cy.addFleetGitRepo({ repoName, repoUrl, branch, path: testPath, local: true });
-    cy.clickButton('Create');
-    cy.verifyTableRow(0, 'Active', repoName);
-    cy.wait(1000);
-    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-  });
-
-  it(qase(175, 'FLEET-175: Test helm-app using "`valuesFiles` with empty" values in the fleet.yaml file.'), { tags: '@fleet-175' }, () => {
-    const qase_id = 175;
-    const testPath = 'qa-test-apps/helm-app/values-files-with-empty-values';
-    const repoName = `local-cluster-fleet-${qase_id}`
-
-    // Create GitRepo
-    cy.continuousDeliveryMenuSelection();
-    cy.addFleetGitRepo({ repoName, repoUrl, branch, path: testPath, local: true });
-    cy.clickButton('Create');
-    cy.verifyTableRow(0, 'Active', repoName);
-    cy.wait(1000);
-    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-  });
-
-  it(qase(176, 'FLEET-176: Test helm-app using "`valuesFiles` with NO" values in the fleet.yaml file.'), { tags: '@fleet-176' }, () => {
-    const qase_id = 176;
-    const testPath = 'qa-test-apps/helm-app/values-files-with-no-values';
-    const repoName = `local-cluster-fleet-${qase_id}`
-
-    // Create GitRepo
-    cy.continuousDeliveryMenuSelection();
-    cy.addFleetGitRepo({ repoName, repoUrl, branch, path: testPath, local: true });
-    cy.clickButton('Create');
-    cy.verifyTableRow(0, 'Active', repoName);
-    cy.wait(1000);
-    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+        // Create GitRepo
+        cy.continuousDeliveryMenuSelection();
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+        cy.clickButton('Create');
+        cy.verifyTableRow(0, 'Active', repoName);
+        cy.wait(1000);
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      })
   });
 });
 

@@ -1184,6 +1184,7 @@ Cypress.Commands.add('createConfigMap', (configMapName) => {
   cy.addYamlFile('assets/helm-app-test-map-configmap.yaml');
   cy.wait(1000);
   cy.clickButton('Create');
+  cy.wait(1000);
   cy.filterInSearchBox(configMapName);
   cy.verifyTableRow(0, configMapName);
 })
