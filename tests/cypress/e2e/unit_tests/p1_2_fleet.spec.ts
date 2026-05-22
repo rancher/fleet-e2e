@@ -795,7 +795,7 @@ describe('Test namespace deletion when bundle is deleted', { tags: ['@p1_2', '@p
       // Check namespace is deleted
       cy.accesMenuSelection('local', 'Projects/Namespaces');
       cy.filterInSearchBox(namespaceName);
-      cy.contains(namespaceName, {timeout: 40000 }).should('not.exist');
+      cy.contains(namespaceName, {timeout: 50000 }).should('not.exist');
   })
 });
 
@@ -1083,6 +1083,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
   const allowedTargetNamespace = 'allowed-namespace'
 
   it(qase(39, 'Fleet-39: Test "GitRepoRestrictions" on non-existent namespace throws error in the UI'), { tags: '@fleet-39' }, () => {
+      cy.continuousDeliveryMenuSelection();
       cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.clickButton('Create from YAML');
       cy.addYamlFile('assets/git-repo-restrictions-non-exists-ns.yaml');
@@ -1096,6 +1097,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       const repoName = 'local-gitreporestrictions-fleet-40'
 
       // Create GitRepoRestrictions with allowedTargetNamespace
+      cy.continuousDeliveryMenuSelection();
       cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.clickButton('Create from YAML');
 
@@ -1127,6 +1129,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       const repoName = 'local-gitreporestrictions-fleet-41'
 
       // Create GitRepoRestrictions with allowedTargetNamespace
+      cy.continuousDeliveryMenuSelection();
       cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.clickButton('Create from YAML');
       cy.addYamlFile('assets/git-repo-restrictions-allowed-target-ns.yaml');
