@@ -807,7 +807,6 @@ describe('Test Fleet Resource Count', { tags: '@p1_2'}, () => {
       const branch = "master"
       const path = "simple"
       const repoUrl = "https://github.com/rancher/fleet-examples"
-      const timeout = 50000
       const multipliedResourceCount = true
 
       // Get Default Resources from single cluster before GitRepo.
@@ -815,7 +814,7 @@ describe('Test Fleet Resource Count', { tags: '@p1_2'}, () => {
 
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         cy.clickButton('Create');
-        cy.checkGitRepoStatus(repoName, '1 / 1', '18 / 18', { timeout: timeout });
+        cy.checkGitRepoStatus(repoName, '1 / 1', '18 / 18', { timeout: 50000 });
 
       // Get the Resource count from GitRepo and store it.
       cy.gitRepoResourceCountAsInteger(repoName, 'fleet-default');
@@ -825,8 +824,6 @@ describe('Test Fleet Resource Count', { tags: '@p1_2'}, () => {
 
       // Compare Resource count from GitRepo with Cluster resource.
       cy.compareClusterResourceCount(multipliedResourceCount);
-
-      cy.deleteAllFleetRepos();
     })
 });
 
@@ -1050,8 +1047,6 @@ describe('Test Fleet bundle status for longhorn-crd', { tags: '@p1_2'}, () => {
       cy.filterInSearchBox(repoName);
       cy.verifyTableRow(0, 'Active', repoName);
 
-      cy.deleteAllFleetRepos();
-
     })
 });
 
@@ -1077,9 +1072,6 @@ describe('Test non-yaml file into bundle.', { tags: '@p1_2'}, () => {
           cy.checkApplicationStatus("config-map-ignored", dsCluster, 'All Namespaces', false, 'Storage', 'ConfigMaps');
         }
       )
-
-      cy.deleteAllFleetRepos();
-
     })
 });
 
@@ -1093,12 +1085,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
   it(qase(39, 'Fleet-39: Test "GitRepoRestrictions" on non-existent namespace throws error in the UI'), { tags: '@fleet-39' }, () => {
       cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.clickButton('Create from YAML');
-      cy.readFile('assets/git-repo-restrictions-non-exists-ns.yaml').then((content) => {
-        cy.get('.CodeMirror').then((codeMirrorElement) => {
-          const cm = (codeMirrorElement[0] as any).CodeMirror;
-          cm.setValue(content);
-        });
-      })
+      cy.addYamlFile('assets/git-repo-restrictions-non-exists-ns.yaml');
       cy.clickButton('Create');
       cy.get('[data-testid="banner-content"] > span').contains('namespaces "iamnotexists" not found');
       cy.clickButton('Cancel');
@@ -1111,12 +1098,8 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       // Create GitRepoRestrictions with allowedTargetNamespace
       cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.clickButton('Create from YAML');
-      cy.readFile('assets/git-repo-restrictions-allowed-target-ns.yaml').then((content) => {
-        cy.get('.CodeMirror').then((codeMirrorElement) => {
-          const cm = (codeMirrorElement[0] as any).CodeMirror;
-          cm.setValue(content);
-        });
-      })
+
+      cy.addYamlFile('assets/git-repo-restrictions-allowed-target-ns.yaml');
       cy.clickButton('Create');
 
       // Add Fleet repository and create it
@@ -1146,12 +1129,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       // Create GitRepoRestrictions with allowedTargetNamespace
       cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.clickButton('Create from YAML');
-      cy.readFile('assets/git-repo-restrictions-allowed-target-ns.yaml').then((content) => {
-        cy.get('.CodeMirror').then((codeMirrorElement) => {
-          const cm = (codeMirrorElement[0] as any).CodeMirror;
-          cm.setValue(content);
-        });
-      })
+      cy.addYamlFile('assets/git-repo-restrictions-allowed-target-ns.yaml');
       cy.clickButton('Create');
 
       // Add Fleet repository and create it
@@ -1392,7 +1370,6 @@ describe('Test GitRepo state for missing resources with and without `diff` used 
       cy.clickButton('Create');
       cy.verifyTableRow(0, 'Modified', repoName);
       cy.checkGitRepoStatus(repoName, '0 / 1', '3 / 6', { repoStatus: 'Modified' });
-
 })
 
   it(qase(339, `FLEET-339: Test GitRepo shows 'Active' state for missing resources when using 'diff' in 'fleet.yaml'`), { tags: '@fleet-339'}, () => {
@@ -1444,6 +1421,9 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
 
       const repoName = 'test-override-targets-with-label'
       const path = "qa-test-apps/overrideTargets"
+      const addOverrideLabelToAllClusters = `kubectl label -n fleet-default clusters.fleet.cattle.io -l \
+        'management.cattle.io/cluster-display-name in (${dsAllClusterList.join(',')})' env=override {enter}`
+      const removeOverrideLabelFromAllClusters = `kubectl label clusters.management.cattle.io --all env-{enter}`;
 
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
       cy.clickButton('Create');
@@ -1458,18 +1438,12 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
         .invoke('text')
         .should('match', /This\s+git\s*repo\s+is not targeting any clusters/i);
 
-      // Open local terminal in Rancher UI
-      cy.accesMenuSelection('local');
-      cy.get('#btn-kubectl').click();
-      cy.contains('Connected').should('be.visible');
-
-      // Assign label (similar to label mentioned in fleet.yaml file.) to All the clusters using terminal.
-      cy.typeIntoCanvasTermnal('\
-      kubectl label clusters.management.cattle.io --all env=override{enter}');
-
-      cy.continuousDeliveryMenuSelection();
+      // Assign label (similar to label mentioned in fleet.yaml file.) to all the clusters
+      // i.e. imported-0, imported-1 and imported-2 using kubectl command in terminal.
+      cy.executeKubectlCommand(addOverrideLabelToAllClusters);
 
       //Toggle Fleet namespace on cluster page to `fleet-default` if not being selected already.
+      cy.continuousDeliveryMenuSelection();
       cy.fleetNamespaceToggle('fleet-default');
 
       cy.verifyTableRow(0, 'Active', repoName);
@@ -1482,14 +1456,7 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
         }
       )
 
-      // Remove labels from the clusters.
-      // Open local terminal in Rancher UI
-      cy.accesMenuSelection('local');
-      cy.get('#btn-kubectl').click();
-      cy.contains('Connected').should('be.visible');
-
       // Remove assigned label (similar to label mentioned in fleet.yaml file.) from All the clusters using terminal.
-      cy.typeIntoCanvasTermnal('\
-      kubectl label clusters.management.cattle.io --all env-{enter}');
+      cy.executeKubectlCommand(removeOverrideLabelFromAllClusters);
     })
 })
