@@ -1465,3 +1465,77 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
       cy.executeKubectlCommand(removeOverrideLabelFromAllClusters);
     })
 })
+
+describe('Validate bundleDeployment labels match cluster names', { tags: '@p1_2' }, () => {
+  const CLUSTER_LABEL_KEY = 'fleet.cattle.io/cluster';
+
+  it(qase(84, 'Fleet-84: Validate bundleDeployments have correct fleet.cattle.io/cluster labels for all clusters'), { tags: '@fleet-84' }, () => {
+    const expectedClusterCount = dsAllClusterList.length;
+    const clusterMap: Record<string, string> = {}; // Map clusterID -> displayName
+
+    // Step 1: Build mapping of clusterID to displayName from Clusters page
+    cy.accesMenuSelection('Continuous Delivery', 'Clusters');
+    cy.fleetNamespaceToggle('fleet-default');
+
+    // For each known display name, get its cluster ID
+    cy.wrap(dsAllClusterList).each((displayName: any) => {
+      cy.filterInSearchBox(displayName);
+      cy.get('table > tbody > tr.main-row[data-testid^="sortable-table-"]:first td.col-link-detail > span')
+        .click();
+
+      // Get cluster ID from YAML (name field in cluster configuration)
+      cy.clickButton('Show Configuration');
+      cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
+
+      cy.get('.CodeMirror').invoke('text').then((yamlText) => {
+        const match = yamlText.match(/name:\s*(c-[a-z0-9-]+)/);
+        if (match) {
+          const clusterID = match[1];
+          clusterMap[clusterID] = displayName;
+          cy.log(`Mapped: ${clusterID} -> ${displayName}`);
+        }
+        cy.clickButton('Close');
+        // Go back to clusters list
+        cy.clickNavMenu(['Clusters']);
+      });
+    });
+
+    // Step 2: Collect all fleet-agent bundle names from Bundles page
+    cy.continuousDeliveryBundlesMenu();
+    cy.filterInSearchBox('fleet-agent-c-');
+
+    const bundleClusterPairs: Array<{ bundleName: string; clusterID: string }> = [];
+    cy.get('table > tbody > tr.main-row[data-testid^="sortable-table-"] td.col-link-detail > span')
+      .should('have.length.at.least', expectedClusterCount)
+      .each(($bundleElement) => {
+        const bundleName = $bundleElement.text().trim();
+        const match = bundleName.match(/^fleet-agent-(c-[a-z0-9-]+)$/);
+        expect(match, `Bundle "${bundleName}" should match pattern "fleet-agent-c-..."`).to.not.be.null;
+        bundleClusterPairs.push({ bundleName, clusterID: match![1] });
+      });
+
+    // Step 3: Navigate to BundleDeployments page once
+    cy.accesMenuSelection('local');
+    cy.clickNavMenu(['More Resources', 'Fleet', 'BundleDeployments']);
+    cy.nameSpaceMenuToggle('All Namespaces');
+
+    // Step 4: Verify each bundleDeployment has the correct label
+    cy.wrap(bundleClusterPairs).each(({ bundleName, clusterID }: any) => {
+      const displayName = clusterMap[clusterID] || clusterID;
+
+      cy.filterInSearchBox(bundleName);
+      cy.verifyTableRow(0, bundleName);
+
+      // Click on bundleDeployment to view YAML
+      cy.get('td.col-link-detail > span').contains(bundleName).click();
+
+      // Verify the label is present in YAML
+      cy.contains(`${CLUSTER_LABEL_KEY}: ${clusterID}`).should('be.visible');
+
+      cy.log(`For cluster ${displayName} (${clusterID}): Label ${CLUSTER_LABEL_KEY}: ${clusterID} is present`);
+
+      // Go back to BundleDeployments list
+      cy.clickNavMenu(['BundleDeployments']);
+    });
+  });
+})
