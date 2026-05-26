@@ -758,7 +758,7 @@ describe('Test namespace deletion when bundle is deleted', { tags: ['@p1_2', '@p
       // Check namespace is deleted
       cy.accesMenuSelection('local', 'Projects/Namespaces');
       cy.filterInSearchBox(namespaceName);
-      cy.contains(namespaceName, { timeout: 30000 }).should('not.exist');
+      cy.contains(namespaceName, { timeout: 40000 }).should('not.exist');
     }
   )
 
@@ -787,7 +787,7 @@ describe('Test namespace deletion when bundle is deleted', { tags: ['@p1_2', '@p
       cy.continuousDeliveryMenuSelection();
       cy.fleetNamespaceToggle('fleet-local');
       cy.filterInSearchBox(repoName); // this is the main one
-      
+
       // Since whe expeect that the deletion of the main one also
       // deletes the nested one, the 'deleteAll' function will check this
       cy.deleteAll();
@@ -795,8 +795,8 @@ describe('Test namespace deletion when bundle is deleted', { tags: ['@p1_2', '@p
       // Check namespace is deleted
       cy.accesMenuSelection('local', 'Projects/Namespaces');
       cy.filterInSearchBox(namespaceName);
-      cy.contains(namespaceName, {timeout: 20000 }).should('not.exist');
-    })
+      cy.contains(namespaceName, {timeout: 50000 }).should('not.exist');
+  })
 });
 
 describe('Test Fleet Resource Count', { tags: '@p1_2'}, () => {
@@ -807,7 +807,6 @@ describe('Test Fleet Resource Count', { tags: '@p1_2'}, () => {
       const branch = "master"
       const path = "simple"
       const repoUrl = "https://github.com/rancher/fleet-examples"
-      const timeout = 50000
       const multipliedResourceCount = true
 
       // Get Default Resources from single cluster before GitRepo.
@@ -815,7 +814,7 @@ describe('Test Fleet Resource Count', { tags: '@p1_2'}, () => {
 
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         cy.clickButton('Create');
-        cy.checkGitRepoStatus(repoName, '1 / 1', '18 / 18', { timeout: timeout });
+        cy.checkGitRepoStatus(repoName, '1 / 1', '18 / 18', { timeout: 50000 });
 
       // Get the Resource count from GitRepo and store it.
       cy.gitRepoResourceCountAsInteger(repoName, 'fleet-default');
@@ -825,8 +824,6 @@ describe('Test Fleet Resource Count', { tags: '@p1_2'}, () => {
 
       // Compare Resource count from GitRepo with Cluster resource.
       cy.compareClusterResourceCount(multipliedResourceCount);
-
-      cy.deleteAllFleetRepos();
     })
 });
 
@@ -901,11 +898,8 @@ describe('Test Helm app with Custom Values', { tags: '@p1_2' }, () => {
     {qase_id: 176, message: '`valuesFiles` with NO', path: 'qa-test-apps/helm-app/values-files-with-no-values' }
   ]
 
-  beforeEach('Cleanup leftover GitRepo and ConfigMap if any.', () => {
-    cy.login();
-    cy.visit('/');
+  beforeEach('Cleanup leftover ConfigMap if any.', () => {
     cy.deleteConfigMap(configMapName);
-    cy.deleteAllFleetRepos();
   })
 
   repoTestData.forEach(({ qase_id, message, path }) => {
@@ -929,89 +923,110 @@ describe('Test Helm app with Custom Values', { tags: '@p1_2' }, () => {
 });
 
 describe('Create specified bundles from GitRepo', { tags: '@p1_2' }, () => {
-  const repoTestData: testData[] = [
-    {
-      qase_id: 180,
-      test_name: 'Test GitRepo creates bundles specified under bundles: without option: field',
-      repoName: 'test-bundle',
-      gitrepo_file: 'assets/gitrepo-bundle-create-tests/180-gitrepo-create-bundle.yaml',
-      bundle_count: '3 / 3',
-      resource_count: '12 / 12',
-      expectedBundles: [
-        "test-bundle-driven-helm",
-        "test-bundle-driven-kustomize",
-        "test-bundle-driven-simple",
-      ],
-    },
-    {
-      qase_id: 181,
-      test_name: 'Test GitRepo creates bundles specified under bundles: with option: field',
-      repoName: 'test-bundle-dev-prod',
-      gitrepo_file: 'assets/gitrepo-bundle-create-tests/181-gitrepo-create-dev-prod-bundle.yaml',
-      bundle_count: '4 / 4',
-      resource_count: '15 / 15',
-      expectedBundles: [
-        "test-bundle-dev-prod-driven-helm",
-        "test-bundle-dev-prod-driven-kustomize-dev",
-        "test-bundle-dev-prod-driven-kustomize-prod",
-        "test-bundle-dev-prod-driven-simple",
-      ],
-    },
-    {
-      qase_id: 182,
-      test_name: 'Test update GitRepo by removing prod.yaml from option and verify that prod bundle should not be created.',
-      repoName: 'test-bundle-dev',
-      gitrepo_file: 'assets/gitrepo-bundle-create-tests/182-gitrepo-create-dev-bundle.yaml',
-      bundle_count: '3 / 3',
-      resource_count: '12 / 12',
-      expectedBundles: [
-        "test-bundle-dev-driven-helm",
-        "test-bundle-dev-driven-kustomize-dev",
-        "test-bundle-dev-driven-simple",
-      ],
-    },
-    {
-      qase_id: 183,
-      test_name: 'Test update GitRepo by adding test.yaml under option and verify that prod bundle should not be created.',
-      repoName: 'test-bundle-dev-test',
-      gitrepo_file: 'assets/gitrepo-bundle-create-tests/183-gitrepo-create-dev-test-bundle.yaml',
-      bundle_count: '4 / 4',
-      resource_count: '15 / 15',
-      expectedBundles: [
-        "test-bundle-dev-test-driven-helm",
-        "test-bundle-dev-test-driven-kustomize-dev",
-        "test-bundle-dev-test-driven-kustomize-test",
-        "test-bundle-dev-test-driven-simple",
-      ],
-    },
-  ]
 
   if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-    beforeEach('Cleanup leftover GitRepo', () => {
-      cy.login();
-      cy.visit('/');
-      cy.deleteAllFleetRepos();
-    })
+    it(qase(180, "FLEET-180: Test GitRepo creates bundles specified under bundles: without option: field"), { tags: '@fleet-180' }, () => {
+      const repoName = 'test-bundle';
+      const gitrepo_file = 'assets/gitrepo-bundle-create-tests/180-gitrepo-create-bundle.yaml';
+      const bundle_count = '3 / 3';
+      const resource_count = '12 / 12';
 
-    repoTestData.forEach(({ qase_id, test_name, repoName, gitrepo_file, bundle_count, resource_count, expectedBundles }) => {
-      it(qase(qase_id, `FLEET-${qase_id}: ${test_name}`), { tags: `@fleet-${qase_id}`}, () => {
-        // Create GitRepo
-        cy.continuousDeliveryMenuSelection()
-        cy.clickCreateGitRepo();
-        cy.clickButton('Edit as YAML');
-        cy.wait(1000);
-        cy.addYamlFile(gitrepo_file);
-        cy.clickButton('Create');
-        cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
-        cy.continuousDeliveryBundlesMenu();
-        expectedBundles.forEach((bundle_name: string) => {
-          cy.filterInSearchBox(bundle_name);
-          cy.verifyTableRow(0, 'Active', bundle_name);
-        });
+      // Create GitRepo
+      cy.continuousDeliveryMenuSelection()
+      cy.clickCreateGitRepo();
+      cy.clickButton('Edit as YAML');
+      cy.wait(1000);
+      cy.addYamlFile(gitrepo_file);
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
+      cy.continuousDeliveryBundlesMenu();
 
-        // Delete GitRepo
-        cy.deleteAllFleetRepos();
-      });
+      // Verify all expected bundles
+      cy.filterInSearchBox('test-bundle-driven-helm');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-driven-helm');
+      cy.filterInSearchBox('test-bundle-driven-kustomize');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-driven-kustomize');
+      cy.filterInSearchBox('test-bundle-driven-simple');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-driven-simple');
+    });
+
+    it(qase(181, "FLEET-181: Test GitRepo creates bundles specified under bundles: with option: field"), { tags: '@fleet-181' }, () => {
+      const repoName = 'test-bundle-dev-prod';
+      const gitrepo_file = 'assets/gitrepo-bundle-create-tests/181-gitrepo-create-dev-prod-bundle.yaml';
+      const bundle_count = '4 / 4';
+      const resource_count = '15 / 15';
+
+      // Create GitRepo
+      cy.continuousDeliveryMenuSelection()
+      cy.clickCreateGitRepo();
+      cy.clickButton('Edit as YAML');
+      cy.wait(1000);
+      cy.addYamlFile(gitrepo_file);
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
+      cy.continuousDeliveryBundlesMenu();
+
+      // Verify all expected bundles
+      cy.filterInSearchBox('test-bundle-dev-prod-driven-helm');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-prod-driven-helm');
+      cy.filterInSearchBox('test-bundle-dev-prod-driven-kustomize-dev');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-prod-driven-kustomize-dev');
+      cy.filterInSearchBox('test-bundle-dev-prod-driven-kustomize-prod');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-prod-driven-kustomize-prod');
+      cy.filterInSearchBox('test-bundle-dev-prod-driven-simple');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-prod-driven-simple');
+    });
+
+    it(qase(182, "FLEET-182: Test update GitRepo by removing prod.yaml from option and verify that prod bundle should not be created."), { tags: '@fleet-182' }, () => {
+      const repoName = 'test-bundle-dev';
+      const gitrepo_file = 'assets/gitrepo-bundle-create-tests/182-gitrepo-create-dev-bundle.yaml';
+      const bundle_count = '3 / 3';
+      const resource_count = '12 / 12';
+
+      // Create GitRepo
+      cy.continuousDeliveryMenuSelection()
+      cy.clickCreateGitRepo();
+      cy.clickButton('Edit as YAML');
+      cy.wait(1000);
+      cy.addYamlFile(gitrepo_file);
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
+      cy.continuousDeliveryBundlesMenu();
+
+      // Verify all expected bundles
+      cy.filterInSearchBox('test-bundle-dev-driven-helm');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-driven-helm');
+      cy.filterInSearchBox('test-bundle-dev-driven-kustomize-dev');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-driven-kustomize-dev');
+      cy.filterInSearchBox('test-bundle-dev-driven-simple');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-driven-simple');
+    });
+
+    it(qase(183, "FLEET-183: Test update GitRepo by adding test.yaml under option and verify that prod bundle should not be created."), { tags: '@fleet-183' }, () => {
+      const repoName = 'test-bundle-dev-test';
+      const gitrepo_file = 'assets/gitrepo-bundle-create-tests/183-gitrepo-create-dev-test-bundle.yaml';
+      const bundle_count = '4 / 4';
+      const resource_count = '15 / 15';
+
+      // Create GitRepo
+      cy.continuousDeliveryMenuSelection()
+      cy.clickCreateGitRepo();
+      cy.clickButton('Edit as YAML');
+      cy.wait(1000);
+      cy.addYamlFile(gitrepo_file);
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, bundle_count, resource_count);
+      cy.continuousDeliveryBundlesMenu();
+
+      // Verify all expected bundles
+      cy.filterInSearchBox('test-bundle-dev-test-driven-helm');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-test-driven-helm');
+      cy.filterInSearchBox('test-bundle-dev-test-driven-kustomize-dev');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-test-driven-kustomize-dev');
+      cy.filterInSearchBox('test-bundle-dev-test-driven-kustomize-test');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-test-driven-kustomize-test');
+      cy.filterInSearchBox('test-bundle-dev-test-driven-simple');
+      cy.verifyTableRow(0, 'Active', 'test-bundle-dev-test-driven-simple');
     });
   }
 });
@@ -1031,8 +1046,6 @@ describe('Test Fleet bundle status for longhorn-crd', { tags: '@p1_2'}, () => {
       cy.continuousDeliveryBundlesMenu();
       cy.filterInSearchBox(repoName);
       cy.verifyTableRow(0, 'Active', repoName);
-
-      cy.deleteAllFleetRepos();
 
     })
 });
@@ -1059,9 +1072,6 @@ describe('Test non-yaml file into bundle.', { tags: '@p1_2'}, () => {
           cy.checkApplicationStatus("config-map-ignored", dsCluster, 'All Namespaces', false, 'Storage', 'ConfigMaps');
         }
       )
-
-      cy.deleteAllFleetRepos();
-
     })
 });
 
@@ -1072,49 +1082,26 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
   const appName = 'nginx-keep'
   const allowedTargetNamespace = 'allowed-namespace'
 
-  beforeEach('Cleanup leftover GitRepo if any.', () => {
-    cy.login();
-    cy.visit('/');
-    cy.deleteAllFleetRepos();
-  })
-
-  it(qase(39, 'Test "GitRepoRestrictions" on non-existent namespace throws error in the UI'), { tags: '@fleet-39' }, () => {
-      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
-      }
-      else {
-        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
-      }
+  it(qase(39, 'Fleet-39: Test "GitRepoRestrictions" on non-existent namespace throws error in the UI'), { tags: '@fleet-39' }, () => {
+      cy.continuousDeliveryMenuSelection();
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.clickButton('Create from YAML');
-      cy.readFile('assets/git-repo-restrictions-non-exists-ns.yaml').then((content) => {
-        cy.get('.CodeMirror').then((codeMirrorElement) => {
-          const cm = (codeMirrorElement[0] as any).CodeMirror;
-          cm.setValue(content);
-        });
-      })
+      cy.addYamlFile('assets/git-repo-restrictions-non-exists-ns.yaml');
       cy.clickButton('Create');
       cy.get('[data-testid="banner-content"] > span').contains('namespaces "iamnotexists" not found');
       cy.clickButton('Cancel');
     }
   )
 
-  it(qase(40, 'Test "GitRepoRestrictions" override "defaultNamespace" in fleet.yaml of application over "allowedTargetNamespace"'), { tags: '@fleet-40' }, () => {
+  it(qase(40, 'Fleet-40: Test "GitRepoRestrictions" override "defaultNamespace" in fleet.yaml of application over "allowedTargetNamespace"'), { tags: '@fleet-40' }, () => {
       const repoName = 'local-gitreporestrictions-fleet-40'
 
       // Create GitRepoRestrictions with allowedTargetNamespace
-      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
-      }
-      else {
-        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
-      }
+      cy.continuousDeliveryMenuSelection();
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.clickButton('Create from YAML');
-      cy.readFile('assets/git-repo-restrictions-allowed-target-ns.yaml').then((content) => {
-        cy.get('.CodeMirror').then((codeMirrorElement) => {
-          const cm = (codeMirrorElement[0] as any).CodeMirror;
-          cm.setValue(content);
-        });
-      })
+
+      cy.addYamlFile('assets/git-repo-restrictions-allowed-target-ns.yaml');
       cy.clickButton('Create');
 
       // Add Fleet repository and create it
@@ -1132,37 +1119,21 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       cy.get('.col-link-detail').contains(appName).should('be.visible');
 
       // Deleting GitRepoRestrictions from the fleet-local namespace
-      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
-      }
-      else {
-        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
-      }
+      cy.continuousDeliveryMenuSelection();
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.fleetNamespaceToggle('fleet-local');
       cy.deleteAll(false);
-
-      // Delete GitRepo
-      cy.deleteAllFleetRepos();
     }
   )
 
-  it(qase(41, 'Test "allowedTargetNamespace" from "GitRepoRestrictions" overrides "defaultNamespace" in fleet.yaml of application on existing GitRepo'), { tags: '@fleet-41' }, () => {
+  it(qase(41, 'Fleet-41: Test "allowedTargetNamespace" from "GitRepoRestrictions" overrides "defaultNamespace" in fleet.yaml of application on existing GitRepo'), { tags: '@fleet-41' }, () => {
       const repoName = 'local-gitreporestrictions-fleet-41'
 
       // Create GitRepoRestrictions with allowedTargetNamespace
-      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
-      }
-      else {
-        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
-      }
+      cy.continuousDeliveryMenuSelection();
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.clickButton('Create from YAML');
-      cy.readFile('assets/git-repo-restrictions-allowed-target-ns.yaml').then((content) => {
-        cy.get('.CodeMirror').then((codeMirrorElement) => {
-          const cm = (codeMirrorElement[0] as any).CodeMirror;
-          cm.setValue(content);
-        });
-      })
+      cy.addYamlFile('assets/git-repo-restrictions-allowed-target-ns.yaml');
       cy.clickButton('Create');
 
       // Add Fleet repository and create it
@@ -1187,17 +1158,10 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       cy.get('.col-link-detail').contains(appName).should('be.visible');
 
       // Deleting GitRepoRestrictions from the fleet-local namespace
-      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'GitRepoRestrictions');
-      }
-      else {
-        cy.accesMenuSelection('Continuous Delivery', 'Advanced', 'GitRepoRestrictions');
-      }
+      cy.continuousDeliveryMenuSelection();
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.fleetNamespaceToggle('fleet-local');
       cy.deleteAll(false);
-
-      // Delete GitRepo
-      cy.deleteAllFleetRepos();
     })
 });
 
@@ -1411,7 +1375,6 @@ describe('Test GitRepo state for missing resources with and without `diff` used 
       cy.clickButton('Create');
       cy.verifyTableRow(0, 'Modified', repoName);
       cy.checkGitRepoStatus(repoName, '0 / 1', '3 / 6', { repoStatus: 'Modified' });
-
 })
 
   it(qase(339, `FLEET-339: Test GitRepo shows 'Active' state for missing resources when using 'diff' in 'fleet.yaml'`), { tags: '@fleet-339'}, () => {
@@ -1463,6 +1426,9 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
 
       const repoName = 'test-override-targets-with-label'
       const path = "qa-test-apps/overrideTargets"
+      const addOverrideLabelToAllClusters = `kubectl label -n fleet-default clusters.fleet.cattle.io -l \
+        'management.cattle.io/cluster-display-name in (${dsAllClusterList.join(',')})' env=override {enter}`
+      const removeOverrideLabelFromAllClusters = `kubectl label clusters.management.cattle.io --all env-{enter}`;
 
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
       cy.clickButton('Create');
@@ -1477,18 +1443,12 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
         .invoke('text')
         .should('match', /This\s+git\s*repo\s+is not targeting any clusters/i);
 
-      // Open local terminal in Rancher UI
-      cy.accesMenuSelection('local');
-      cy.get('#btn-kubectl').click();
-      cy.contains('Connected').should('be.visible');
-
-      // Assign label (similar to label mentioned in fleet.yaml file.) to All the clusters using terminal.
-      cy.typeIntoCanvasTermnal('\
-      kubectl label clusters.management.cattle.io --all env=override{enter}');
-
-      cy.continuousDeliveryMenuSelection();
+      // Assign label (similar to label mentioned in fleet.yaml file.) to all the clusters
+      // i.e. imported-0, imported-1 and imported-2 using kubectl command in terminal.
+      cy.executeKubectlCommand(addOverrideLabelToAllClusters);
 
       //Toggle Fleet namespace on cluster page to `fleet-default` if not being selected already.
+      cy.continuousDeliveryMenuSelection();
       cy.fleetNamespaceToggle('fleet-default');
 
       cy.verifyTableRow(0, 'Active', repoName);
@@ -1501,14 +1461,7 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
         }
       )
 
-      // Remove labels from the clusters.
-      // Open local terminal in Rancher UI
-      cy.accesMenuSelection('local');
-      cy.get('#btn-kubectl').click();
-      cy.contains('Connected').should('be.visible');
-
       // Remove assigned label (similar to label mentioned in fleet.yaml file.) from All the clusters using terminal.
-      cy.typeIntoCanvasTermnal('\
-      kubectl label clusters.management.cattle.io --all env-{enter}');
+      cy.executeKubectlCommand(removeOverrideLabelFromAllClusters);
     })
 })

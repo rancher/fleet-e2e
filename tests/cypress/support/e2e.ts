@@ -13,12 +13,16 @@ limitations under the License.
 */
 
 import './commands';
+import { qase } from 'cypress-qase-reporter/mocha';
 
-// This ensures the qase() function exists globally before ANY spec file loads
-(window as any).qase = (id: any, fn: any) => fn;
-console.log('Qase global initialized');
+// Make qase available globally
+(window as any).qase = qase;
 
 declare global {
+  // Qase function for linking tests to test case IDs
+  function qase(id: number, title: string): string;
+  function qase(id: number[], title: string): string;
+
   // In Cypress functions should be declared with 'namespace'
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
@@ -26,8 +30,8 @@ declare global {
       // Functions declared in commands.ts
       open3dotsMenu(name: string, selection?: string, checkNotInMenu?: boolean): Chainable<Element>;
       addPathOnGitRepoCreate(path: string, index?: number): Chainable<Element>;
-      gitRepoAuth(AuthType: string, userOrPublicKey?: string, pwdOrPrivateKey?: string, gitOrHelmAuth?: string, helmUrlRegex?: string): Chainable<Element>;
-      addFleetGitRepo(repoName: string, repoUrl?: string, branch?: string, path?: string, path2?: string, fleetNamespace?: string, editConfig?: boolean, helmUrlRegex?: string, deployToTarget?: string, tlsOption?: string, tlsCertificate?: string, allowedTargetNamespace?: string, local?: boolean): Chainable<Element>;
+      gitRepoAuth(AuthType: string, userOrPublicKey?: string, pwdOrPrivateKey?: string, gitOrHelmAuth?: string, helmRepoURLRegex?: string): Chainable<Element>;
+      addFleetGitRepo(repoName: string, repoUrl?: string, branch?: string, path?: string, path2?: string, fleetNamespace?: string, editConfig?: boolean, helmRepoURLRegex?: string, deployToTarget?: string, tlsOption?: string, tlsCertificate?: string, allowedTargetNamespace?: string, local?: boolean): Chainable<Element>;
       fleetNamespaceToggle(toggleOption: string): Chainable<Element>;
       verifyTableRow(rowNumber: number, expectedText1?: string|RegExp, expectedText2?: string|RegExp, timeout?: number): Chainable<Element>;
       nameSpaceMenuToggle(namespaceName: string): Chainable<Element>;
@@ -83,6 +87,7 @@ declare global {
       addHelmOp(fleetNamespace: string?, repoName: string, repoUrl: string, chart: string, version?: string, values?: string, deployTo?: string, serviceAccountName?: string, targetNamespace?: string, helmAuth?: string): Chainable<Element>;
       addFleetRepoFromYaml(yamlFilePath: string, fleetNamespace?: string): Chainable<Element>;
       executeKubectlCommand(labelCommand: string,clusterName?: string): Chainable<Element>;
+      continuousDeliveryGitRepoRestrictionsMenu(): Chainable<Element>;
     }
   }
 }

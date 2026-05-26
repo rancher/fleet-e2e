@@ -14,6 +14,10 @@ on:
         required: false
         type: string
         default: ''
+      qase_complete_run:
+        description: "`Uncheck` when appending test runs. `Check` on final run to close QASE. For daily runs, keep it checked."
+        default: true
+        type: boolean
       runner_template:
         description: Runner template to use (spot or dedicated)
         default: fleet-e2e-ci-runner-spot-x86-64-template-v3
@@ -41,10 +45,12 @@ on:
         type: boolean
         default: true
       hardening_cluster_version:
-        description: Upstream cluster version for HARDENING where to install Rancher
+        description: 'RKE2 version for hardened upstream cluster (Rancher 2.11 requires K8s < 1.33, use v1.32.8+rke2r1)'
         default: 'v1.33.0+rke2r1'
-        type: string
-        required: true
+        type: choice
+        options:
+          - 'v1.33.0+rke2r1'
+          - 'v1.32.8+rke2r1'
       grep_test_by_tag:
         description: Grep tags. For hardened tests, use @hardening-tests Keep always @login
         required: false
@@ -78,6 +84,8 @@ jobs:
       rancher_version: ${{ inputs.rancher_version }}
       qase_report: ${{ inputs.qase_report == true || (github.event_name == 'schedule' && true) }}
       qase_run_id: ${{ inputs.qase_run_id || '' }}
+      qase_complete_run: ${{ inputs.qase_complete_run != false }}
       grep_test_by_tag: ${{ inputs.grep_test_by_tag }}
       hardening: ${{ inputs.hardening }}
+      hardening_cluster_version: ${{ inputs.hardening_cluster_version }}
       runner_template: ${{ inputs.runner_template || 'fleet-e2e-ci-runner-spot-x86-64-template-v3' }}
