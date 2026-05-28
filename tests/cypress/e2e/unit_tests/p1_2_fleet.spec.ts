@@ -1465,3 +1465,57 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
       cy.executeKubectlCommand(removeOverrideLabelFromAllClusters);
     })
 })
+
+describe('Validate bundleDeployment labels match cluster names', { tags: '@p1_2' }, () => {
+  const CLUSTER_LABEL_KEY = 'fleet.cattle.io/cluster';
+
+  it(qase(84, 'Fleet-84: Validate bundleDeployments have correct fleet.cattle.io/cluster labels for all clusters'), { tags: '@fleet-84' }, () => {
+    const clusterMap: Record<string, string> = {}; // Map clusterID -> displayName
+
+    // Step 1: Collect all cluster IDs (only navigate Cluster Management once)
+    cy.accesMenuSelection('Cluster Management', 'Clusters');
+
+    cy.wrap(dsAllClusterList).each((displayName: any) => {
+      cy.get('input.input-sm.search-box').should('be.visible').clear();
+      cy.wait(500);
+      cy.filterInSearchBox(displayName);
+      cy.wait(500);
+
+      cy.get('tr.main-row')
+        .find('span.cluster-link a')
+        .click();
+
+      cy.get('body').invoke('text').then((pageText) => {
+        const match = pageText.match(/(c-[a-z0-9-]+)/);
+        if (match) {
+          const clusterID = match[1];
+          clusterMap[clusterID] = displayName;
+          cy.log(`Mapped: ${clusterID} → ${displayName}`);
+        }
+      });
+
+      cy.clickNavMenu(['Clusters']);
+    });
+
+    // Step 2: Navigate to BundleDeployments once and verify all
+    cy.accesMenuSelection('local');
+    cy.clickNavMenu(['More Resources', 'Fleet', 'BundleDeployments']);
+    cy.nameSpaceMenuToggle('All Namespaces');
+
+    cy.wrap(Object.keys(clusterMap)).each((clusterID: any) => {
+      const displayName = clusterMap[clusterID];
+      const bundleName = `fleet-agent-${clusterID}`;
+
+      cy.filterInSearchBox(bundleName);
+      cy.verifyTableRow(0, bundleName);
+
+      cy.get('td.col-link-detail > span').contains(bundleName).click();
+
+      cy.contains(`${CLUSTER_LABEL_KEY}: ${clusterID}`).should('be.visible');
+
+      cy.log(`✓ For cluster ${displayName} (${clusterID}): Label ${CLUSTER_LABEL_KEY}: ${clusterID} is present`);
+
+      cy.go('back');
+    });
+  });
+})
