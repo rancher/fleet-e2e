@@ -824,10 +824,14 @@ describe('Test correctDrift does not create excessive secrets after multiple mod
         cy.filterInSearchBox(appName);
         cy.contains(appName).click();
 
+        // Wait for deployment detail page to fully load
+        cy.wait(1000);
+
         // Click increase button without verifying the intermediate state
+        // Use force:true because correctDrift may cause page re-renders during click
         cy.get('div.scaler > button.increase, div.plus-minus.text-right > .btn > .icon-plus')
           .should('be.visible')
-          .click();
+          .click({ force: true });
 
         // Navigate back to Deployments list
         cy.clickNavMenu(['Deployments']);
