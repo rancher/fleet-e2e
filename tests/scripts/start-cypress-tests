@@ -6,7 +6,7 @@ set -evx
 npm install
 
 # Start Cypress tests with docker
-# Mount gh CLI from host if available for webhook tests
+# Mount gh CLI from host if available for some tests
 GH_MOUNT=""
 if command -v gh &> /dev/null; then
   GH_PATH=$(command -v gh)
@@ -14,7 +14,30 @@ if command -v gh &> /dev/null; then
   echo "Mounting gh CLI from host: ${GH_PATH}"
 fi
 
-docker run --init -v $PWD:/workdir -w /workdir ${GH_MOUNT} \
+# Mount kubectl from host if available for some tests
+KUBECTL_MOUNT=""
+if command -v kubectl &> /dev/null; then
+  KUBECTL_PATH=$(command -v kubectl)
+  KUBECTL_MOUNT="-v ${KUBECTL_PATH}:/usr/local/bin/kubectl:ro"
+  echo "Mounting kubectl from host: ${KUBECTL_PATH}"
+fi
+
+# Mount kubeconfig from host for kubectl access
+KUBECONFIG_MOUNT=""
+if [ -f "${HOME}/.kube/config" ]; then
+  KUBECONFIG_MOUNT="-v ${HOME}/.kube/config:/root/.kube/config:ro"
+  echo "Mounting kubeconfig from: ${HOME}/.kube/config"
+fi
+
+# Mount curl from host if available for some tests
+CURL_MOUNT=""
+if command -v curl &> /dev/null; then
+  CURL_PATH=$(command -v curl)
+  CURL_MOUNT="-v ${CURL_PATH}:/usr/local/bin/curl:ro"
+  echo "Mounting curl from host: ${CURL_PATH}"
+fi
+
+docker run --init -v $PWD:/workdir -w /workdir ${GH_MOUNT} ${KUBECTL_MOUNT} ${KUBECONFIG_MOUNT} ${CURL_MOUNT} \
     -e CYPRESS_TAGS=$CYPRESS_TAGS                           \
     -e QASE_API_TOKEN=$QASE_API_TOKEN                       \
     -e QASE_MODE=$QASE_MODE                                 \

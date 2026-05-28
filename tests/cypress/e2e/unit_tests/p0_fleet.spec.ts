@@ -566,7 +566,14 @@ describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
         cy.contains('HMAC verification failed').should('exist');
       })
     }
-  })
+
+    it(qase(463, 'Verify webhook regex metacharacter escaping'), { tags: '@fleet-463' }, () => {
+        cy.exec('bash assets/webhook-tests/test-803-auto.sh', { timeout: 120000 }).then((result) => {
+          cy.log(result.stdout, result.stderr);
+        });
+      }
+    )
+  });
 
   // New tests for jobs cleanup
 describe('Test Fleet job cleanup', { tags: ['@p0', '@pr-tests'] }, () => {
