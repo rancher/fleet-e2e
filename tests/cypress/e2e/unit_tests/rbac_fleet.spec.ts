@@ -275,16 +275,14 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       cy.wait(500);
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
       cy.clickButton('Create');
-      cy.wait(1000);
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      cy.verifyTableRow(0, 'Active', '1/1');
   
       cy.continuousDeliveryMenuSelection();
       cy.wait(500);
       cy.fleetNamespaceToggle('fleet-default');
       cy.addFleetGitRepo({ repoName: repoNameDefault, repoUrl, branch, path: pathDefault });
       cy.clickButton('Create');
-      cy.wait(1000);
-      cy.checkGitRepoStatus(repoNameDefault, '1 / 1');
+      cy.verifyTableRow(0, 'Active', '3/3');
     })
     
   it(qase(46, 'Fleet-46: Test "Standard-user" | Custom Role | Fleetworkspaces), Bundles = [ALL] | GitRepos = [List]'), { tags: '@fleet-46' }, () => {
