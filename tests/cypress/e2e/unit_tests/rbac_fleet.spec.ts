@@ -123,8 +123,10 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       cy.continuousDeliveryWorkspacesMenu();
       cy.verifyTableRow(0, 'Active', 'fleet-default');
       cy.verifyTableRow(1, 'Active', 'fleet-local');
-      cy.get('a.btn.role-primary').contains('Create').should('be.visible');
-      
+      cy.clickButton('Create');
+      cy.get('h2').contains('Allowed Target Namespaces').should('be.visible');
+      cy.clickButton('Cancel');
+
       // Ensuring the user is not able to "edit" or "delete" workspaces.
       cy.open3dotsMenu('fleet-default', 'Delete', true);
       cy.open3dotsMenu('fleet-default', 'Edit Config', true);
@@ -162,7 +164,9 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       cy.wait(1000)
       cy.continuousDeliveryBundlesMenu();
       cy.continuousDeliveryWorkspacesMenu();
-      cy.get('a.btn.role-primary').contains('Create').should('be.visible');
+      cy.clickButton('Create');
+      cy.get('h2').contains('Allowed Target Namespaces').should('be.visible');
+      cy.clickButton('Cancel');
       cy.verifyTableRow(0, 'Active', 'fleet-default');
       cy.verifyTableRow(1, 'Active', 'fleet-local');
       cy.open3dotsMenu('fleet-default', 'Edit Config');
@@ -271,12 +275,15 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       cy.wait(500);
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
       cy.clickButton('Create');
+      cy.wait(1000);
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
   
       cy.continuousDeliveryMenuSelection();
+      cy.wait(500);
       cy.fleetNamespaceToggle('fleet-default');
       cy.addFleetGitRepo({ repoName: repoNameDefault, repoUrl, branch, path: pathDefault });
       cy.clickButton('Create');
+      cy.wait(1000);
       cy.checkGitRepoStatus(repoNameDefault, '1 / 1');
     })
     
@@ -756,7 +763,9 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.continuousDeliveryWorkspacesMenu();
       cy.verifyTableRow(0, 'Active', 'fleet-default');
       cy.verifyTableRow(1, 'Active', 'fleet-local');
-      cy.get('a.btn.role-primary').contains('Create').should('be.visible');
+      cy.clickButton('Create');
+      cy.get('h2').contains('Allowed Target Namespaces').should('be.visible');
+      cy.clickButton('Cancel');
       
       // Ensuring the user is not able to "edit" or "delete" workspaces.
       cy.open3dotsMenu('fleet-default', 'Delete', true);
@@ -794,7 +803,9 @@ describe('Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "
       cy.wait(1000)
       cy.continuousDeliveryBundlesMenu();
       cy.continuousDeliveryWorkspacesMenu();
-      cy.get('a.btn.role-primary').contains('Create').should('be.visible');
+      cy.clickButton('Create');
+      cy.get('h2').contains('Allowed Target Namespaces').should('be.visible');
+      cy.clickButton('Cancel');
       cy.verifyTableRow(0, 'Active', 'fleet-default');
       cy.verifyTableRow(1, 'Active', 'fleet-local');
       cy.open3dotsMenu('fleet-default', 'Edit Config');
