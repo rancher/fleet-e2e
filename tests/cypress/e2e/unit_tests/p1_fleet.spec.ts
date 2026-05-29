@@ -22,7 +22,11 @@ export const dsAllClusterList = ['imported-0', 'imported-1', 'imported-2']
 export const dsFirstClusterName = dsAllClusterList[0]
 
 beforeEach(() => {
-  cy.login();
+  cy.session('admin', () => {
+    cy.login();
+    cy.visit('/');
+  });
+
   cy.visit('/');
   cy.deleteAllFleetRepos();
 });
@@ -110,7 +114,6 @@ describe('Test Self-Healing of resource modification when correctDrift option us
             cy.filterInSearchBox(appName);
             cy.verifyTableRow(0, appName, '2/2');
           }
-          cy.deleteAllFleetRepos();
         })
     });
   });
@@ -150,7 +153,6 @@ describe('Test Self-Healing of resource modification when correctDrift option us
       cy.filterInSearchBox(appName);
       cy.verifyTableRow(0, appName, '1/1');
 
-      cy.deleteAllFleetRepos();
     })
 });
 
@@ -268,7 +270,6 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
             cy.clickButton('Create');
             cy.get('.text-error', { timeout: 120000 }).should('contain', '401');
 
-            cy.deleteAllFleetRepos();
           })
       })
   });
@@ -630,7 +631,6 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypres
         // Clicking "Unpause" to ensure button Delete is visible to later delete both repos
         cy.open3dotsMenu('root', 'Unpause');
         cy.wait(1000);
-        cy.deleteAllFleetRepos();     
     });
 
     it(qase(208, "Fleet-208: Verify GitRepo with `dependsOn` with invalid states display invalid error."), { tags: '@fleet-208' }, () => {
@@ -664,4 +664,3 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypres
     });
   });
   }
-
