@@ -1466,7 +1466,7 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
     })
 })
 
-describe('Validate bundleDeployment labels match cluster names', { tags: '@p1_2' }, () => {
+describe('Validate bundleDeployment labels and status.resources', { tags: '@p1_2' }, () => {
   const CLUSTER_LABEL_KEY = 'fleet.cattle.io/cluster';
 
   it(qase(84, 'Fleet-84: Validate bundleDeployments have correct fleet.cattle.io/cluster labels for all clusters'), { tags: '@fleet-84' }, () => {
@@ -1517,5 +1517,43 @@ describe('Validate bundleDeployment labels match cluster names', { tags: '@p1_2'
 
       cy.go('back');
     });
+  });
+
+  it(qase(81, 'Fleet-81: Validate bundleDeployment "status.resources" contain nginx-keep deployment with correct properties'), { tags: '@fleet-81' }, () => {
+    const repoName = 'test-bundle-deployment-resources-81'
+
+    // Create GitRepo from YAML
+    cy.continuousDeliveryMenuSelection();
+    cy.fleetNamespaceToggle('fleet-local');
+    cy.clickNavMenu(['Resources']);
+    cy.clickNavMenu(['Git Repos']);
+    cy.wait(1000);
+    cy.clickButton('Add Repository');
+    cy.wait(1000);
+    cy.clickButton('Edit as YAML');
+    cy.addYamlFile('assets/git-repo-bundle-deployment-status-resources.yaml');
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', repoName);
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+    // Navigate to BundleDeployments
+    cy.accesMenuSelection('local');
+    cy.clickNavMenu(['More Resources', 'Fleet', 'BundleDeployments']);
+    cy.nameSpaceMenuToggle('All Namespaces');
+
+    // Search for the bundle created by our GitRepo
+    cy.filterInSearchBox(repoName);
+    cy.get('td.col-link-detail > span').contains(repoName).click();
+
+    // Scroll the main content area to bottom to see resources section
+    cy.get('main').scrollTo('bottom');
+    cy.wait(500);
+
+    // Verify the deployment resource details in order: apiVersion, createdAt, kind, name, namespace
+    cy.contains('apiVersion: apps/v1').should('be.visible');
+    cy.contains(/createdAt:\s*'?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z'?/);
+    cy.contains('kind: Deployment').should('be.visible');
+    cy.contains(`name: ${appName}`).should('be.visible');
+    cy.contains(`namespace: ${appName}`).should('be.visible');
   });
 })
