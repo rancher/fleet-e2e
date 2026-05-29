@@ -1,0 +1,12 @@
+apiVersion: fleet.cattle.io/v1alpha1
+kind: GitRepo
+metadata:
+  name: test-bundle-deployment-resources-81
+  namespace: fleet-local
+spec:
+  repo: https://github.com/rancher/fleet-test-data/
+  branch: master
+  paths:
+  - qa-test-apps/nginx-app
+  targets:
+  - clusterSelector: {}
