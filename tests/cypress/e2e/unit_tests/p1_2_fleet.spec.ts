@@ -1557,3 +1557,51 @@ describe('Validate bundleDeployment labels and status.resources', { tags: '@p1_2
     cy.contains(`namespace: ${appName}`).should('be.visible');
   });
 })
+
+describe('Validate GitRepo perClusterResourceCounts', { tags: '@p1_2' }, () => {
+
+  it(qase(167, 'Fleet-167: Validate GitRepo status.perClusterResourceCounts shows correct resource counts for each cluster'), { tags: '@fleet-167' }, () => {
+    const repoName = 'test-per-cluster-resource-counts';
+
+    // Collect all cluster IDs
+    cy.getClusterIds(dsAllClusterList).then(() => {
+      // Create GitRepo from YAML
+      cy.addFleetRepoFromYaml('assets/git-repo-per-cluster-resource-counts.yaml', 'fleet-default');
+      cy.verifyTableRow(0, 'Active', repoName);
+      cy.checkGitRepoStatus(repoName, '1 / 1', '3 / 3');
+
+      // Navigate to GitRepo detail page
+      cy.contains(repoName).click();
+      cy.clickButton('Show Configuration');
+      cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
+
+      // Scroll to perClusterResourceCounts section and verify it exists
+      cy.contains('perClusterResourceCounts:').scrollIntoView().should('be.visible');
+      cy.contains('readyClusters: 3').should('be.visible');
+
+      // Verify all 3 clusters are present
+      cy.contains('fleet-default/c-').should('be.visible');
+
+      // Verify the structure contains all expected fields
+      cy.contains('desiredReady: 1').should('be.visible');
+      cy.contains('ready: 1').should('be.visible');
+      cy.contains('missing: 0').should('be.visible');
+      cy.contains('modified: 0').should('be.visible');
+      cy.contains('notReady: 0').should('be.visible');
+      cy.contains('orphaned: 0').should('be.visible');
+      cy.contains('unknown: 0').should('be.visible');
+      cy.contains('waitApplied: 0').should('be.visible');
+
+      // Verify counts match: 3 clusters × 1 resource each
+      cy.get('.CodeMirror').invoke('text').then((yamlText) => {
+        const desiredReadyCount = (yamlText.match(/desiredReady:\s*1/g) || []).length;
+        const readyCount = (yamlText.match(/ready:\s*1/g) || []).length;
+
+        expect(desiredReadyCount).to.equal(3, 'All 3 clusters should have desiredReady: 1');
+        expect(readyCount).to.equal(3, 'All 3 clusters should have ready: 1');
+      });
+
+      cy.clickButton('Close');
+    });
+  });
+})

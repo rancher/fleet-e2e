@@ -88,6 +88,7 @@ declare global {
       addFleetRepoFromYaml(yamlFilePath: string, fleetNamespace?: string): Chainable<Element>;
       executeKubectlCommand(labelCommand: string,clusterName?: string): Chainable<Element>;
       continuousDeliveryGitRepoRestrictionsMenu(): Chainable<Element>;
+      getClusterIds(clusterList: string[]): Chainable<Record<string, string>>;
     }
   }
 }
