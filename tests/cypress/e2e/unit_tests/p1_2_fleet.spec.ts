@@ -1557,3 +1557,75 @@ describe('Validate bundleDeployment labels and status.resources', { tags: '@p1_2
     cy.contains(`namespace: ${appName}`).should('be.visible');
   });
 })
+
+describe('Validate GitRepo perClusterResourceCounts', { tags: '@p1_2' }, () => {
+
+  it(qase(167, 'Fleet-167: Validate GitRepo status.perClusterResourceCounts shows correct resource counts for each cluster'), { tags: '@fleet-167' }, () => {
+    const repoName = 'test-per-cluster-resource-counts';
+
+    // Get actual cluster IDs from the system
+    cy.getClusterIds(dsAllClusterList).then((clusterMap) => {
+      // Create GitRepo from YAML
+      cy.addFleetRepoFromYaml('assets/git-repo-per-cluster-resource-counts.yaml', 'fleet-default');
+      cy.verifyTableRow(0, 'Active', repoName);
+      cy.checkGitRepoStatus(repoName, '1 / 1', '3 / 3');
+
+      // Navigate to GitRepo detail page
+      cy.contains(repoName).click();
+      cy.clickButton('Show Configuration');
+      cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
+
+      // Scroll to perClusterResourceCounts section
+      cy.contains('perClusterResourceCounts:').scrollIntoView().should('be.visible');
+
+      // Get YAML text and validate each cluster
+      cy.get('.CodeMirror', { log: false }).then(($el) => {
+        const yamlText = $el.text();
+        const clusterIDs = Object.keys(clusterMap);
+
+        // Loop through each cluster ID and validate complete structure
+        cy.wrap(clusterIDs).each((clusterID: any) => {
+          const displayName = clusterMap[clusterID];
+          const clusterKey = `fleet-default/${clusterID}:`;
+
+          // Verify cluster ID exists in perClusterResourceCounts
+          expect(yamlText).to.include(clusterKey, `Should contain ${clusterKey} for ${displayName}`);
+
+          // Extract this cluster's section from YAML
+          const clusterIndex = yamlText.indexOf(clusterKey);
+          const remainingText = yamlText.substring(clusterIndex);
+          const nextClusterMatch = remainingText.indexOf('fleet-default/c-', 1);
+          const readyClustersMatch = remainingText.indexOf('readyClusters:');
+
+          let endIndex = yamlText.length;
+          if (nextClusterMatch > 0) {
+            endIndex = clusterIndex + nextClusterMatch;
+          } else if (readyClustersMatch > 0) {
+            endIndex = clusterIndex + readyClustersMatch;
+          }
+
+          const clusterSection = yamlText.substring(clusterIndex, endIndex);
+
+          // Validate complete structure under this cluster
+          expect(clusterSection).to.match(/desiredReady:\s*1/, `${displayName} should have desiredReady: 1`);
+          expect(clusterSection).to.match(/ready:\s*1/, `${displayName} should have ready: 1`);
+          expect(clusterSection).to.match(/missing:\s*0/, `${displayName} should have missing: 0`);
+          expect(clusterSection).to.match(/modified:\s*0/, `${displayName} should have modified: 0`);
+          expect(clusterSection).to.match(/notReady:\s*0/, `${displayName} should have notReady: 0`);
+          expect(clusterSection).to.match(/orphaned:\s*0/, `${displayName} should have orphaned: 0`);
+          expect(clusterSection).to.match(/unknown:\s*0/, `${displayName} should have unknown: 0`);
+          expect(clusterSection).to.match(/waitApplied:\s*0/, `${displayName} should have waitApplied: 0`);
+
+          cy.log(`✓ Validated complete structure for ${displayName} (${clusterID})`);
+        });
+
+        // After loop, verify readyClusters count
+        const readyClustersMatch = yamlText.match(/readyClusters:\s*(\d+)/);
+        const readyClustersValue = readyClustersMatch ? parseInt(readyClustersMatch[1]) : 0;
+        expect(readyClustersValue).to.equal(3, 'Should have readyClusters: 3');
+      });
+
+      cy.clickButton('Close');
+    });
+  });
+})
