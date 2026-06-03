@@ -1629,3 +1629,72 @@ describe('Validate GitRepo perClusterResourceCounts', { tags: '@p1_2' }, () => {
     });
   });
 })
+
+describe('Validate GitRepo perClusterResourceCounts - Modified State', { tags: '@p1_2' }, () => {
+
+  it(qase(168, 'Fleet-168: Validate GitRepo shows modified state when deployed resource is modified'), { tags: '@fleet-168' }, () => {
+    const repoName = 'test-modified-state';
+    const targetCluster = dsFirstClusterName; // Only deploy to imported-0
+
+    // Create GitRepo targeting only one cluster
+    cy.addFleetRepoFromYaml('assets/git-repo-modified-state.yaml', 'fleet-default');
+    cy.verifyTableRow(0, 'Active', repoName);
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+    // Verify initial state: modified: 0, ready: 1
+    cy.contains(repoName).click();
+    cy.clickButton('Show Configuration');
+    cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
+    cy.contains('perClusterResourceCounts:').scrollIntoView().should('be.visible');
+
+    cy.get('.CodeMirror', { log: false }).then(($el) => {
+      const yamlText = $el.text();
+
+      // Verify initial counts
+      expect(yamlText).to.include('modified: 0', 'Should initially have modified: 0');
+      expect(yamlText).to.include('ready: 1', 'Should initially have ready: 1');
+      expect(yamlText).to.include('desiredReady: 1', 'Should have desiredReady: 1');
+
+      const readyClustersMatch = yamlText.match(/readyClusters:\s*(\d+)/);
+      const readyClustersValue = readyClustersMatch ? parseInt(readyClustersMatch[1]) : 0;
+      expect(readyClustersValue).to.equal(1, 'Should initially have readyClusters: 1');
+
+      cy.log(`✓ Initial state verified: modified: 0, ready: 1, readyClusters: 1`);
+    });
+
+    cy.clickButton('Close');
+
+    // Modify the deployed resource
+    cy.log(`Modifying deployment on ${targetCluster}`);
+    cy.executeKubectlCommand(`kubectl label deployment nginx-keep test-modified=true -n nginx-keep {enter}`, targetCluster);
+
+    // Wait for Fleet to detect the drift
+    cy.wait(10000);
+
+    // Navigate back and verify modified state
+    cy.continuousDeliveryMenuSelection();
+    cy.fleetNamespaceToggle('fleet-default');
+    cy.contains(repoName).click();
+    cy.clickButton('Show Configuration');
+    cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
+    cy.contains('perClusterResourceCounts:').scrollIntoView().should('be.visible');
+
+    // Verify modified state
+    cy.get('.CodeMirror', { log: false }).then(($el) => {
+      const yamlText = $el.text();
+
+      // Verify modified: 1, ready: 0 after modification
+      expect(yamlText).to.include('modified: 1', 'Should have modified: 1 after modification');
+      expect(yamlText).to.include('ready: 0', 'Should have ready: 0 after modification');
+      expect(yamlText).to.include('desiredReady: 1', 'Should still have desiredReady: 1');
+
+      const readyClustersMatch = yamlText.match(/readyClusters:\s*(\d+)/);
+      const readyClustersValue = readyClustersMatch ? parseInt(readyClustersMatch[1]) : 0;
+      expect(readyClustersValue).to.equal(0, 'Should have readyClusters: 0 after modification');
+
+      cy.log(`✓ Modified state verified: modified: 1, ready: 0, readyClusters: 0`);
+    });
+
+    cy.clickButton('Close');
+  });
+})
