@@ -1563,8 +1563,8 @@ describe('Validate GitRepo perClusterResourceCounts', { tags: '@p1_2' }, () => {
   it(qase(167, 'Fleet-167: Validate GitRepo status.perClusterResourceCounts shows correct resource counts for each cluster'), { tags: '@fleet-167' }, () => {
     const repoName = 'test-per-cluster-resource-counts';
 
-    // Collect all cluster IDs
-    cy.getClusterIds(dsAllClusterList).then(() => {
+    // Get actual cluster IDs from the system
+    cy.getClusterIds(dsAllClusterList).then((clusterMap) => {
       // Create GitRepo from YAML
       cy.addFleetRepoFromYaml('assets/git-repo-per-cluster-resource-counts.yaml', 'fleet-default');
       cy.verifyTableRow(0, 'Active', repoName);
@@ -1575,30 +1575,54 @@ describe('Validate GitRepo perClusterResourceCounts', { tags: '@p1_2' }, () => {
       cy.clickButton('Show Configuration');
       cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
 
-      // Scroll to perClusterResourceCounts section and verify it exists
+      // Scroll to perClusterResourceCounts section
       cy.contains('perClusterResourceCounts:').scrollIntoView().should('be.visible');
-      cy.contains('readyClusters: 3').should('be.visible');
 
-      // Verify all 3 clusters are present
-      cy.contains('fleet-default/c-').should('be.visible');
+      // Get YAML text and validate each cluster
+      cy.get('.CodeMirror', { log: false }).then(($el) => {
+        const yamlText = $el.text();
+        const clusterIDs = Object.keys(clusterMap);
 
-      // Verify the structure contains all expected fields
-      cy.contains('desiredReady: 1').should('be.visible');
-      cy.contains('ready: 1').should('be.visible');
-      cy.contains('missing: 0').should('be.visible');
-      cy.contains('modified: 0').should('be.visible');
-      cy.contains('notReady: 0').should('be.visible');
-      cy.contains('orphaned: 0').should('be.visible');
-      cy.contains('unknown: 0').should('be.visible');
-      cy.contains('waitApplied: 0').should('be.visible');
+        // Loop through each cluster ID and validate complete structure
+        cy.wrap(clusterIDs).each((clusterID: any) => {
+          const displayName = clusterMap[clusterID];
+          const clusterKey = `fleet-default/${clusterID}:`;
 
-      // Verify counts match: 3 clusters × 1 resource each
-      cy.get('.CodeMirror').invoke('text').then((yamlText) => {
-        const desiredReadyCount = (yamlText.match(/desiredReady:\s*1/g) || []).length;
-        const readyCount = (yamlText.match(/ready:\s*1/g) || []).length;
+          // Verify cluster ID exists in perClusterResourceCounts
+          expect(yamlText).to.include(clusterKey, `Should contain ${clusterKey} for ${displayName}`);
 
-        expect(desiredReadyCount).to.equal(3, 'All 3 clusters should have desiredReady: 1');
-        expect(readyCount).to.equal(3, 'All 3 clusters should have ready: 1');
+          // Extract this cluster's section from YAML
+          const clusterIndex = yamlText.indexOf(clusterKey);
+          const remainingText = yamlText.substring(clusterIndex);
+          const nextClusterMatch = remainingText.indexOf('fleet-default/c-', 1);
+          const readyClustersMatch = remainingText.indexOf('readyClusters:');
+
+          let endIndex = yamlText.length;
+          if (nextClusterMatch > 0) {
+            endIndex = clusterIndex + nextClusterMatch;
+          } else if (readyClustersMatch > 0) {
+            endIndex = clusterIndex + readyClustersMatch;
+          }
+
+          const clusterSection = yamlText.substring(clusterIndex, endIndex);
+
+          // Validate complete structure under this cluster
+          expect(clusterSection).to.match(/desiredReady:\s*1/, `${displayName} should have desiredReady: 1`);
+          expect(clusterSection).to.match(/ready:\s*1/, `${displayName} should have ready: 1`);
+          expect(clusterSection).to.match(/missing:\s*0/, `${displayName} should have missing: 0`);
+          expect(clusterSection).to.match(/modified:\s*0/, `${displayName} should have modified: 0`);
+          expect(clusterSection).to.match(/notReady:\s*0/, `${displayName} should have notReady: 0`);
+          expect(clusterSection).to.match(/orphaned:\s*0/, `${displayName} should have orphaned: 0`);
+          expect(clusterSection).to.match(/unknown:\s*0/, `${displayName} should have unknown: 0`);
+          expect(clusterSection).to.match(/waitApplied:\s*0/, `${displayName} should have waitApplied: 0`);
+
+          cy.log(`✓ Validated complete structure for ${displayName} (${clusterID})`);
+        });
+
+        // After loop, verify readyClusters count
+        const readyClustersMatch = yamlText.match(/readyClusters:\s*(\d+)/);
+        const readyClustersValue = readyClustersMatch ? parseInt(readyClustersMatch[1]) : 0;
+        expect(readyClustersValue).to.equal(3, 'Should have readyClusters: 3');
       });
 
       cy.clickButton('Close');
