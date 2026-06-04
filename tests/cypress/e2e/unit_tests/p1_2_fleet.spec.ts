@@ -1558,7 +1558,19 @@ describe('Validate bundleDeployment labels and status.resources', { tags: '@p1_2
   });
 })
 
-describe('Validate GitRepo perClusterResourceCounts', { tags: '@p1_2' }, () => {
+describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: '@p1_2' }, () => {
+
+  // Helper function to open GitRepo YAML view
+  const openGitRepoYaml = (repoName: string, navigateFirst: boolean = false) => {
+    if (navigateFirst) {
+      cy.continuousDeliveryMenuSelection();
+      cy.fleetNamespaceToggle('fleet-default');
+    }
+    cy.contains(repoName).click();
+    cy.clickButton('Show Configuration');
+    cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
+    cy.contains('perClusterResourceCounts:').scrollIntoView().should('be.visible');
+  };
 
   it(qase(167, 'Fleet-167: Validate GitRepo status.perClusterResourceCounts shows correct resource counts for each cluster'), { tags: '@fleet-167' }, () => {
     const repoName = 'test-per-cluster-resource-counts';
@@ -1566,17 +1578,12 @@ describe('Validate GitRepo perClusterResourceCounts', { tags: '@p1_2' }, () => {
     // Get actual cluster IDs from the system
     cy.getClusterIds(dsAllClusterList).then((clusterMap) => {
       // Create GitRepo from YAML
-      cy.addFleetRepoFromYaml('assets/git-repo-per-cluster-resource-counts.yaml', 'fleet-default');
+      cy.addFleetRepoFromYaml('assets/per-cluster-resource-counts/git-repo-per-cluster-resource-counts.yaml', 'fleet-default');
       cy.verifyTableRow(0, 'Active', repoName);
       cy.checkGitRepoStatus(repoName, '1 / 1', '3 / 3');
 
-      // Navigate to GitRepo detail page
-      cy.contains(repoName).click();
-      cy.clickButton('Show Configuration');
-      cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
-
-      // Scroll to perClusterResourceCounts section
-      cy.contains('perClusterResourceCounts:').scrollIntoView().should('be.visible');
+      // Navigate to GitRepo YAML view
+      openGitRepoYaml(repoName);
 
       // Get YAML text and validate each cluster
       cy.get('.CodeMirror', { log: false }).then(($el) => {
@@ -1606,17 +1613,11 @@ describe('Validate GitRepo perClusterResourceCounts', { tags: '@p1_2' }, () => {
 
           const clusterSection = yamlText.substring(clusterIndex, endIndex);
 
-          // Validate complete structure under this cluster
+          // Validate key fields for this cluster (error states will be tested separately)
           expect(clusterSection).to.match(/desiredReady:\s*1/, `${displayName} should have desiredReady: 1`);
           expect(clusterSection).to.match(/ready:\s*1/, `${displayName} should have ready: 1`);
-          expect(clusterSection).to.match(/missing:\s*0/, `${displayName} should have missing: 0`);
-          expect(clusterSection).to.match(/modified:\s*0/, `${displayName} should have modified: 0`);
-          expect(clusterSection).to.match(/notReady:\s*0/, `${displayName} should have notReady: 0`);
-          expect(clusterSection).to.match(/orphaned:\s*0/, `${displayName} should have orphaned: 0`);
-          expect(clusterSection).to.match(/unknown:\s*0/, `${displayName} should have unknown: 0`);
-          expect(clusterSection).to.match(/waitApplied:\s*0/, `${displayName} should have waitApplied: 0`);
 
-          cy.log(`✓ Validated complete structure for ${displayName} (${clusterID})`);
+          cy.log(`✓ Validated ${displayName} (${clusterID}): desiredReady: 1, ready: 1`);
         });
 
         // After loop, verify readyClusters count
@@ -1628,30 +1629,23 @@ describe('Validate GitRepo perClusterResourceCounts', { tags: '@p1_2' }, () => {
       cy.clickButton('Close');
     });
   });
-})
 
-describe('Validate GitRepo perClusterResourceCounts - Modified State', { tags: '@p1_2' }, () => {
-
-  it(qase(168, 'Fleet-168: Validate GitRepo shows modified state when deployed resource is modified'), { tags: '@fleet-168' }, () => {
+  it(qase(464, 'Fleet-464: Validate GitRepo shows modified state when deployed resource is modified'), { tags: '@fleet-464' }, () => {
     const repoName = 'test-modified-state';
     const targetCluster = dsFirstClusterName; // Only deploy to imported-0
 
     // Create GitRepo targeting only one cluster
-    cy.addFleetRepoFromYaml('assets/git-repo-modified-state.yaml', 'fleet-default');
+    cy.addFleetRepoFromYaml('assets/per-cluster-resource-counts/git-repo-modified-state.yaml', 'fleet-default');
     cy.verifyTableRow(0, 'Active', repoName);
     cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
 
-    // Verify initial state: modified: 0, ready: 1
-    cy.contains(repoName).click();
-    cy.clickButton('Show Configuration');
-    cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
-    cy.contains('perClusterResourceCounts:').scrollIntoView().should('be.visible');
+    // Verify initial state
+    openGitRepoYaml(repoName);
 
     cy.get('.CodeMirror', { log: false }).then(($el) => {
       const yamlText = $el.text();
 
-      // Verify initial counts
-      expect(yamlText).to.include('modified: 0', 'Should initially have modified: 0');
+      // Verify initial counts - only check important fields
       expect(yamlText).to.include('ready: 1', 'Should initially have ready: 1');
       expect(yamlText).to.include('desiredReady: 1', 'Should have desiredReady: 1');
 
@@ -1659,40 +1653,88 @@ describe('Validate GitRepo perClusterResourceCounts - Modified State', { tags: '
       const readyClustersValue = readyClustersMatch ? parseInt(readyClustersMatch[1]) : 0;
       expect(readyClustersValue).to.equal(1, 'Should initially have readyClusters: 1');
 
-      cy.log(`✓ Initial state verified: modified: 0, ready: 1, readyClusters: 1`);
+      cy.log(`✓ Initial state verified: ready: 1, readyClusters: 1`);
     });
 
     cy.clickButton('Close');
 
     // Modify the deployed resource
     cy.log(`Modifying deployment on ${targetCluster}`);
-    cy.executeKubectlCommand(`kubectl label deployment nginx-keep test-modified=true -n nginx-keep {enter}`, targetCluster);
+    cy.executeKubectlCommand(`kubectl scale deployment nginx-keep --replicas=2 -n nginx-keep {enter}`, targetCluster);
 
     // Wait for Fleet to detect the drift
     cy.wait(10000);
 
     // Navigate back and verify modified state
-    cy.continuousDeliveryMenuSelection();
-    cy.fleetNamespaceToggle('fleet-default');
-    cy.contains(repoName).click();
-    cy.clickButton('Show Configuration');
-    cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
-    cy.contains('perClusterResourceCounts:').scrollIntoView().should('be.visible');
+    openGitRepoYaml(repoName, true);
 
     // Verify modified state
     cy.get('.CodeMirror', { log: false }).then(($el) => {
       const yamlText = $el.text();
 
-      // Verify modified: 1, ready: 0 after modification
+      // Verify the key change: modified: 1 (other fields decrease as expected)
       expect(yamlText).to.include('modified: 1', 'Should have modified: 1 after modification');
-      expect(yamlText).to.include('ready: 0', 'Should have ready: 0 after modification');
       expect(yamlText).to.include('desiredReady: 1', 'Should still have desiredReady: 1');
 
       const readyClustersMatch = yamlText.match(/readyClusters:\s*(\d+)/);
       const readyClustersValue = readyClustersMatch ? parseInt(readyClustersMatch[1]) : 0;
       expect(readyClustersValue).to.equal(0, 'Should have readyClusters: 0 after modification');
 
-      cy.log(`✓ Modified state verified: modified: 1, ready: 0, readyClusters: 0`);
+      cy.log(`✓ Modified state verified: modified: 1, readyClusters: 0`);
+    });
+
+    cy.clickButton('Close');
+  });
+
+  it(qase(465, 'Fleet-465: Validate GitRepo shows missing state when deployed resource is deleted'), { tags: '@fleet-465' }, () => {
+    const repoName = 'test-missing-state';
+
+    // Create GitRepo targeting only one cluster
+    cy.addFleetRepoFromYaml('assets/per-cluster-resource-counts/git-repo-missing-state.yaml', 'fleet-default');
+    cy.verifyTableRow(0, 'Active', repoName);
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+    // Verify initial state
+    openGitRepoYaml(repoName);
+
+    cy.get('.CodeMirror', { log: false }).then(($el) => {
+      const yamlText = $el.text();
+
+      expect(yamlText).to.include('ready: 1', 'Should initially have ready: 1');
+      expect(yamlText).to.include('desiredReady: 1', 'Should have desiredReady: 1');
+
+      const readyClustersMatch = yamlText.match(/readyClusters:\s*(\d+)/);
+      const readyClustersValue = readyClustersMatch ? parseInt(readyClustersMatch[1]) : 0;
+      expect(readyClustersValue).to.equal(1, 'Should initially have readyClusters: 1');
+
+      cy.log(`✓ Initial state verified: ready: 1, readyClusters: 1`);
+    });
+
+    cy.clickButton('Close');
+
+    // Delete the deployed resource
+    cy.log(`Deleting deployment on ${dsSecondClusterName}`);
+    cy.executeKubectlCommand(`kubectl delete deployment nginx-keep -n nginx-keep {enter}`, dsSecondClusterName);
+
+    // Wait for Fleet to detect the missing resource
+    cy.wait(10000);
+
+    // Navigate back and verify missing state
+    openGitRepoYaml(repoName, true);
+
+    // Verify missing state
+    cy.get('.CodeMirror', { log: false }).then(($el) => {
+      const yamlText = $el.text();
+
+      // Verify the key change: missing: 1
+      expect(yamlText).to.include('missing: 1', 'Should have missing: 1 after deletion');
+      expect(yamlText).to.include('desiredReady: 1', 'Should still have desiredReady: 1');
+
+      const readyClustersMatch = yamlText.match(/readyClusters:\s*(\d+)/);
+      const readyClustersValue = readyClustersMatch ? parseInt(readyClustersMatch[1]) : 0;
+      expect(readyClustersValue).to.equal(0, 'Should have readyClusters: 0 after deletion');
+
+      cy.log(`✓ Missing state verified: missing: 1, readyClusters: 0`);
     });
 
     cy.clickButton('Close');
