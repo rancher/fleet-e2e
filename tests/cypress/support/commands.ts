@@ -155,8 +155,12 @@ Cypress.Commands.add('continuousDeliveryGitRepoRestrictionsMenu', () => {
 Cypress.Commands.add('addFleetRepoFromYaml', (yamlFilePath, fleetNamespace='fleet-local') => {
   cy.continuousDeliveryMenuSelection();
   cy.fleetNamespaceToggle(fleetNamespace);
-  cy.clickButton('Create App Bundle');
-  cy.get('[data-testid="subtype-banner-item-fleet.cattle.io.gitrepo"]').should('be.visible').click();
+  if (fleetNamespace === 'fleet-local') {
+    cy.clickCreateGitRepo(true);
+  }
+  else {
+    cy.clickCreateGitRepo(false);
+  }
   cy.clickButton('Edit as YAML');
   cy.addYamlFile(yamlFilePath);
   cy.clickButton('Create');
@@ -1360,3 +1364,34 @@ Cypress.Commands.add('executeKubectlCommand', (labelCommand, clusterName='local'
   cy.get('i.closer.icon').click();
   }
 );
+
+// Collect cluster IDs for all clusters
+Cypress.Commands.add('getClusterIds', (clusterList) => {
+  const clusterMap: Record<string, string> = {}; // Map clusterID -> displayName
+
+  cy.accesMenuSelection('Cluster Management', 'Clusters');
+
+  cy.wrap(clusterList).each((displayName: any) => {
+    cy.get('input.input-sm.search-box').should('be.visible').clear();
+    cy.wait(500);
+    cy.filterInSearchBox(displayName);
+    cy.wait(500);
+
+    cy.get('tr.main-row')
+      .find('span.cluster-link a')
+      .click();
+
+    cy.get('body').invoke('text').then((pageText) => {
+      const match = pageText.match(/(c-[a-z0-9-]+)/);
+      if (match) {
+        const clusterID = match[1];
+        clusterMap[clusterID] = displayName;
+        cy.log(`Mapped: ${clusterID} → ${displayName}`);
+      }
+    });
+
+    cy.clickNavMenu(['Clusters']);
+  });
+
+  return cy.wrap(clusterMap);
+});

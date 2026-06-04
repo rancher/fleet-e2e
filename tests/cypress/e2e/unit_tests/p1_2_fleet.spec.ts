@@ -1119,6 +1119,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       cy.get('.col-link-detail').contains(appName).should('be.visible');
 
       // Deleting GitRepoRestrictions from the fleet-local namespace
+      cy.continuousDeliveryMenuSelection();
       cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.fleetNamespaceToggle('fleet-local');
       cy.deleteAll(false);
@@ -1157,6 +1158,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       cy.get('.col-link-detail').contains(appName).should('be.visible');
 
       // Deleting GitRepoRestrictions from the fleet-local namespace
+      cy.continuousDeliveryMenuSelection();
       cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.fleetNamespaceToggle('fleet-local');
       cy.deleteAll(false);
@@ -1462,4 +1464,168 @@ describe('Test bundle deploy with overrideTargets by label availability on clust
       // Remove assigned label (similar to label mentioned in fleet.yaml file.) from All the clusters using terminal.
       cy.executeKubectlCommand(removeOverrideLabelFromAllClusters);
     })
+})
+
+describe('Validate bundleDeployment labels and status.resources', { tags: '@p1_2' }, () => {
+  const CLUSTER_LABEL_KEY = 'fleet.cattle.io/cluster';
+
+  it(qase(84, 'Fleet-84: Validate bundleDeployments have correct fleet.cattle.io/cluster labels for all clusters'), { tags: '@fleet-84' }, () => {
+    const clusterMap: Record<string, string> = {}; // Map clusterID -> displayName
+
+    // Step 1: Collect all cluster IDs (only navigate Cluster Management once)
+    cy.accesMenuSelection('Cluster Management', 'Clusters');
+
+    cy.wrap(dsAllClusterList).each((displayName: any) => {
+      cy.get('input.input-sm.search-box').should('be.visible').clear();
+      cy.wait(500);
+      cy.filterInSearchBox(displayName);
+      cy.wait(500);
+
+      cy.get('tr.main-row')
+        .find('span.cluster-link a')
+        .click();
+
+      cy.get('body').invoke('text').then((pageText) => {
+        const match = pageText.match(/(c-[a-z0-9-]+)/);
+        if (match) {
+          const clusterID = match[1];
+          clusterMap[clusterID] = displayName;
+          cy.log(`Mapped: ${clusterID} → ${displayName}`);
+        }
+      });
+
+      cy.clickNavMenu(['Clusters']);
+    });
+
+    // Step 2: Navigate to BundleDeployments once and verify all
+    cy.accesMenuSelection('local');
+    cy.clickNavMenu(['More Resources', 'Fleet', 'BundleDeployments']);
+    cy.nameSpaceMenuToggle('All Namespaces');
+
+    cy.wrap(Object.keys(clusterMap)).each((clusterID: any) => {
+      const displayName = clusterMap[clusterID];
+      const bundleName = `fleet-agent-${clusterID}`;
+
+      cy.filterInSearchBox(bundleName);
+      cy.verifyTableRow(0, bundleName);
+
+      cy.get('td.col-link-detail > span').contains(bundleName).click();
+
+      cy.contains(`${CLUSTER_LABEL_KEY}: ${clusterID}`).should('be.visible');
+
+      cy.log(`✓ For cluster ${displayName} (${clusterID}): Label ${CLUSTER_LABEL_KEY}: ${clusterID} is present`);
+
+      cy.go('back');
+    });
+  });
+
+  it(qase(81, 'Fleet-81: Validate bundleDeployment "status.resources" contain nginx-keep deployment with correct properties'), { tags: '@fleet-81' }, () => {
+    const repoName = 'test-bundle-deployment-resources-81'
+
+    // Create GitRepo from YAML
+    cy.continuousDeliveryMenuSelection();
+    cy.fleetNamespaceToggle('fleet-local');
+    cy.clickNavMenu(['Resources']);
+    cy.clickNavMenu(['Git Repos']);
+    cy.wait(1000);
+    cy.clickButton('Add Repository');
+    cy.wait(1000);
+    cy.clickButton('Edit as YAML');
+    cy.addYamlFile('assets/git-repo-bundle-deployment-status-resources.yaml');
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', repoName);
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+    // Navigate to BundleDeployments
+    cy.accesMenuSelection('local');
+    cy.clickNavMenu(['More Resources', 'Fleet', 'BundleDeployments']);
+    cy.nameSpaceMenuToggle('All Namespaces');
+
+    // Search for the bundle created by our GitRepo
+    cy.filterInSearchBox(repoName);
+    cy.get('td.col-link-detail > span').contains(repoName).click();
+
+    // Scroll the main content area to bottom to see resources section
+    cy.get('main').scrollTo('bottom');
+    cy.wait(500);
+
+    // Verify the deployment resource details in order: apiVersion, createdAt, kind, name, namespace
+    cy.contains('apiVersion: apps/v1').should('be.visible');
+    cy.contains(/createdAt:\s*'?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z'?/);
+    cy.contains('kind: Deployment').should('be.visible');
+    cy.contains(`name: ${appName}`).should('be.visible');
+    cy.contains(`namespace: ${appName}`).should('be.visible');
+  });
+})
+
+describe('Validate GitRepo perClusterResourceCounts', { tags: '@p1_2' }, () => {
+
+  it(qase(167, 'Fleet-167: Validate GitRepo status.perClusterResourceCounts shows correct resource counts for each cluster'), { tags: '@fleet-167' }, () => {
+    const repoName = 'test-per-cluster-resource-counts';
+
+    // Get actual cluster IDs from the system
+    cy.getClusterIds(dsAllClusterList).then((clusterMap) => {
+      // Create GitRepo from YAML
+      cy.addFleetRepoFromYaml('assets/git-repo-per-cluster-resource-counts.yaml', 'fleet-default');
+      cy.verifyTableRow(0, 'Active', repoName);
+      cy.checkGitRepoStatus(repoName, '1 / 1', '3 / 3');
+
+      // Navigate to GitRepo detail page
+      cy.contains(repoName).click();
+      cy.clickButton('Show Configuration');
+      cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
+
+      // Scroll to perClusterResourceCounts section
+      cy.contains('perClusterResourceCounts:').scrollIntoView().should('be.visible');
+
+      // Get YAML text and validate each cluster
+      cy.get('.CodeMirror', { log: false }).then(($el) => {
+        const yamlText = $el.text();
+        const clusterIDs = Object.keys(clusterMap);
+
+        // Loop through each cluster ID and validate complete structure
+        cy.wrap(clusterIDs).each((clusterID: any) => {
+          const displayName = clusterMap[clusterID];
+          const clusterKey = `fleet-default/${clusterID}:`;
+
+          // Verify cluster ID exists in perClusterResourceCounts
+          expect(yamlText).to.include(clusterKey, `Should contain ${clusterKey} for ${displayName}`);
+
+          // Extract this cluster's section from YAML
+          const clusterIndex = yamlText.indexOf(clusterKey);
+          const remainingText = yamlText.substring(clusterIndex);
+          const nextClusterMatch = remainingText.indexOf('fleet-default/c-', 1);
+          const readyClustersMatch = remainingText.indexOf('readyClusters:');
+
+          let endIndex = yamlText.length;
+          if (nextClusterMatch > 0) {
+            endIndex = clusterIndex + nextClusterMatch;
+          } else if (readyClustersMatch > 0) {
+            endIndex = clusterIndex + readyClustersMatch;
+          }
+
+          const clusterSection = yamlText.substring(clusterIndex, endIndex);
+
+          // Validate complete structure under this cluster
+          expect(clusterSection).to.match(/desiredReady:\s*1/, `${displayName} should have desiredReady: 1`);
+          expect(clusterSection).to.match(/ready:\s*1/, `${displayName} should have ready: 1`);
+          expect(clusterSection).to.match(/missing:\s*0/, `${displayName} should have missing: 0`);
+          expect(clusterSection).to.match(/modified:\s*0/, `${displayName} should have modified: 0`);
+          expect(clusterSection).to.match(/notReady:\s*0/, `${displayName} should have notReady: 0`);
+          expect(clusterSection).to.match(/orphaned:\s*0/, `${displayName} should have orphaned: 0`);
+          expect(clusterSection).to.match(/unknown:\s*0/, `${displayName} should have unknown: 0`);
+          expect(clusterSection).to.match(/waitApplied:\s*0/, `${displayName} should have waitApplied: 0`);
+
+          cy.log(`✓ Validated complete structure for ${displayName} (${clusterID})`);
+        });
+
+        // After loop, verify readyClusters count
+        const readyClustersMatch = yamlText.match(/readyClusters:\s*(\d+)/);
+        const readyClustersValue = readyClustersMatch ? parseInt(readyClustersMatch[1]) : 0;
+        expect(readyClustersValue).to.equal(3, 'Should have readyClusters: 3');
+      });
+
+      cy.clickButton('Close');
+    });
+  });
 })

@@ -287,6 +287,8 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
         cy.accesMenuSelection(dsFirstClusterName, 'Storage', 'ConfigMaps');
         cy.nameSpaceMenuToggle('All Namespaces');
         cy.filterInSearchBox('fleet-test-configmap');
+        cy.wait(500); // Adding wait and table verification to mitigate ocassional blank page.
+        cy.verifyTableRow(0, 'fleet-test-configmap');
         cy.get('.col-link-detail').contains('fleet-test-configmap').should('be.visible').click({ force: true });
         cy.get('section#data').should('contain', 'default-name').and('contain', 'value');
       })
@@ -309,6 +311,8 @@ describe('Test resource behavior after deleting GitRepo using keepResources opti
         cy.accesMenuSelection(dsFirstClusterName, 'Storage', 'ConfigMaps');
         cy.nameSpaceMenuToggle('All Namespaces');
         cy.filterInSearchBox('fleet-test-configmap');
+        cy.wait(500); // Adding wait and table verification to mitigate ocassional blank page.
+        cy.verifyTableRow(0, 'fleet-test-configmap');
         cy.get('.col-link-detail').contains('fleet-test-configmap').should('be.visible').click({ force: true });
         cy.get('section#data').should('contain', 'default-name').and('contain', 'value');
       })
