@@ -1,5 +1,9 @@
 {
   "permissions": {
+    "allow": [
+      "WebFetch(domain:registry.npmjs.org)",
+      "Bash(rtk npm *)"
+    ],
     "bash": {
       "denyCommands": [
         "git push"

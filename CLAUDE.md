@@ -17,6 +17,10 @@ ginkgo --label-filter install -r -v ./e2e
 npx cypress run -C cypress.config.ts cypress/e2e/unit_tests/*.spec.ts
 npx cypress run -C cypress.config.ts --env grepTags="@p0" cypress/e2e/unit_tests/*.spec.ts
 npx cypress open -C cypress.config.ts
+
+# Linting (ESLint - Code Quality + Soft Formatting)
+npm run lint              # Check for all issues
+npm run lint:fix          # Auto-fix formatting + fixable errors
 ```
 
 ## Structure

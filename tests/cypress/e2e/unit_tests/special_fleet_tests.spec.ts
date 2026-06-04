@@ -13,15 +13,15 @@ limitations under the License.
 
 import 'cypress/support/commands';
 
-export const appName = "nginx-keep";
-export const clusterName = "imported-0";
-export const branch = "main";
-export const path  = "nginx"
-export const sshString = ["Public key and private key for SSH", "Public key and private key for SSH authentication"]
-export const rancherVersion = Cypress.expose('rancher_version')
+export const appName = 'nginx-keep';
+export const clusterName = 'imported-0';
+export const branch = 'main';
+export const path  = 'nginx';
+export const sshString = ['Public key and private key for SSH', 'Public key and private key for SSH authentication'];
+export const rancherVersion = Cypress.expose('rancher_version');
 export const supported_versions_212_and_above = [
   /^(prime|prime-optimus|prime-optimus-alpha|prime-alpha|prime-rc|alpha)\/2\.(1[2-9]|[2-9]\d+)(\..*)?$/,
-  /^head\/2\.(1[2-9])$/
+  /^head\/2\.(1[2-9])$/,
 ];
 
 beforeEach(() => {
@@ -34,47 +34,47 @@ beforeEach(() => {
 
 describe('Test Fleet on AWS EC2 imported cluster', { tags: '@cloud_ds' }, () => {
 
-    // Cloud downstream cluster provisioning
-    it(qase(186, 'Import EC2 cluster into Rancher'), () => {
+  // Cloud downstream cluster provisioning
+  it(qase(186, 'Import EC2 cluster into Rancher'), () => {
 
-            const cloudProvider = 'Amazon';
-            const credentialName = 'qa-fleet-ec2-cloud-cred';
-            const clusterName = 'qa-fleet-ec2-cluster';
-            const accessKey = Cypress.expose('aws_access_key_id');
-            const secretKey = Cypress.expose('aws_secret_access_key');
-            const region = 'eu-central-1';
-            const subnetId = 'fleetqa-mmt-subnet-public1-eu-central-1a';
-            const cloudInstance = 'Amazon EC2';
+    const cloudProvider = 'Amazon';
+    const credentialName = 'qa-fleet-ec2-cloud-cred';
+    const clusterName = 'qa-fleet-ec2-cluster';
+    const accessKey = Cypress.expose('aws_access_key_id');
+    const secretKey = Cypress.expose('aws_secret_access_key');
+    const region = 'eu-central-1';
+    const subnetId = 'fleetqa-mmt-subnet-public1-eu-central-1a';
+    const cloudInstance = 'Amazon EC2';
 
-            cy.createCloudCredential(cloudProvider, credentialName, accessKey, secretKey, region);
-            cy.createCloudCluster(cloudInstance, clusterName, subnetId);
-        })
+    cy.createCloudCredential(cloudProvider, credentialName, accessKey, secretKey, region);
+    cy.createCloudCluster(cloudInstance, clusterName, subnetId);
+  });
 
-    it(qase(187, 'Add gitrepo and deploy app to EC2 cluster'), () => {
-            
-            const repoName = 'nginx-app';
-            const repoUrl = 'https://github.com/rancher/fleet-test-data/';
-            const branch = 'master';
-            const path = 'qa-test-apps/nginx-app';
+  it(qase(187, 'Add gitrepo and deploy app to EC2 cluster'), () => {
 
-            cy.addFleetGitRepo({repoName, repoUrl, branch, path, local: false });
-            cy.clickButton('Create');
-            cy.wait(45000); // Adding 45 seconds due to slow comunication and size of ec2 cluster
-            cy.verifyTableRow(0, 'Active', '4/4');    // 4 clusters means gitrepo was deployed to ec2 cluster
-        })
+    const repoName = 'nginx-app';
+    const repoUrl = 'https://github.com/rancher/fleet-test-data/';
+    const branch = 'master';
+    const path = 'qa-test-apps/nginx-app';
 
-    it(qase(188, 'Delete EC2 cluster'), () => {
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: false });
+    cy.clickButton('Create');
+    cy.wait(45000); // Adding 45 seconds due to slow comunication and size of ec2 cluster
+    cy.verifyTableRow(0, 'Active', '4/4');    // 4 clusters means gitrepo was deployed to ec2 cluster
+  });
 
-            const clusterName = 'qa-fleet-ec2-cluster';
+  it(qase(188, 'Delete EC2 cluster'), () => {
 
-            cy.deleteDownstreamCluster(clusterName, false);
-        })
+    const clusterName = 'qa-fleet-ec2-cluster';
+
+    cy.deleteDownstreamCluster(clusterName, false);
+  });
 });
 
 if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypress.expose('rancher_version'))) {
 
-describe('Agent Scheduling Customization', { tags: '@special_tests' }, () => {
-  it(qase(200, 'FLEET-200: Test agent scheduling customization for PDB and PriorityClass'), { tags: '@fleet-200' }, () => {
+  describe('Agent Scheduling Customization', { tags: '@special_tests' }, () => {
+    it(qase(200, 'FLEET-200: Test agent scheduling customization for PDB and PriorityClass'), { tags: '@fleet-200' }, () => {
       // Go to the cluster and edit it as YAML
       cy.accesMenuSelection('Continuous Delivery', 'Clusters ');
       cy.fleetNamespaceToggle('fleet-local');
@@ -92,10 +92,11 @@ describe('Agent Scheduling Customization', { tags: '@special_tests' }, () => {
     podDisruptionBudget:
       minAvailable: "3"`;
         const newYaml = currentYaml.replace(/(\nspec:)/, `$1\n${snippet}`);
+
         cm.setValue(newYaml);
       });
       cy.clickButton('Save');
-      
+
       // Verify the cluster is still Active
       cy.wait(2000); // Wait to allow time to the status to reach "Wait" before verifying"
       cy.verifyTableRow(0, 'Active', '1');
@@ -107,101 +108,101 @@ describe('Agent Scheduling Customization', { tags: '@special_tests' }, () => {
       cy.accesMenuSelection('local', 'More Resources', 'Scheduling');
       cy.contains('PriorityClasses').click();
       cy.verifyTableRow(0, 'fleet-agent', '888');
-    })
+    });
   });
-};
+}
 
-describe('Test move cluster to newly created workspace and deploy application to it.', { tags: '@special_tests'}, () => {
-  it(qase(51, "Fleet-51: Test move cluster to newly created workspace and deploy application to it."), { tags: '@fleet-51' }, () => {
-      const dsFirstClusterName = 'imported-0'
-      const repoName = 'default-cluster-new-workspace-51'
-      const branch = "master"
-      const path = "simple"
-      const repoUrl = "https://github.com/rancher/fleet-examples"
-      const flagName = "provisioningv2-fleet-workspace-back-population"
-      const newWorkspaceName = "new-fleet-workspace"
-      const fleetDefault = "fleet-default"
-      let timeout = 30000
+describe('Test move cluster to newly created workspace and deploy application to it.', { tags: '@special_tests' }, () => {
+  it(qase(51, 'Fleet-51: Test move cluster to newly created workspace and deploy application to it.'), { tags: '@fleet-51' }, () => {
+    const dsFirstClusterName = 'imported-0';
+    const repoName = 'default-cluster-new-workspace-51';
+    const branch = 'master';
+    const path = 'simple';
+    const repoUrl = 'https://github.com/rancher/fleet-examples';
+    const flagName = 'provisioningv2-fleet-workspace-back-population';
+    const newWorkspaceName = 'new-fleet-workspace';
+    const fleetDefault = 'fleet-default';
+    let timeout = 30000;
 
-      //Version check for 2.12 (head)
-      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-        timeout = 70000
-      }
+    //Version check for 2.12 (head)
+    if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
+      timeout = 70000;
+    }
 
-      // Enable cluster can move to another Fleet workspace feature flag.
-      cy.enableFeatureFlag(flagName);
+    // Enable cluster can move to another Fleet workspace feature flag.
+    cy.enableFeatureFlag(flagName);
 
-      // Create new workspace.
-      cy.createNewFleetWorkspace(newWorkspaceName);
+    // Create new workspace.
+    cy.createNewFleetWorkspace(newWorkspaceName);
 
-      // Switch to 'fleet-default' workspace
-      cy.fleetNamespaceToggle(fleetDefault);
-      cy.clickNavMenu(['Clusters']);
+    // Switch to 'fleet-default' workspace
+    cy.fleetNamespaceToggle(fleetDefault);
+    cy.clickNavMenu(['Clusters']);
 
-      // Move first cluster i.e. 'imported-0' to newly created workspace.
-      cy.moveClusterToWorkspace(dsFirstClusterName, newWorkspaceName, timeout);
+    // Move first cluster i.e. 'imported-0' to newly created workspace.
+    cy.moveClusterToWorkspace(dsFirstClusterName, newWorkspaceName, timeout);
 
-      // Create a GitRepo targeting to cluster available in newly created workspace.
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
-      cy.fleetNamespaceToggle(newWorkspaceName);
-      cy.clickButton('Create');
+    // Create a GitRepo targeting to cluster available in newly created workspace.
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+    cy.fleetNamespaceToggle(newWorkspaceName);
+    cy.clickButton('Create');
 
-      // Review below line after all tests passed.
-      cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
+    // Review below line after all tests passed.
+    cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
 
-      // Delete GitRepo
-      // In Fleet Workspace, namespace name similarly treated as namespace.
-      cy.deleteAllFleetRepos(newWorkspaceName);
+    // Delete GitRepo
+    // In Fleet Workspace, namespace name similarly treated as namespace.
+    cy.deleteAllFleetRepos(newWorkspaceName);
 
-      // Move cluster back to 'fleet-default' workspace
-      cy.fleetNamespaceToggle(newWorkspaceName);
-      cy.restoreClusterToDefaultWorkspace(dsFirstClusterName, timeout);
+    // Move cluster back to 'fleet-default' workspace
+    cy.fleetNamespaceToggle(newWorkspaceName);
+    cy.restoreClusterToDefaultWorkspace(dsFirstClusterName, timeout);
 
-      // Delete the newly created workspace
-      cy.continuousDeliveryMenuSelection()
-      cy.continuousDeliveryWorkspacesMenu()
-      cy.filterInSearchBox(newWorkspaceName)
-      cy.deleteAll(false);
-    })
+    // Delete the newly created workspace
+    cy.continuousDeliveryMenuSelection();
+    cy.continuousDeliveryWorkspacesMenu();
+    cy.filterInSearchBox(newWorkspaceName);
+    cy.deleteAll(false);
+  });
 });
 
 // Note: to be executed after the above test cases
 // to avoid any interference (i.e: if continuous-delivery feature is not correctly enabled.)
 // To be replaced into other spec file when required.
-describe("Global settings related tests", { tags: '@special_tests'}, () => {
-  
-    it(qase(156, "Fleet-156: Test gitrepoJobsCleanup is disabled when continuous-delivery feature is off"), { tags: '@fleet-156' }, () => {
+describe('Global settings related tests', { tags: '@special_tests' }, () => {
 
-        // Verify is gitrepoJobsCleanup is enabled by default.
-        cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
-        // Adding wait for CronJobs page to load correctly.
-        cy.wait(5000);
-        cy.nameSpaceMenuToggle('All Namespaces');
-        cy.verifyTableRow(0, 'Active', 'fleet-cleanup-gitrepo-jobs');
-        
-        // Disable continuous-delivery feature flag and wait for restart.
-        cy.accesMenuSelection('Global Settings', 'Feature Flags');
-        cy.open3dotsMenu('continuous-delivery', 'Deactivate' )
-        cy.clickButton('Deactivate');
-        cy.contains('Waiting for Restart', { timeout: 180000 }).should('not.exist');
-        // Verify is gitrepoJobsCleanup job is not present
-        cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
-        // Adding wait for CronJobs page to load correctly.
-        cy.wait(5000);
-        cy.contains('fleet-cleanup-gitrepo-jobs').should('not.exist');
+  it(qase(156, 'Fleet-156: Test gitrepoJobsCleanup is disabled when continuous-delivery feature is off'), { tags: '@fleet-156' }, () => {
 
-        // Re-enable continuous-delivery feature flag and wait for restart.
-        cy.accesMenuSelection('Global Settings', 'Feature Flags');
-        cy.open3dotsMenu('continuous-delivery', 'Activate' )
-        cy.clickButton('Activate');
-        cy.contains('Waiting for Restart', { timeout: 180000 }).should('not.exist');
+    // Verify is gitrepoJobsCleanup is enabled by default.
+    cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
+    // Adding wait for CronJobs page to load correctly.
+    cy.wait(5000);
+    cy.nameSpaceMenuToggle('All Namespaces');
+    cy.verifyTableRow(0, 'Active', 'fleet-cleanup-gitrepo-jobs');
 
-        cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
-        // Adding wait for CronJobs page to load correctly.
-        cy.wait(5000);
-        cy.nameSpaceMenuToggle('All Namespaces');
-        cy.filterInSearchBox('fleet-cleanup-gitrepo-jobs');
-        cy.verifyTableRow(0, 'Active', 'fleet-cleanup-gitrepo-jobs');
+    // Disable continuous-delivery feature flag and wait for restart.
+    cy.accesMenuSelection('Global Settings', 'Feature Flags');
+    cy.open3dotsMenu('continuous-delivery', 'Deactivate' );
+    cy.clickButton('Deactivate');
+    cy.contains('Waiting for Restart', { timeout: 180000 }).should('not.exist');
+    // Verify is gitrepoJobsCleanup job is not present
+    cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
+    // Adding wait for CronJobs page to load correctly.
+    cy.wait(5000);
+    cy.contains('fleet-cleanup-gitrepo-jobs').should('not.exist');
 
-      })
+    // Re-enable continuous-delivery feature flag and wait for restart.
+    cy.accesMenuSelection('Global Settings', 'Feature Flags');
+    cy.open3dotsMenu('continuous-delivery', 'Activate' );
+    cy.clickButton('Activate');
+    cy.contains('Waiting for Restart', { timeout: 180000 }).should('not.exist');
+
+    cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
+    // Adding wait for CronJobs page to load correctly.
+    cy.wait(5000);
+    cy.nameSpaceMenuToggle('All Namespaces');
+    cy.filterInSearchBox('fleet-cleanup-gitrepo-jobs');
+    cy.verifyTableRow(0, 'Active', 'fleet-cleanup-gitrepo-jobs');
+
+  });
 });

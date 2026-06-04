@@ -39,7 +39,7 @@ declare global {
       filterInSearchBox(filterText: string): Chainable<Element>;
       deleteAll(fleetCheck?: boolean): Chainable<Element>;
       deleteAllFleetRepos(namespaceName?: string): Chainable<Element>;
-      checkGitRepoStatus(repoName: string, bundles?: string, resources?: string, options?: {timeout?:number, repoStatus?: string}): Chainable<Element>;
+      checkGitRepoStatus(repoName: string, bundles?: string, resources?: string, options?: { timeout?:number, repoStatus?: string }): Chainable<Element>;
       checkApplicationStatus(appName: string, clusterName?: string, appNamespace?: string, present?: boolean, firstNav?: string, resourceToCheck?: string): Chainable<Element>;
       deleteApplicationDeployment(clusterName?: string): Chainable<Element>;
       modifyDeployedApplication(appName: string, clusterName?: string): Chainable<Element>;
@@ -100,18 +100,21 @@ Cypress.on('uncaught:exception', (err, runnable, promise) => {
   if (err.message.includes('navigation guard')) {
     return false;
   }
+
   if (err.message.includes('on cross-origin object')) {
     return false;
   }
+
   if (promise) {
     return false;
   }
 });
 
 require('cypress-dark');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+
 require('cy-verify-downloads').addCustomCommand();
 require('cypress-plugin-tab');
 require('@rancher-ecp-qa/cypress-library');
-import { register as registerCypressGrep } from '@cypress/grep'
+import { register as registerCypressGrep } from '@cypress/grep';
+
 registerCypressGrep();

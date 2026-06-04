@@ -16,41 +16,41 @@ import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 export const rancherVersion = Cypress.expose('rancher_version');
 export const supported_versions_212_and_above = [
   /^(prime|prime-optimus|prime-optimus-alpha|prime-alpha|prime-rc|alpha)\/2\.(1[2-9]|\d{2,})(\..*)?$/,
-  /^head\/2\.(1[2-9]|\d{3,})$/
+  /^head\/2\.(1[2-9]|\d{3,})$/,
 ];
 
 Cypress.config();
 describe('First login on Rancher', { tags: ['@login', '@pr-tests'] }, () => {
-    it(qase(120,'Log in and accept terms and conditions'), { tags: '@fleet-120' }, () => {
-      cypressLib.firstLogin();
-    });
+  it(qase(120,'Log in and accept terms and conditions'), { tags: '@fleet-120' }, () => {
+    cypressLib.firstLogin();
+  });
 
   it(qase(114,'Check ready state of local cluster after Rancher login'), { tags: '@fleet-114' }, () => {
-      cy.login();
-      cy.visit('/');
-      cypressLib.burgerMenuToggle();
-      cypressLib.accesMenu('Continuous Delivery');
-      cy.contains('Dashboard').should('be.visible');
-      cypressLib.accesMenu('Clusters');
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.verifyTableRow(0, 'Active', ' ' );
-      // In 2.12 forth column contains Bundle Ready count
-      // Check Bundle Ready count should not be '0'
-      if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
-        cy.get("td[data-testid='sortable-cell-0-4']", { timeout: 300000 }).should("not.contain", '0');
-      }
-      else {
-        cy.get("td[data-testid='sortable-cell-0-2']", { timeout: 300000 }).should("not.contain", '0');
-      }
-    })
+    cy.login();
+    cy.visit('/');
+    cypressLib.burgerMenuToggle();
+    cypressLib.accesMenu('Continuous Delivery');
+    cy.contains('Dashboard').should('be.visible');
+    cypressLib.accesMenu('Clusters');
+    cy.fleetNamespaceToggle('fleet-local');
+    cy.verifyTableRow(0, 'Active', ' ' );
+    // In 2.12 forth column contains Bundle Ready count
+    // Check Bundle Ready count should not be '0'
+    if (supported_versions_212_and_above.some(r => r.test(rancherVersion))) {
+      cy.get("td[data-testid='sortable-cell-0-4']", { timeout: 300000 }).should('not.contain', '0');
+    }
+    else {
+      cy.get("td[data-testid='sortable-cell-0-2']", { timeout: 300000 }).should('not.contain', '0');
+    }
+  });
 });
 
 // Upgrade Fleet from chart to latest when this is not the default one.
 describe('Upgrade Fleet via UI', { tags: '@upgrade-fleet-chart' }, () => {
-    it(qase(189, 'Upgrade Fleet chart to latest'), () => {
-      cy.login();
-      cy.visit('/');
-      cy.allowRancherPreReleaseVersions();
-      cy.upgradeFleet();
-    })
-})
+  it(qase(189, 'Upgrade Fleet chart to latest'), () => {
+    cy.login();
+    cy.visit('/');
+    cy.allowRancherPreReleaseVersions();
+    cy.upgradeFleet();
+  });
+});

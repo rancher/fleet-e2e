@@ -14,11 +14,11 @@ limitations under the License.
 
 import 'cypress/support/commands';
 
-export const appName = "nginx-keep";
-export const clusterName = "imported-0";
-export const branch = "main";
-export const path  = "nginx"
-export const sshString = ["Public key and private key for SSH", "Public key and private key for SSH authentication"]
+export const appName = 'nginx-keep';
+export const clusterName = 'imported-0';
+export const branch = 'main';
+export const path  = 'nginx';
+export const sshString = ['Public key and private key for SSH', 'Public key and private key for SSH authentication'];
 
 beforeEach(() => {
   cy.login();
@@ -30,121 +30,121 @@ Cypress.config();
 describe('Test Fleet deployment on PUBLIC repos',  { tags: ['@p0', '@pr-tests'] }, () => {
   it(qase(62, 'FLEET-62: Deploy application to local cluster'), { tags: '@fleet-62' }, () => {
 
-      const repoName = "local-cluster-fleet-62"
-      const branch = "master"
-      const path = "simple"
-      const repoUrl = "https://github.com/rancher/fleet-examples"
+    const repoName = 'local-cluster-fleet-62';
+    const branch = 'master';
+    const path = 'simple';
+    const repoUrl = 'https://github.com/rancher/fleet-examples';
 
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
-      // Adding check validate "Edit as Yaml" works
-      cy.clickButton('Edit as YAML');
-      cy.contains('apiVersion: fleet.cattle.io/v1alpha1').should('be.visible');
-      cy.clickButton('Create')
-      cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
-      cy.verifyTableRow(1, 'Service', 'frontend');
-      cy.verifyTableRow(3, 'Service', 'redis-master');
-      cy.verifyTableRow(5, 'Service', 'redis-slave');
-      cy.deleteAllFleetRepos();
-    })
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+    // Adding check validate "Edit as Yaml" works
+    cy.clickButton('Edit as YAML');
+    cy.contains('apiVersion: fleet.cattle.io/v1alpha1').should('be.visible');
+    cy.clickButton('Create');
+    cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
+    cy.verifyTableRow(1, 'Service', 'frontend');
+    cy.verifyTableRow(3, 'Service', 'redis-master');
+    cy.verifyTableRow(5, 'Service', 'redis-slave');
+    cy.deleteAllFleetRepos();
+  });
 
 });
 
 describe('Test Fleet deployment on PRIVATE repos with HTTP auth', { tags: ['@p0', '@pr-tests'] }, () => {
   //TODO: Commented Azure tests due to token expired, once restored uncomment it.
-  const gitAuthType = "http"
+  const gitAuthType = 'http';
   const repoTestData: testData[] = [
-    {qase_id: 6, provider: 'GitLab',  repoUrl: 'https://gitlab.com/fleetqa/fleet-qa-examples.git'},
-    {qase_id: 7, provider: 'Gh',  repoUrl: 'https://github.com/fleetqa/fleet-qa-examples.git'},
+    { qase_id: 6, provider: 'GitLab',  repoUrl: 'https://gitlab.com/fleetqa/fleet-qa-examples.git' },
+    { qase_id: 7, provider: 'Gh',  repoUrl: 'https://github.com/fleetqa/fleet-qa-examples.git' },
     // {qase_id: 8, provider: 'Bitbucket', repoUrl: 'https://bitbucket.org/fleetqa1/fleet-qa-examples.git'},
-    {qase_id: 98, provider: 'Azure',  repoUrl: 'https://dev.azure.com/fleetqateam/fleet-qa-examples/_git/fleet-qa-examples'}
-  ]
+    { qase_id: 98, provider: 'Azure',  repoUrl: 'https://dev.azure.com/fleetqateam/fleet-qa-examples/_git/fleet-qa-examples' },
+  ];
 
   repoTestData.forEach(({ qase_id, provider, repoUrl }) => {
     it(qase(qase_id, `FLEET-${qase_id}: Test to install "NGINX" app using "HTTP" auth on "${provider}" PRIVATE repository`), { tags: `@fleet-${qase_id}`, retries: 1 }, () => {
 
-        const repoName = `default-cluster-fleet-${qase_id}`
-        const userOrPublicKey = Cypress.expose(`${provider.toLowerCase()}_private_user`)
-        const pwdOrPrivateKey = Cypress.expose(`${provider.toLowerCase()}_private_pwd`)
+      const repoName = `default-cluster-fleet-${qase_id}`;
+      const userOrPublicKey = Cypress.expose(`${provider.toLowerCase()}_private_user`);
+      const pwdOrPrivateKey = Cypress.expose(`${provider.toLowerCase()}_private_pwd`);
 
-        cy.fleetNamespaceToggle('fleet-default')
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
-        cy.clickButton('Create');
-        cy.checkGitRepoStatus(repoName, '1 / 1');
-        cy.checkApplicationStatus(appName, clusterName);
-        cy.deleteAllFleetRepos();
-      })
-  
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1');
+      cy.checkApplicationStatus(appName, clusterName);
+      cy.deleteAllFleetRepos();
+    });
+
   });
 
   if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
-  it(qase(191, 'FLEET-191: Test Fleet can be deployed in private Github repo using solely private token'), {tags : `@fleet-191` }, () => {
+    it(qase(191, 'FLEET-191: Test Fleet can be deployed in private Github repo using solely private token'), { tags : `@fleet-191` }, () => {
 
-      const repoName = '191-test-private-gh-only-token'  
-      const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples.git'
-      const pwdOrPrivateKey = Cypress.expose('gh_private_pwd')
-  
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, pwdOrPrivateKey, local:true });
-        cy.clickButton('Create');
-        cy.checkGitRepoStatus(repoName, '1 / 1');
-        cy.deleteAllFleetRepos();
-    })
+      const repoName = '191-test-private-gh-only-token';
+      const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples.git';
+      const pwdOrPrivateKey = Cypress.expose('gh_private_pwd');
+
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, pwdOrPrivateKey, local:true });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1');
+      cy.deleteAllFleetRepos();
+    });
   }
 
 });
 
 describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }, () => {
   //TODO: Commented Azure tests due to token expired, once restored uncomment it.
-  const gitAuthType = "ssh"
-  const userOrPublicKey = Cypress.expose("rsa_public_key_qa")
-  const pwdOrPrivateKey = Cypress.expose("rsa_private_key_qa")
+  const gitAuthType = 'ssh';
+  const userOrPublicKey = Cypress.expose('rsa_public_key_qa');
+  const pwdOrPrivateKey = Cypress.expose('rsa_private_key_qa');
   const repoTestData: testData[] = [
-    {qase_id: 2, provider: 'GitLab', repoUrl: 'git@gitlab.com:fleetqa/fleet-qa-examples.git'},
-    {qase_id: 3, provider: 'Bitbucket', repoUrl: 'git@bitbucket.org:fleetqa-bb/fleet-qa-examples.git'},
-    {qase_id: 4, provider: 'Github', repoUrl: 'git@github.com:fleetqa/fleet-qa-examples.git'},
+    { qase_id: 2, provider: 'GitLab', repoUrl: 'git@gitlab.com:fleetqa/fleet-qa-examples.git' },
+    { qase_id: 3, provider: 'Bitbucket', repoUrl: 'git@bitbucket.org:fleetqa-bb/fleet-qa-examples.git' },
+    { qase_id: 4, provider: 'Github', repoUrl: 'git@github.com:fleetqa/fleet-qa-examples.git' },
     // {qase_id: 97, provider: 'Azure', repoUrl: 'git@ssh.dev.azure.com:v3/fleetqateam/fleet-qa-examples/fleet-qa-examples'}
-  ]
-  
+  ];
+
   repoTestData.forEach(({ qase_id, provider, repoUrl }) => {
     it(qase(qase_id, `FLEET-${qase_id}: Test to install "NGINX" app using "SSH" auth on "${provider}" PRIVATE repository`), { tags: `@fleet-${qase_id}`, retries: 1 }, () => {
-        
-        const repoName = `default-cluster-fleet-${qase_id}`
 
-        cy.fleetNamespaceToggle('fleet-default')
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
-        cy.clickButton('Create');
-        cy.verifyTableRow(0, 'Active'); // Implicit wait due to https://github.corancher/dashboard/issues/12502
-        cy.contains('0/0', { timeout: 20000 }).should('not.exist');
-        cy.checkGitRepoStatus(repoName, '1 / 1');
-        cy.checkApplicationStatus(appName, clusterName);
-        cy.deleteAllFleetRepos();
-      })    
+      const repoName = `default-cluster-fleet-${qase_id}`;
+
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active'); // Implicit wait due to https://github.corancher/dashboard/issues/12502
+      cy.contains('0/0', { timeout: 20000 }).should('not.exist');
+      cy.checkGitRepoStatus(repoName, '1 / 1');
+      cy.checkApplicationStatus(appName, clusterName);
+      cy.deleteAllFleetRepos();
+    });
   });
 });
 
-  describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p0' }, () => {
+describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p0' }, () => {
 
-    const repoUrl = 'git@github.com:fleetqa/fleet-qa-examples.git';
-    const secretKnownHostsKeys = ['assets/known-host.yaml', 'assets/known-host-missmatch.yaml'];
-    const userOrPublicKey = Cypress.expose("rsa_public_key_qa")
-    const pwdOrPrivateKey = Cypress.expose("rsa_private_key_qa")
+  const repoUrl = 'git@github.com:fleetqa/fleet-qa-examples.git';
+  const secretKnownHostsKeys = ['assets/known-host.yaml', 'assets/known-host-missmatch.yaml'];
+  const userOrPublicKey = Cypress.expose('rsa_public_key_qa');
+  const pwdOrPrivateKey = Cypress.expose('rsa_private_key_qa');
 
-    before('Preparing known hosts secrets via UI', () => {
+  before('Preparing known hosts secrets via UI', () => {
 
-      // Create known hosts from yaml file
-      cy.exec(`bash assets/add-known-host.sh`).then((result) => {
-        cy.log(result.stdout, result.stderr);
-      });
+    // Create known hosts from yaml file
+    cy.exec(`bash assets/add-known-host.sh`).then((result) => {
+      cy.log(result.stdout, result.stderr);
+    });
 
-      cy.login();
+    cy.login();
 
-      // Ensure flag `insecureSkipHostKeyChecks: false` is passed
-      // Workaround to type into canvas
-      // It should be nested data under fleet
-      // TODO: remove this once default behavior 
-      cy.accesMenuSelection('local');
-      cy.get('#btn-kubectl').click();
-      cy.contains('Connected').should('be.visible');    
-      cy.typeIntoCanvasTermnal(`\
+    // Ensure flag `insecureSkipHostKeyChecks: false` is passed
+    // Workaround to type into canvas
+    // It should be nested data under fleet
+    // TODO: remove this once default behavior
+    cy.accesMenuSelection('local');
+    cy.get('#btn-kubectl').click();
+    cy.contains('Connected').should('be.visible');
+    cy.typeIntoCanvasTermnal(`\
         kubectl patch configmap rancher-config \
         -n cattle-system \
         --type merge \
@@ -153,163 +153,164 @@ describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@p0' }
             "fleet": "insecureSkipHostKeyChecks: false"
           }
         }'{enter}`
-      );
-      // Forcing wait to ensure flag is ready
-      cy.wait(30000);
+    );
+    // Forcing wait to ensure flag is ready
+    cy.wait(30000);
 
-      // Close local terminal
-      cy.get('i.closer.icon').click();
+    // Close local terminal
+    cy.get('i.closer.icon').click();
 
-      // Create secret via UI
+    // Create secret via UI
+    cy.accesMenuSelection('local', 'Storage', 'Secrets');
+
+    // Creating both known host keys in one loop
+    secretKnownHostsKeys.forEach((secretKnownHostsKeys) => {
+      cy.clickButton('Create');
+      cy.contains(new RegExp(sshString.join('|'))).should('be.visible').click();
+      cy.clickButton('Edit as YAML');
+      cy.addYamlFile(secretKnownHostsKeys);
+      cy.wait(500);
+      cy.clickButton('Create');
+    });
+  });
+
+  // Custom / no default
+  it(qase(141, 'FLEET-141  Test to install "NGINX" app using "KNOWN HOSTS" auth on PRIVATE repository'),
+    { tags: '@fleet-141' }, () => {
+
+      const repoName = 'local-cluster-fleet-141';
+      const gitAuthType = 'ssh-key-knownhost';
+
+      cy.continuousDeliveryMenuSelection();
+
+      // Create private repo using known host
+      cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path, local: true });
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active', '1/1');
+      cy.checkGitRepoStatus(repoName, '1 / 1');
+    }
+  );
+
+  // Custom error / no default
+  it(qase(143, 'FLEET-143  Test apps cannot be installed when using missmatched "KNOWN HOSTS" auth on PRIVATE repository'),
+    { tags: '@fleet-143' }, () => {
+
+      const repoName = 'local-cluster-fleet-143';
+      const gitAuthType = 'ssh-key-knownhost-missmatch';
+
+      // Create private repo using known host
+      cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path, local: true });
+      cy.clickButton('Create');
+
+      // Enrure that apps cannot be installed && error appears
+      cy.verifyTableRow(0, /Error|Git Updating/, '0/0');
+      cy.contains('Ssh: handshake failed: knownhosts: key mismatch').should('be.visible');
+    }
+  );
+
+  // Default verify
+  it(qase(168, 'FLEET-168 Verify Fleet default known-host is set on configmap'),
+    { tags: '@fleet-168' }, () => {
+
+      // Create private repo using known host
+      cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
+      cy.nameSpaceMenuToggle('All Namespaces');
+      cy.filterInSearchBox('known-hosts');
+      cy.open3dotsMenu('known-hosts', 'Edit YAML');
+      cy.contains('ssh-rsa').its(length).should('be.visible');
+    }
+  );
+
+  // No custom / yes default
+  it(qase(169, 'FLEET-169 Verify that without custom known-host, fleet uses default custom ones from defined in configmap'),
+    { tags: '@fleet-169' }, () => {
+
+      const repoName = 'local-cluster-fleet-169';
+      const gitAuthType = 'ssh';
+
+      // Delete added custom known-hosts
       cy.accesMenuSelection('local', 'Storage', 'Secrets');
+      cy.nameSpaceMenuToggle('All Namespaces');
+      // We pass ssh-key because is needed as it is private repo
+      cy.filterInSearchBox('ssh-key');
+      cy.deleteAll(false);
 
-      // Creating both known host keys in one loop
-      secretKnownHostsKeys.forEach((secretKnownHostsKeys) => {
-        cy.clickButton('Create');
-        cy.contains(new RegExp(sshString.join('|'))).should('be.visible').click();
-        cy.clickButton('Edit as YAML');
-        cy.addYamlFile(secretKnownHostsKeys);
-        cy.wait(500);
-        cy.clickButton('Create');
-      });
+      // Verify gitrepo is added using default knownhost
+      cy.continuousDeliveryMenuSelection();
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, local: true });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1');
     });
 
-    // Custom / no default
-    it(qase(141, 'FLEET-141  Test to install "NGINX" app using "KNOWN HOSTS" auth on PRIVATE repository'), 
-        { tags: '@fleet-141' }, () => {
+  // No ssh , then no default
+  it(qase(170, 'FLEET-170 Verify that without ssh-key on private repo, custom known-host does not apply'),
+    { tags: '@fleet-170' }, () => {
 
-        const repoName = 'local-cluster-fleet-141';
-        const gitAuthType = 'ssh-key-knownhost';
-    
-        cy.continuousDeliveryMenuSelection();
-        
-        // Create private repo using known host
-        cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path, local: true });
-        cy.clickButton('Create');
-        cy.verifyTableRow(0, 'Active', '1/1');
-        cy.checkGitRepoStatus(repoName, '1 / 1');
-      }
-    );
+      const repoName = 'local-cluster-fleet-170';
 
-    // Custom error / no default
-    it(qase(143, 'FLEET-143  Test apps cannot be installed when using missmatched "KNOWN HOSTS" auth on PRIVATE repository'),
-        { tags: '@fleet-143' }, () => {
+      // Verify gitrepo is canot be added when default knownhost exists
+      // since it does not have ssh access
+      cy.continuousDeliveryMenuSelection();
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+      cy.clickButton('Create');
+      // Adding 15 seconds wait after latest changes in UI and BE in 2.14
+      // If this tests fails after this extended timeout let's consider opening an issue.
+      cy.wait(15000);
+      cy.verifyTableRow(0, /Error|Git Updating/, '0/0');
+    });
 
-          const repoName = 'local-cluster-fleet-143';
-          const gitAuthType = 'ssh-key-knownhost-missmatch';
+  // No custom + no default -> nothing gets deployed
+  it(qase(171, 'FLEET-171 Verify that without custom nor default known-host a gitrepo that needs this validation cannot be installed'),
+    { tags: '@fleet-171' }, () => {
 
-          // Create private repo using known host
-          cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path, local: true });
-          cy.clickButton('Create');
+      const repoName = 'local-cluster-fleet-171';
+      const gitAuthType = 'ssh';
 
-          // Enrure that apps cannot be installed && error appears
-          cy.verifyTableRow(0, /Error|Git Updating/, '0/0');
-          cy.contains('Ssh: handshake failed: knownhosts: key mismatch').should('be.visible');
-      }
-    );
+      // Delete added custom known-hosts
+      cy.accesMenuSelection('local', 'Storage', 'Secrets');
+      cy.nameSpaceMenuToggle('All Namespaces');
+      cy.filterInSearchBox('ssh-key');
+      cy.wait(500);
 
-    // Default verify
-    it(qase(168, 'FLEET-168 Verify Fleet default known-host is set on configmap'),
-        { tags: '@fleet-168' }, () => {
+      // Delete Secrets key if present
+      cy.get('body').then(($body) => {
+        const button = $body.find('[data-testid="sortable-table-promptRemove"]');
 
-          // Create private repo using known host
-          cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
-          cy.nameSpaceMenuToggle('All Namespaces');
-          cy.filterInSearchBox('known-hosts');
-          cy.open3dotsMenu('known-hosts', 'Edit YAML');
-          cy.contains('ssh-rsa').its(length).should('be.visible')
-      }
-    );
+        if (button.length > 0) {
+          cy.wrap(button).should('be.visible').then(() => {
+            cy.deleteAll(false);
+          });
+        } else {
+          cy.log('No Secrets are available for Delete.');
+        }
+      });
+      // Delete default custom known-hosts
+      cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
+      cy.nameSpaceMenuToggle('All Namespaces');
+      cy.filterInSearchBox('known-hosts');
 
-    // No custom / yes default
-    it(qase(169, 'FLEET-169 Verify that without custom known-host, fleet uses default custom ones from defined in configmap'),
-        { tags: '@fleet-169' }, () => {
+      // Remove the given 'known_host' values
+      cy.open3dotsMenu('known-hosts', 'Edit Config');
+      cy.clickButton('Remove');
 
-          const repoName = 'local-cluster-fleet-169';
-          const gitAuthType = "ssh"
+      // Re-add the key to avoid other girepos to be stalled
+      cy.clickButton('Add');
+      cy.get("section[id='data'] input[placeholder='e.g. foo']").type('known_hosts');
+      cy.wait(500); // Needs time for previous command to finish
+      cy.clickButton('Save');
+      cy.wait(500); // Needs time for previous command to finish
 
-          // Delete added custom known-hosts
-          cy.accesMenuSelection('local', 'Storage', 'Secrets');
-          cy.nameSpaceMenuToggle('All Namespaces');
-          // We pass ssh-key because is needed as it is private repo
-          cy.filterInSearchBox('ssh-key');
-          cy.deleteAll(false);
-          
-          // Verify gitrepo is added using default knownhost
-          cy.continuousDeliveryMenuSelection();
-          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, local: true });
-          cy.clickButton('Create');
-          cy.checkGitRepoStatus(repoName, '1 / 1');
-      })
+      // Verify gitrepo is added using default knownhost
+      cy.continuousDeliveryMenuSelection();
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, local: true });
+      cy.clickButton('Create');
 
-    // No ssh , then no default
-    it(qase(170, 'FLEET-170 Verify that without ssh-key on private repo, custom known-host does not apply'),
-        { tags: '@fleet-170' }, () => {
-
-          const repoName = 'local-cluster-fleet-170';
-          
-          // Verify gitrepo is canot be added when default knownhost exists
-          // since it does not have ssh access
-          cy.continuousDeliveryMenuSelection();
-          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true});
-          cy.clickButton('Create');
-          // Adding 15 seconds wait after latest changes in UI and BE in 2.14
-          // If this tests fails after this extended timeout let's consider opening an issue.
-          cy.wait(15000) 
-          cy.verifyTableRow(0, /Error|Git Updating/, '0/0');
-      })
-
-    // No custom + no default -> nothing gets deployed
-    it(qase(171, 'FLEET-171 Verify that without custom nor default known-host a gitrepo that needs this validation cannot be installed'),
-        { tags: '@fleet-171' }, () => {
-
-          const repoName = 'local-cluster-fleet-171';
-          const gitAuthType = "ssh"
-
-          // Delete added custom known-hosts
-          cy.accesMenuSelection('local', 'Storage', 'Secrets');
-          cy.nameSpaceMenuToggle('All Namespaces');
-          cy.filterInSearchBox('ssh-key');
-          cy.wait(500);
-
-          // Delete Secrets key if present
-          cy.get('body').then(($body) => {
-            const button = $body.find('[data-testid="sortable-table-promptRemove"]');
-            if (button.length > 0) {
-              cy.wrap(button).should('be.visible').then(() => {
-                cy.deleteAll(false);
-              });
-            } else {
-              cy.log("No Secrets are available for Delete.");
-            }
-          })
-          // Delete default custom known-hosts
-          cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
-          cy.nameSpaceMenuToggle('All Namespaces');
-          cy.filterInSearchBox('known-hosts');
-
-          // Remove the given 'known_host' values
-          cy.open3dotsMenu('known-hosts', 'Edit Config')
-          cy.clickButton('Remove')
-
-          // Re-add the key to avoid other girepos to be stalled
-          cy.clickButton('Add')
-          cy.get("section[id='data'] input[placeholder='e.g. foo']").type('known_hosts');
-          cy.wait(500); // Needs time for previous command to finish
-          cy.clickButton('Save')
-          cy.wait(500); // Needs time for previous command to finish
-                
-          // Verify gitrepo is added using default knownhost
-          cy.continuousDeliveryMenuSelection();
-          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, local: true })
-          cy.clickButton('Create')
-
-          // Ensure that apps cannot be installed && error appears
-          cy.wait(500); // Wait to avoid initial 'updating'
-          cy.verifyTableRow(0, /Error|Git Updating/, '0/0');
-          cy.contains('Strict host key checks are enforced, but no known_hosts data was found').should('be.visible')
-      }) 
-  });
+      // Ensure that apps cannot be installed && error appears
+      cy.wait(500); // Wait to avoid initial 'updating'
+      cy.verifyTableRow(0, /Error|Git Updating/, '0/0');
+      cy.contains('Strict host key checks are enforced, but no known_hosts data was found').should('be.visible');
+    });
+});
 
 describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
 
@@ -317,446 +318,446 @@ describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
   // TODO: rework this better on the previous known-host tests
 
   before('Returning custom known_host values', () => {
-    
+
     cy.login();
     cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
     cy.nameSpaceMenuToggle('All Namespaces');
     cy.filterInSearchBox('known-hosts');
-    cy.open3dotsMenu('known-hosts', 'Edit Config')
-    cy.clickButton('Remove')
-    
+    cy.open3dotsMenu('known-hosts', 'Edit Config');
+    cy.clickButton('Remove');
+
     // Attach file from 'fixtures' directory since it is native for Cypress
-    cy.get("section[id='data'] input[type='file']").attachFile('known_hosts')
-    cy.contains('bitbucket').should('be.visible')
+    cy.get("section[id='data'] input[type='file']").attachFile('known_hosts');
+    cy.contains('bitbucket').should('be.visible');
     cy.wait(500); // Needs time for previous command to finnish
-    cy.clickButton('Save')
+    cy.clickButton('Save');
     cy.wait(500); // Needs time for previous command to finnish
-    cy.log('"known_host" values returned')
-  })
+    cy.log('"known_host" values returned');
+  });
 
-  it(qase(142, "Fleet-142: Test Fleet can create cabundle secrets"), { tags: '@fleet-142' }, () => {;
-      
-      const repoName = 'local-142-test-bundle-secrets'
-      const repoUrl = 'https://github.com/rancher/fleet-examples'
-      const branch = 'master'
-      const path = 'simple'
-      const tlsOption = "Specify additional certificates to be accepted"
-      const tlsCertificate = "assets/cabundle-file.pem"
+  it(qase(142, 'Fleet-142: Test Fleet can create cabundle secrets'), { tags: '@fleet-142' }, () => {
 
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, tlsOption, tlsCertificate, local: true });
-      cy.clickButton('Create');
-      cy.verifyTableRow(0, 'Active', '1/1');
-      cy.accesMenuSelection('local', 'Storage', 'Secrets');
-  
-      // Confirm cabundle secret is created
-      cy.nameSpaceMenuToggle('All Namespaces');
-      cy.filterInSearchBox(repoName+'-cabundle');
-      cy.verifyTableRow(0, 'Active', repoName+'-cabundle');
-  
-      // Delete repo and confirm secret is deleted
-      cy.deleteAllFleetRepos();
-      cy.accesMenuSelection('local', 'Storage', 'Secrets');
-      cy.contains('-cabundle').should('not.exist');
-    }
-  );  
+    const repoName = 'local-142-test-bundle-secrets';
+    const repoUrl = 'https://github.com/rancher/fleet-examples';
+    const branch = 'master';
+    const path = 'simple';
+    const tlsOption = 'Specify additional certificates to be accepted';
+    const tlsCertificate = 'assets/cabundle-file.pem';
 
-  it(qase(144, "Fleet-144 Test cabundle secrets are not created without TLS certificate"), { tags: '@fleet-144' }, () => {;
-      
-      const repoName = 'local-144-test-cabundle-secrets-not-created'
-      const repoUrl = 'https://github.com/rancher/fleet-examples'
-      const branch = 'master'
-      const path = 'simple'
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path, tlsOption, tlsCertificate, local: true });
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', '1/1');
+    cy.accesMenuSelection('local', 'Storage', 'Secrets');
 
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
-      cy.clickButton('Create');
-      cy.verifyTableRow(0, 'Active', '1/1');
-      cy.accesMenuSelection('local', 'Storage', 'Secrets');
-  
-      // Confirm cabundle secret is NOT created for the specified gitrepo
-      cy.nameSpaceMenuToggle('All Namespaces');
-      cy.filterInSearchBox(repoName+'-cabundle');
-      cy.contains('There are no rows which match your search query.').should('be.visible');
-    }
-  );  
+    // Confirm cabundle secret is created
+    cy.nameSpaceMenuToggle('All Namespaces');
+    cy.filterInSearchBox(repoName+'-cabundle');
+    cy.verifyTableRow(0, 'Active', repoName+'-cabundle');
+
+    // Delete repo and confirm secret is deleted
+    cy.deleteAllFleetRepos();
+    cy.accesMenuSelection('local', 'Storage', 'Secrets');
+    cy.contains('-cabundle').should('not.exist');
+  }
+  );
+
+  it(qase(144, 'Fleet-144 Test cabundle secrets are not created without TLS certificate'), { tags: '@fleet-144' }, () => {
+
+    const repoName = 'local-144-test-cabundle-secrets-not-created';
+    const repoUrl = 'https://github.com/rancher/fleet-examples';
+    const branch = 'master';
+    const path = 'simple';
+
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', '1/1');
+    cy.accesMenuSelection('local', 'Storage', 'Secrets');
+
+    // Confirm cabundle secret is NOT created for the specified gitrepo
+    cy.nameSpaceMenuToggle('All Namespaces');
+    cy.filterInSearchBox(repoName+'-cabundle');
+    cy.contains('There are no rows which match your search query.').should('be.visible');
+  }
+  );
 
 });
 
-  describe('Test Fleet with Webhook', { tags: ['@p0', '@pr-tests'] }, () => {
+describe('Test Fleet with Webhook', { tags: ['@p0', '@pr-tests'] }, () => {
 
-    const gh_private_pwd = Cypress.expose('gh_private_pwd');
+  const gh_private_pwd = Cypress.expose('gh_private_pwd');
 
-    before('Preparing Github Webhook', () => { 
+  before('Preparing Github Webhook', () => {
 
-      // Prepare webhook in Github
-      cy.exec('bash assets/webhook-tests/webhook_setup.sh', { env: { gh_private_pwd } }).then((result) => {
+    // Prepare webhook in Github
+    cy.exec('bash assets/webhook-tests/webhook_setup.sh', { env: { gh_private_pwd } }).then((result) => {
+      cy.log(result.stdout, result.stderr);
+    });
+
+    cy.login();
+
+    // Open local terminal in Rancher UI
+    cy.accesMenuSelection('local');
+    cy.get('#btn-kubectl').click();
+    cy.contains('Connected').should('be.visible');
+
+    // Add yaml file to the terminal to create ad-hoc ingress
+    cy.get('button > i.icon.icon-upload.icon-lg').click();
+    cy.addYamlFile('assets/webhook-tests/webhook_ingress.yaml');
+    cy.clickButton('Import');
+    cy.clickButton('Close');
+
+  });
+
+  it(qase(152, 'Fleet-152: Test Fleet with Webhook and disable polling '), { tags: '@fleet-152' }, () => {
+
+    const repoName = 'webhook-test-disable-polling';
+
+    cy.exec('bash assets/webhook-tests/webhook_test_2_replicas.sh').then((result) => {
+      cy.log(result.stdout, result.stderr);
+    });
+
+    // Open local terminal in Rancher UI
+    cy.accesMenuSelection('local');
+    cy.get('#btn-kubectl').click();
+    cy.contains('Connected').should('be.visible');
+
+    cy.typeIntoCanvasTermnal('\
+        kubectl delete secrets -n cattle-fleet-system gitjob-webhook{enter} \
+        kubectl create secret generic gitjob-webhook -n cattle-fleet-system --from-literal=github=webhooksecretvalue{enter}');
+
+    // Ensure webhook repo starts with 2 replicas
+    cy.exec('bash assets/webhook-tests/webhook_test_2_replicas.sh', { env: { gh_private_pwd } }).then((result) => {
+      cy.log(result.stdout, result.stderr);
+    });
+
+    // Gitrepo creation via YAML
+    cy.continuousDeliveryMenuSelection();
+    cy.fleetNamespaceToggle('fleet-local');
+    cy.clickCreateGitRepo();
+    cy.clickButton('Edit as YAML');
+    cy.addYamlFile('assets/webhook-tests/webhook_test_disable_polling.yaml');
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', '1/1');
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+    cy.verifyJobDeleted(repoName, false);
+
+    // Verify deployments has 2 replicas only
+    cy.accesMenuSelection('local', 'Workloads', 'Deployments');
+    cy.filterInSearchBox(repoName);
+    cy.wait(500);
+    cy.contains('tr.main-row', repoName, { timeout: 20000 }).should('be.visible');
+    cy.verifyTableRow(0, 'Active', '2/2');
+
+    // Change replicas to 5
+    cy.exec('bash assets/webhook-tests/webhook_test_5_replicas.sh').then((result) => {
+      cy.log(result.stdout, result.stderr);
+    });
+
+    // Verify deployments has 5 replicas
+    cy.verifyTableRow(0, 'Active', '5/5');
+  }
+  );
+
+  if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
+
+    it(qase(178, 'Fleet-178: Test Fleet with Webhook and secret on gitrepo directly '), { tags: '@fleet-178' }, () => {
+
+      const repoName = 'test-disable-polling';
+
+      // Reset test to 2 replicas in case is not reset
+      cy.exec('bash assets/webhook-tests/webhook_test_2_replicas.sh').then((result) => {
         cy.log(result.stdout, result.stderr);
-      })
-      
-      cy.login();
+      });
 
       // Open local terminal in Rancher UI
       cy.accesMenuSelection('local');
       cy.get('#btn-kubectl').click();
       cy.contains('Connected').should('be.visible');
 
-      // Add yaml file to the terminal to create ad-hoc ingress
-      cy.get('button > i.icon.icon-upload.icon-lg').click();
-      cy.addYamlFile('assets/webhook-tests/webhook_ingress.yaml');
-      cy.clickButton('Import');
-      cy.clickButton('Close');
-
-    });
-
-    it(qase(152, 'Fleet-152: Test Fleet with Webhook and disable polling '), { tags: '@fleet-152' }, () => {
-
-        const repoName = 'webhook-test-disable-polling';
-
-        cy.exec('bash assets/webhook-tests/webhook_test_2_replicas.sh').then((result) => {
-        cy.log(result.stdout, result.stderr);
-        });
-
-        // Open local terminal in Rancher UI
-        cy.accesMenuSelection('local');
-        cy.get('#btn-kubectl').click();
-        cy.contains('Connected').should('be.visible');
-
-        cy.typeIntoCanvasTermnal('\
-        kubectl delete secrets -n cattle-fleet-system gitjob-webhook{enter} \
-        kubectl create secret generic gitjob-webhook -n cattle-fleet-system --from-literal=github=webhooksecretvalue{enter}');
-
-        // Ensure webhook repo starts with 2 replicas
-        cy.exec('bash assets/webhook-tests/webhook_test_2_replicas.sh', { env: { gh_private_pwd } }).then((result) => {
-          cy.log(result.stdout, result.stderr);
-        });
-
-        // Gitrepo creation via YAML
-        cy.continuousDeliveryMenuSelection();
-        cy.fleetNamespaceToggle('fleet-local');
-        cy.clickCreateGitRepo();
-        cy.clickButton('Edit as YAML');
-        cy.addYamlFile('assets/webhook-tests/webhook_test_disable_polling.yaml');
-        cy.clickButton('Create');
-        cy.verifyTableRow(0, 'Active', '1/1');
-        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-        cy.verifyJobDeleted(repoName, false);
-
-        // Verify deployments has 2 replicas only
-        cy.accesMenuSelection('local', 'Workloads', 'Deployments');
-        cy.filterInSearchBox(repoName);
-        cy.wait(500);
-        cy.contains('tr.main-row', repoName, { timeout: 20000 }).should('be.visible');
-        cy.verifyTableRow(0, 'Active', '2/2');
-
-        // Change replicas to 5
-        cy.exec('bash assets/webhook-tests/webhook_test_5_replicas.sh').then((result) => {
-          cy.log(result.stdout, result.stderr);
-        });
-
-        // Verify deployments has 5 replicas
-        cy.verifyTableRow(0, 'Active', '5/5');
-      }
-    );
-    
-    if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
-  
-    it(qase(178, 'Fleet-178: Test Fleet with Webhook and secret on gitrepo directly '), { tags: '@fleet-178' }, () => {
-
-        const repoName = 'test-disable-polling';
-
-        // Reset test to 2 replicas in case is not reset
-        cy.exec('bash assets/webhook-tests/webhook_test_2_replicas.sh').then((result) => {
-          cy.log(result.stdout, result.stderr);
-        });
-        
-        // Open local terminal in Rancher UI
-        cy.accesMenuSelection('local');
-        cy.get('#btn-kubectl').click();
-        cy.contains('Connected').should('be.visible');
-
-        // CHANGE TO REMOVE EXISTING SECRET
-        cy.typeIntoCanvasTermnal('\
+      // CHANGE TO REMOVE EXISTING SECRET
+      cy.typeIntoCanvasTermnal('\
         kubectl delete secrets -n cattle-fleet-system gitjob-webhook{enter}');
 
-        // Gitrepo creation via YAML
-        cy.continuousDeliveryMenuSelection();
-        cy.fleetNamespaceToggle('fleet-local');
-        cy.clickCreateGitRepo();
-        cy.clickButton('Edit as YAML');
-        
-        cy.addYamlFile('assets/webhook-tests/webhook_test_webhook_secret_in_repo.yaml');
-        cy.clickButton('Create');
-        cy.verifyTableRow(0, 'Active', '1/1');
-        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      // Gitrepo creation via YAML
+      cy.continuousDeliveryMenuSelection();
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.clickCreateGitRepo();
+      cy.clickButton('Edit as YAML');
 
-        cy.verifyJobDeleted(repoName, false);
+      cy.addYamlFile('assets/webhook-tests/webhook_test_webhook_secret_in_repo.yaml');
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active', '1/1');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
 
-        // Verify deployments have 2 replicas only
-        cy.accesMenuSelection('local', 'Workloads', 'Deployments');
-        cy.filterInSearchBox(repoName);
-        cy.wait(500);
-        cy.contains('tr.main-row', repoName, { timeout: 20000 }).should('be.visible');
-        cy.verifyTableRow(0, 'Active', '2/2');
+      cy.verifyJobDeleted(repoName, false);
 
-        // Change replicas to 5 in Github Webhook
-        cy.exec('bash assets/webhook-tests/webhook_test_5_replicas.sh').then((result) => {
-          cy.log(result.stdout, result.stderr);
-        });
+      // Verify deployments have 2 replicas only
+      cy.accesMenuSelection('local', 'Workloads', 'Deployments');
+      cy.filterInSearchBox(repoName);
+      cy.wait(500);
+      cy.contains('tr.main-row', repoName, { timeout: 20000 }).should('be.visible');
+      cy.verifyTableRow(0, 'Active', '2/2');
 
-        // Verify deployments STILL HAVE 2 replicas and NOT 5
-        cy.verifyTableRow(0, 'Active', '2/2');
+      // Change replicas to 5 in Github Webhook
+      cy.exec('bash assets/webhook-tests/webhook_test_5_replicas.sh').then((result) => {
+        cy.log(result.stdout, result.stderr);
+      });
 
-        // Verify error on log
-        cy.accesMenuSelection('local', 'Workloads', 'Pods');
-        cy.filterInSearchBox('gitjob')
-        cy.open3dotsMenu('gitjob', 'View Logs')
-        cy.contains('"Webhook processing failed"').should('exist');
-      }
-    )
+      // Verify deployments STILL HAVE 2 replicas and NOT 5
+      cy.verifyTableRow(0, 'Active', '2/2');
+
+      // Verify error on log
+      cy.accesMenuSelection('local', 'Workloads', 'Pods');
+      cy.filterInSearchBox('gitjob');
+      cy.open3dotsMenu('gitjob', 'View Logs');
+      cy.contains('"Webhook processing failed"').should('exist');
+    }
+    );
 
     it(qase(177, 'Fleet-177: Test Fleet with Webhook and secret using "gitjob-webhhook" on "cattle-fleet-system" '), { tags: '@fleet-177' }, () => {
 
-        const repoName = 'test-disable-polling';
+      const repoName = 'test-disable-polling';
 
-        // Reset test to 2 replicas in case is not reset
-        cy.exec('bash assets/webhook-tests/webhook_test_2_replicas.sh').then((result) => {
-          cy.log(result.stdout, result.stderr);
-        });
+      // Reset test to 2 replicas in case is not reset
+      cy.exec('bash assets/webhook-tests/webhook_test_2_replicas.sh').then((result) => {
+        cy.log(result.stdout, result.stderr);
+      });
 
-        // Open local terminal in Rancher UI
-        cy.accesMenuSelection('local');
-        cy.get('#btn-kubectl').click();
-        cy.contains('Connected').should('be.visible');
+      // Open local terminal in Rancher UI
+      cy.accesMenuSelection('local');
+      cy.get('#btn-kubectl').click();
+      cy.contains('Connected').should('be.visible');
 
-        // Adding wrong generic secret 
-        cy.typeIntoCanvasTermnal('\
+      // Adding wrong generic secret
+      cy.typeIntoCanvasTermnal('\
         kubectl create secret generic gitjob-webhook -n cattle-fleet-system --from-literal=github=wrong-webhook-secret{enter}');
 
-        // Gitrepo creation via YAML
-        cy.continuousDeliveryMenuSelection();
-        cy.fleetNamespaceToggle('fleet-local');
-        cy.clickCreateGitRepo();
-        cy.clickButton('Edit as YAML');
-        
-        cy.addYamlFile('assets/webhook-tests/webhook_test_disable_polling.yaml');
-        cy.clickButton('Create');
-        cy.verifyTableRow(0, 'Active', '1/1');
-        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      // Gitrepo creation via YAML
+      cy.continuousDeliveryMenuSelection();
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.clickCreateGitRepo();
+      cy.clickButton('Edit as YAML');
 
-        cy.verifyJobDeleted(repoName, false);
+      cy.addYamlFile('assets/webhook-tests/webhook_test_disable_polling.yaml');
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Active', '1/1');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
 
-        // Verify deployments has 2 replicas only
-        cy.accesMenuSelection('local', 'Workloads', 'Deployments');
-        cy.filterInSearchBox(repoName);
-        cy.wait(500);
-        cy.contains('tr.main-row', repoName, { timeout: 20000 }).should('be.visible');
-        cy.verifyTableRow(0, 'Active', '2/2');
+      cy.verifyJobDeleted(repoName, false);
 
-        // Change replicas to 5 in Github Webhook
-        cy.exec('bash assets/webhook-tests/webhook_test_5_replicas.sh').then((result) => {
-          cy.log(result.stdout, result.stderr);
-        });
+      // Verify deployments has 2 replicas only
+      cy.accesMenuSelection('local', 'Workloads', 'Deployments');
+      cy.filterInSearchBox(repoName);
+      cy.wait(500);
+      cy.contains('tr.main-row', repoName, { timeout: 20000 }).should('be.visible');
+      cy.verifyTableRow(0, 'Active', '2/2');
 
-        // Verify deployments STILL HAVE 2 replicas and NOT 5
-        cy.verifyTableRow(0, 'Active', '2/2');
+      // Change replicas to 5 in Github Webhook
+      cy.exec('bash assets/webhook-tests/webhook_test_5_replicas.sh').then((result) => {
+        cy.log(result.stdout, result.stderr);
+      });
 
-        // Verify error on log
-        cy.accesMenuSelection('local', 'Workloads', 'Pods');
-        cy.filterInSearchBox('gitjob')
-        cy.open3dotsMenu('gitjob', 'View Logs')
-        cy.contains('HMAC verification failed').should('exist');
-      })
-    }
+      // Verify deployments STILL HAVE 2 replicas and NOT 5
+      cy.verifyTableRow(0, 'Active', '2/2');
 
-    it(qase(463, 'Verify webhook regex metacharacter escaping'), { tags: '@fleet-463' }, () => {
-        cy.exec('bash assets/webhook-tests/test-803-auto.sh', { timeout: 120000 }).then((result) => {
-          cy.log(result.stdout, result.stderr);
-        });
-      }
-    )
-  });
+      // Verify error on log
+      cy.accesMenuSelection('local', 'Workloads', 'Pods');
+      cy.filterInSearchBox('gitjob');
+      cy.open3dotsMenu('gitjob', 'View Logs');
+      cy.contains('HMAC verification failed').should('exist');
+    });
+  }
 
-  // New tests for jobs cleanup
+  it(qase(463, 'Verify webhook regex metacharacter escaping'), { tags: '@fleet-463' }, () => {
+    cy.exec('bash assets/webhook-tests/test-803-auto.sh', { timeout: 120000 }).then((result) => {
+      cy.log(result.stdout, result.stderr);
+    });
+  }
+  );
+});
+
+// New tests for jobs cleanup
 describe('Test Fleet job cleanup', { tags: ['@p0', '@pr-tests'] }, () => {
-  
+
   const repoUrl = 'https://github.com/rancher/fleet-test-data/';
   const branch = 'master';
   const path = 'qa-test-apps/nginx-app';
 
   it(qase(145, 'Fleet-145: Test Fleet job cleanup'), { tags: '@fleet-145' }, () => {
 
-      const repoName = 'local-145-test-job-cleanup';
+    const repoName = 'local-145-test-job-cleanup';
 
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
-      cy.clickButton('Create');
-      cy.verifyTableRow(0, 'Active', '1/1');
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', '1/1');
 
-      // Check jobs on recent events tab
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-      cy.verifyJobDeleted(repoName); 
-    }
+    // Check jobs on recent events tab
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+    cy.verifyJobDeleted(repoName);
+  }
   );
 
   it(qase(146, 'Fleet-146: Test Fleet job clean-up works with Force Update'), { tags: '@fleet-146' }, () => {
 
-      const repoName = 'local-146-test-job-cleanup';
+    const repoName = 'local-146-test-job-cleanup';
 
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
-      cy.clickButton('Create');
-      cy.verifyTableRow(0, 'Active', '1/1');
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', '1/1');
 
-      // Force update
-      cy.open3dotsMenu(repoName, 'Force Update');
-      cy.verifyTableRow(0, 'Active', '1/1');
-      cy.wait(2000); // Wait to let time for Update to take effect.
-    
-      // Check job deletion on recent events tab
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-      cy.verifyJobDeleted(repoName);
+    // Force update
+    cy.open3dotsMenu(repoName, 'Force Update');
+    cy.verifyTableRow(0, 'Active', '1/1');
+    cy.wait(2000); // Wait to let time for Update to take effect.
 
-    }
+    // Check job deletion on recent events tab
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+    cy.verifyJobDeleted(repoName);
+
+  }
   );
 
   it(qase(147, 'Fleet-147: Test Fleet job clean-up works upon commit change'), { tags: '@fleet-147' }, () => {
 
-      const gh_private_pwd = Cypress.expose('gh_private_pwd');
-      const repoName = 'test-disable-polling';
+    const gh_private_pwd = Cypress.expose('gh_private_pwd');
+    const repoName = 'test-disable-polling';
 
-      cy.exec('bash assets/disable_polling_reset_2_replicas.sh', { env: { gh_private_pwd } }).then((result) => {
-        cy.log(result.stdout, result.stderr);
-      });
+    cy.exec('bash assets/disable_polling_reset_2_replicas.sh', { env: { gh_private_pwd } }).then((result) => {
+      cy.log(result.stdout, result.stderr);
+    });
 
-      // Gitrepo adddition via YAML
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.clickCreateGitRepo();
-      cy.clickButton('Edit as YAML');
-      cy.addYamlFile('assets/disable_polling.yaml');
-      cy.clickButton('Create');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+    // Gitrepo adddition via YAML
+    cy.fleetNamespaceToggle('fleet-local');
+    cy.clickCreateGitRepo();
+    cy.clickButton('Edit as YAML');
+    cy.addYamlFile('assets/disable_polling.yaml');
+    cy.clickButton('Create');
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
 
-      // Verify event deletion on recent events tab and job deletion 
-      cy.verifyJobDeleted(repoName);    
+    // Verify event deletion on recent events tab and job deletion
+    cy.verifyJobDeleted(repoName);
 
-      // Change replicas to 5
-      cy.exec('bash assets/disable_polling_setting_5_replicas.sh').then((result) => {
-        cy.log(result.stdout, result.stderr);
-      });
-      cy.continuousDeliveryMenuSelection();
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+    // Change replicas to 5
+    cy.exec('bash assets/disable_polling_setting_5_replicas.sh').then((result) => {
+      cy.log(result.stdout, result.stderr);
+    });
+    cy.continuousDeliveryMenuSelection();
+    cy.fleetNamespaceToggle('fleet-local');
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
 
-      // Verify event deletion on recent events tab and job deletion
-      cy.verifyJobDeleted(repoName);
-    }
+    // Verify event deletion on recent events tab and job deletion
+    cy.verifyJobDeleted(repoName);
+  }
   );
 
   it(qase(148, 'Fleet-148: Test Fleet job clean-up with unsuccessful job is not deleted'), { tags: '@fleet-148' }, () => {
-  
-      const repoName = 'local-148-test-unsuscessful-job-is-not-deleted';
-      const path = 'qa-test-apps/nginx-app-bad-path';
 
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
-      cy.clickButton('Create');
-      cy.verifyTableRow(0, /Git Updating|Error/, '0/0');
-      
-      cy.contains(repoName).click();
-      cy.get('ul[role="tablist"]').contains('Recent Events').click();
-      cy.get('section#events table tr.main-row').should('have.length', 2).then(() => {
-         cy.contains('GotNewCommit', { timeout: 20000 }).should('be.visible');
-         cy.contains('GitJob was created', { timeout: 20000 }).should('be.visible');
-         cy.contains('job deletion triggered because job succeeded', { timeout: 20000 }).should('not.exist');
-      });
-      
-      // Check job exists and it is NOT deleted
-      // Confirm job disappears
-      cy.accesMenuSelection('local', 'Workloads', 'Jobs');
-      cy.nameSpaceMenuToggle('All Namespaces');
-      cy.filterInSearchBox(repoName);
-      cy.get('table > tbody > tr').contains(repoName).should('be.visible');
-    }
-  )
+    const repoName = 'local-148-test-unsuscessful-job-is-not-deleted';
+    const path = 'qa-test-apps/nginx-app-bad-path';
+
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, /Git Updating|Error/, '0/0');
+
+    cy.contains(repoName).click();
+    cy.get('ul[role="tablist"]').contains('Recent Events').click();
+    cy.get('section#events table tr.main-row').should('have.length', 2).then(() => {
+      cy.contains('GotNewCommit', { timeout: 20000 }).should('be.visible');
+      cy.contains('GitJob was created', { timeout: 20000 }).should('be.visible');
+      cy.contains('job deletion triggered because job succeeded', { timeout: 20000 }).should('not.exist');
+    });
+
+    // Check job exists and it is NOT deleted
+    // Confirm job disappears
+    cy.accesMenuSelection('local', 'Workloads', 'Jobs');
+    cy.nameSpaceMenuToggle('All Namespaces');
+    cy.filterInSearchBox(repoName);
+    cy.get('table > tbody > tr').contains(repoName).should('be.visible');
+  }
+  );
 });
 
-  describe('Test GitJob security context',  { tags: ['@p0', '@pr-tests'] }, () => {
-    it(qase(160, 'FLEET-160: Test GitJob pod security context'), { tags: '@fleet-160' }, () => {
-        // Check the GitJob pod for Security Context.
-        cy.accesMenuSelection('local', 'Workloads', 'Pods');
-        cy.filterInSearchBox('gitjob');
-        cy.verifyTableRow(0, 'Running', 'gitjob');
-        cy.contains('gitjob').click();
-        cy.clickButton('Config');
-        cy.get('section#container-0')
-          .find('.side-tabs ul.tabs li')
-          .eq(3)
-          .should('have.id', 'securityContext')
-          .contains('Security Context')
-          .should("be.visible")
-          .click()
-        if (/\/2\.14/.test(Cypress.expose('rancher_version')) || /\/2\.15/.test(Cypress.expose('rancher_version'))) {
-          // Check Run as Non-Root
-          cy.get('[data-testid="input-security-runasNonRoot"] [role="checkbox"]')
-            .should('have.attr', 'aria-checked', 'false');
-          
-          // Check Privilege Escalation
-          cy.get('[data-testid="input-security-allowPrivilegeEscalation"] [role="checkbox"]')
-            .should('have.attr', 'aria-checked', 'false');
+describe('Test GitJob security context',  { tags: ['@p0', '@pr-tests'] }, () => {
+  it(qase(160, 'FLEET-160: Test GitJob pod security context'), { tags: '@fleet-160' }, () => {
+    // Check the GitJob pod for Security Context.
+    cy.accesMenuSelection('local', 'Workloads', 'Pods');
+    cy.filterInSearchBox('gitjob');
+    cy.verifyTableRow(0, 'Running', 'gitjob');
+    cy.contains('gitjob').click();
+    cy.clickButton('Config');
+    cy.get('section#container-0')
+      .find('.side-tabs ul.tabs li')
+      .eq(3)
+      .should('have.id', 'securityContext')
+      .contains('Security Context')
+      .should('be.visible')
+      .click();
+    if (/\/2\.14/.test(Cypress.expose('rancher_version')) || /\/2\.15/.test(Cypress.expose('rancher_version'))) {
+      // Check Run as Non-Root
+      cy.get('[data-testid="input-security-runasNonRoot"] [role="checkbox"]')
+        .should('have.attr', 'aria-checked', 'false');
 
-          // Check Read Only Root File System
-          cy.get('[data-testid="input-security-readOnlyRootFilesystem"] [role="checkbox"]')
-          .should('have.attr', 'aria-checked', 'true');
-        }
-        else {
-          // Check Run as Non-Root
-          cy.get('input[name="runasNonRoot"]:checked')
-            .should('have.value', 'false');
+      // Check Privilege Escalation
+      cy.get('[data-testid="input-security-allowPrivilegeEscalation"] [role="checkbox"]')
+        .should('have.attr', 'aria-checked', 'false');
 
-          // Check Privilege Escalation
-          cy.get('input[name="allowPrivilegeEscalation"]:checked')
-            .should('have.value', 'false');
+      // Check Read Only Root File System
+      cy.get('[data-testid="input-security-readOnlyRootFilesystem"] [role="checkbox"]')
+        .should('have.attr', 'aria-checked', 'true');
+    }
+    else {
+      // Check Run as Non-Root
+      cy.get('input[name="runasNonRoot"]:checked')
+        .should('have.value', 'false');
 
-          // Check Read Only Root File System
-          cy.get('input[name="readOnlyRootFilesystem"]:checked')
-          .should('have.value', 'true');
-        }
+      // Check Privilege Escalation
+      cy.get('input[name="allowPrivilegeEscalation"]:checked')
+        .should('have.value', 'false');
 
-        // Check Drop Capabilities
-        cy.get('[data-testid="input-security-drop"] .labeled-select .v-select span.vs__selected')
-          .contains('ALL')
-          .should('be.visible')
-      })
-  }
+      // Check Read Only Root File System
+      cy.get('input[name="readOnlyRootFilesystem"]:checked')
+        .should('have.value', 'true');
+    }
+
+    // Check Drop Capabilities
+    cy.get('[data-testid="input-security-drop"] .labeled-select .v-select span.vs__selected')
+      .contains('ALL')
+      .should('be.visible');
+  });
+}
 );
 
-  describe('Test lifecycle secrets', { tags: '@p0' }, () => {
-    
-    const repoUrl = 'https://github.com/rancher/fleet-test-data/';
-    const branch = 'master';
-    const path = 'simple-chart';
+describe('Test lifecycle secrets', { tags: '@p0' }, () => {
 
-    it(qase(172, 'Fleet-172 Test gitjob can store helm values in secret'), { tags: '@fleet-172' }, () => {
+  const repoUrl = 'https://github.com/rancher/fleet-test-data/';
+  const branch = 'master';
+  const path = 'simple-chart';
 
-        const repoName = 'simple-chart-secret';
-  
-        // Deploy Gitrepo
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
-        cy.clickButton('Create');
-        cy.verifyTableRow(0, 'Active', '1/1');
-        
-        // Confirm cabundle secret is created
-        cy.accesMenuSelection('local', 'Storage', 'Secrets');
-        cy.nameSpaceMenuToggle('All Namespaces');
-        
-        // Verify values in bundle-deployments
-        cy.filterInSearchBox(repoName);
-        cy.open3dotsMenu('fleet.cattle.io/bundle-deployment/v1alpha1', 'Edit YAML');
-        cy.contains('stagedValues: eyJuYW1lIjoiZXhhbXBsZS12YWx1ZSJ9').should('be.visible');
-        cy.contains('values: eyJuYW1lIjoiZXhhbXBsZS12YWx1ZSJ9').should('be.visible');
-        cy.clickButton('Cancel');
-        
-        // Verify values in bundle
-        cy.filterInSearchBox(repoName);
-        cy.open3dotsMenu('fleet.cattle.io/bundle-values/v1alpha1', 'Edit YAML');
-        cy.contains('values.yaml: eyJuYW1lIjoiZXhhbXBsZS12YWx1ZSJ9').should('be.visible');
-        cy.clickButton('Cancel');
-        
-      })
-  })
+  it(qase(172, 'Fleet-172 Test gitjob can store helm values in secret'), { tags: '@fleet-172' }, () => {
+
+    const repoName = 'simple-chart-secret';
+
+    // Deploy Gitrepo
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, 'Active', '1/1');
+
+    // Confirm cabundle secret is created
+    cy.accesMenuSelection('local', 'Storage', 'Secrets');
+    cy.nameSpaceMenuToggle('All Namespaces');
+
+    // Verify values in bundle-deployments
+    cy.filterInSearchBox(repoName);
+    cy.open3dotsMenu('fleet.cattle.io/bundle-deployment/v1alpha1', 'Edit YAML');
+    cy.contains('stagedValues: eyJuYW1lIjoiZXhhbXBsZS12YWx1ZSJ9').should('be.visible');
+    cy.contains('values: eyJuYW1lIjoiZXhhbXBsZS12YWx1ZSJ9').should('be.visible');
+    cy.clickButton('Cancel');
+
+    // Verify values in bundle
+    cy.filterInSearchBox(repoName);
+    cy.open3dotsMenu('fleet.cattle.io/bundle-values/v1alpha1', 'Edit YAML');
+    cy.contains('values.yaml: eyJuYW1lIjoiZXhhbXBsZS12YWx1ZSJ9').should('be.visible');
+    cy.clickButton('Cancel');
+
+  });
+});
