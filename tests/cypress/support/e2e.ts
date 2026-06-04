@@ -110,10 +110,14 @@ Cypress.on('uncaught:exception', (err, runnable, promise) => {
   }
 });
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 require('cypress-dark');
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 require('cy-verify-downloads').addCustomCommand();
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 require('cypress-plugin-tab');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 require('@rancher-ecp-qa/cypress-library');
 import { register as registerCypressGrep } from '@cypress/grep';
 

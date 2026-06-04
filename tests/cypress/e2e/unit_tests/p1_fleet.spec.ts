@@ -250,7 +250,7 @@ describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: ['@p1', '@p
 
   privateHelmData.forEach(
     ({ qase_id, repoName, path, helmRepoURLRegex_matching, test_explanation }) => {
-      it(qase(qase_id, `Fleet-${qase_id}: Test private helm registries for \"helmRepoURLRegex\" matches with \"${test_explanation}\" URL specified in fleet.yaml file`), { tags: `@fleet-${qase_id}` }, () => {
+      it(qase(qase_id, `Fleet-${qase_id}: Test private helm registries for "helmRepoURLRegex" matches with "${test_explanation}" URL specified in fleet.yaml file`), { tags: `@fleet-${qase_id}` }, () => {
 
         // Adding wait for mitigation of intermittent failures due to slow communication with helm registry
         // and also to make sure previous test's resources are deleted and not interfering with current test.

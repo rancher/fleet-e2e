@@ -14,7 +14,7 @@ limitations under the License.
 
 /// <reference types="cypress" />
 
-require('dotenv').config();
+import 'dotenv/config';
 
 /**
  * @type {Cypress.PluginConfig}
@@ -25,6 +25,7 @@ module.exports = (on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions)
   // `config` is the resolved Cypress config
   const url = process.env.RANCHER_URL || 'https://localhost:8005';
 
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { isFileExist, findFiles } = require('cy-verify-downloads');
 
   on('task', { isFileExist, findFiles });

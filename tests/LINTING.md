@@ -21,8 +21,9 @@ npm run lint:fix      # Auto-fix formatting + fixable errors
 - ✅ Extra semicolons (removed)
 - ❌ Blank lines after `() => {` (add manually)
 - ❌ Unused variables (manual fix - prefix with `_`)
-- ❌ `require()` imports (manual fix - convert to ES6)
-- ❌ Useless escapes (manual fix)
+- ❌ `require()` imports (manual fix - convert to ES6 import)
+- ❌ Escape characters in template literals (manual fix - remove backslashes inside backticks)
+- ❌ Assignment in conditionals (manual fix - use `===` instead of `=`)
 
 ## What ESLint Checks
 
@@ -82,15 +83,22 @@ const lib = require('library');
 import lib from 'library';
 ```
 
-### Useless Escapes
+### Escape Characters in Template Literals
 ```typescript
 // ❌ Error
-const msg = "Quote: \"hello\"";
+const msg = `Quote: \"hello\"`;
 
 // ✅ Fix
-const msg = 'Quote: "hello"';
-// or
-const msg = "Quote: 'hello'";
+const msg = `Quote: "hello"`;
+```
+
+### Assignment in Conditionals
+```typescript
+// ❌ Error
+if (option = 'value') { }
+
+// ✅ Fix
+if (option === 'value') { }
 ```
 
 ## IDE Integration

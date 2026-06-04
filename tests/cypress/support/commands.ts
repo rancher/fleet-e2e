@@ -228,7 +228,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, path
       .should('be.visible')
       .click();
 
-    if (tlsOption = 'Specify additional certificates') {
+    if (tlsOption === 'Specify additional certificates') {
       cy.readFile(tlsCertificate).then((content) => {
         cy.get('textarea[placeholder="Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"]').type(content);
       });
@@ -715,7 +715,7 @@ Cypress.Commands.add('deleteUser', (userName) => {
 });
 
 // Delete all users. Admin user will stay
-Cypress.Commands.add('deleteAllUsers', (userName) => {
+Cypress.Commands.add('deleteAllUsers', (_userName) => {
   // Delete all users (Admin one will stay as cannot be deleted)
   cy.accesMenuSelection('Users & Authentication');
   cy.contains('.title', 'Users').should('be.visible');
