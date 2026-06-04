@@ -82,25 +82,32 @@ it(qase(123, 'Test'), () => {
 
 ## Remaining Issues (Manual Fix)
 
-After running `npm run lint:fix`, you'll see:
-- **13 errors**: Real code issues (require imports, unused vars, escapes)
-- **10 warnings**: Type safety (`any` types)
+After running `npm run lint:fix`, you may see:
+- **0 errors**: All auto-fixable errors are fixed ✅
+- **~33 warnings**: 
+  - Type safety (`any` types) - Acceptable, won't fail CI
+  - Line length > 120 characters - Acceptable, won't fail CI
 
-These cannot be auto-fixed and need manual attention.
+**What ESLint cannot auto-fix:**
+- Multi-line function call alignment (e.g., `it(qase(...))` formatting)
+- require() imports for CommonJS libraries (suppressed with `// eslint-disable-next-line`)
 
 ## IDE Setup
 
 ### VS Code
 1. Install [ESLint extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
-2. Settings already configured in `.vscode/settings.json`
+2. Auto-fix on save is configured globally in user settings
 
 ## Summary
 
 **ESLint now provides:**
-- Consistent 2-space indentation
 - Single quotes, semicolons, trailing commas
+- Spacing (around operators, braces, keywords)
 - Automatic blank lines for readability
+- Line length warnings (120 chars max)
 - Real code quality checks (unused vars, type safety)
+
+**Note:** Indentation rule is disabled - ESLint cannot handle complex multi-line function call alignment
 
 **You control:**
 - Blank lines after test function opening braces `() => {`
