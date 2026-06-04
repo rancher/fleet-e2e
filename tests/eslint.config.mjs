@@ -42,7 +42,7 @@ export default tseslint.config(
       'no-extra-semi': 'error',
       'no-unexpected-multiline': 'error',
 
-      // Indentation disabled - ESLint cannot handle the required pattern
+      // Indentation disabled - ESLint cannot handle complex argument alignment
       // '@stylistic/indent': ['error', 2],
       '@stylistic/quotes': ['warn', 'single', { avoidEscape: true, allowTemplateLiterals: 'always' }],
       '@stylistic/semi': ['warn', 'always'],
@@ -61,6 +61,13 @@ export default tseslint.config(
       '@stylistic/keyword-spacing': ['warn', { before: true, after: true }],
       '@stylistic/space-before-blocks': ['warn', 'always'],
       '@stylistic/no-multiple-empty-lines': ['warn', { max: 2, maxEOF: 0 }],
+      '@stylistic/max-len': ['warn', {
+        code: 120,
+        ignoreUrls: true,
+        ignoreStrings: true,
+        ignoreTemplateLiterals: true,
+        ignoreRegExpLiterals: true,
+      }],
       '@stylistic/padding-line-between-statements': [
         'error',
         // Require blank line after variable declarations
