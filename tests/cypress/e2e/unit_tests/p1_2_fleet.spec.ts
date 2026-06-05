@@ -1377,8 +1377,8 @@ describe('Test GitRepo state for missing resources with and without `diff` used 
       cy.checkGitRepoStatus(repoName, '0 / 1', '3 / 6', { repoStatus: 'Modified' });
 })
 
-  it(qase(339, `FLEET-339: Test GitRepo shows 'Active' state for missing resources when using 'diff' in 'fleet.yaml'`), { tags: '@fleet-339'}, () => {
-      const repoName = 'ds-cluster-fleet-339'
+  it(qase(442, `FLEET-442: Test GitRepo shows 'Active' state for missing resources when using 'diff' in 'fleet.yaml'`), { tags: '@fleet-442'}, () => {
+      const repoName = 'ds-cluster-fleet-442'
       const pathWithDiff = 'qa-test-apps/ignore-missing-resources/with-diff'
 
       // Create GitRepo with diff which will ignore missing resources.
