@@ -1367,7 +1367,7 @@ Cypress.Commands.add('executeKubectlCommand', (labelCommand, clusterName='local'
 
 // Collect cluster IDs for all clusters
 Cypress.Commands.add('getClusterIds', (clusterList) => {
-  const clusterMap: Record<string, string> = {}; // Map clusterID -> displayName
+  const clusterMap: Record<string, string> = {};
 
   cy.accesMenuSelection('Cluster Management', 'Clusters');
 
