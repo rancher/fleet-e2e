@@ -1739,4 +1739,60 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
 
     cy.clickButton('Close');
   });
+
+  it(qase(466, 'Fleet-466: Validate GitRepo shows notReady: 1 state when deployed resource has delayed readiness probe'), { tags: '@fleet-466' }, () => {
+    const repoName = 'test-notready-state';
+
+    // Create GitRepo targeting only one cluster
+    cy.addFleetRepoFromYaml('assets/per-cluster-resource-counts/git-repo-notready-state.yaml', 'fleet-default');
+    cy.verifyTableRow(0, 'Active', repoName);
+
+    // Wait briefly for deployment to start but not complete
+    cy.wait(5000);
+
+    // Open YAML view while pod is still starting (before readiness probe succeeds)
+    openGitRepoYaml(repoName);
+
+    cy.get('.CodeMirror', { log: false }).then(($el) => {
+      const yamlText = $el.text();
+
+      // Verify notReady state appears during startup
+      expect(yamlText).to.include('notReady: 1', 'Should have notReady: 1 during pod startup');
+      expect(yamlText).to.include('desiredReady: 1', 'Should have desiredReady: 1');
+
+      const readyClustersMatch = yamlText.match(/readyClusters:\s*(\d+)/);
+      const readyClustersValue = readyClustersMatch ? parseInt(readyClustersMatch[1]) : 0;
+      expect(readyClustersValue).to.equal(0, 'Should have readyClusters: 0 during startup');
+
+      cy.log(`✓ NotReady state verified: notReady: 1, readyClusters: 0`);
+    });
+
+    cy.clickButton('Close');
+
+    // Navigate back and check GitRepo status transitions to ready
+    cy.continuousDeliveryMenuSelection();
+    cy.fleetNamespaceToggle('fleet-default');
+
+    // Wait for readiness probe to succeed and GitRepo to show ready state
+    cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1', { timeout: 50000 });
+
+    // Verify it eventually transitions to ready state in perClusterResourceCounts
+    openGitRepoYaml(repoName);
+
+    cy.get('.CodeMirror', { log: false }).then(($el) => {
+      const yamlText = $el.text();
+
+      // After startup completes, notReady should be 0 and ready should be 1
+      expect(yamlText).to.include('ready: 1', 'Should have ready: 1 after startup completes');
+      expect(yamlText).to.include('desiredReady: 1', 'Should still have desiredReady: 1');
+
+      const readyClustersMatch = yamlText.match(/readyClusters:\s*(\d+)/);
+      const readyClustersValue = readyClustersMatch ? parseInt(readyClustersMatch[1]) : 0;
+      expect(readyClustersValue).to.equal(1, 'Should have readyClusters: 1 after startup');
+
+      cy.log(`✓ Final state verified: ready: 1, readyClusters: 1 (transitioned from notReady)`);
+    });
+
+    cy.clickButton('Close');
+  });
 })
