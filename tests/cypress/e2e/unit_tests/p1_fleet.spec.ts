@@ -115,44 +115,47 @@ describe('Test Self-Healing of resource modification when correctDrift option us
     });
   });
 
-describe('Test Self-Healing of resource modification when correctDrift option used for exisiting GitRepo', { tags: '@p1'}, () => {
-  it(qase(77, "Fleet-77: Test MODIFICATION to resources will be self-healed when correctDrift is set to true in existing GitRepo."), { tags: '@fleet-77', retries: 1 }, () => {
-      const repoName = "local-cluster-correct-77"
-      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
-      cy.clickButton('Create');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-      cy.checkApplicationStatus(appName);
+// Skipping test for 2.14, issue:https://github.com/rancher/fleet/issues/4945 is fixed in 2.15.
+if (!/\/2\.14/.test(Cypress.expose('rancher_version'))) {
+  describe('Test Self-Healing of resource modification when correctDrift option used for exisiting GitRepo', { tags: '@p1'}, () => {
+    it(qase(77, "Fleet-77: Test MODIFICATION to resources will be self-healed when correctDrift is set to true in existing GitRepo."), { tags: '@fleet-77', retries: 1 }, () => {
+        const repoName = "local-cluster-correct-77"
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+        cy.checkApplicationStatus(appName);
 
-      // Modify deployment count of application
-      cy.modifyDeployedApplication(appName);
+        // Modify deployment count of application
+        cy.modifyDeployedApplication(appName);
 
-      // Resource count will get increased as resource will not be restored
-      cy.filterInSearchBox(appName);
-      cy.verifyTableRow(0, appName, '2/2');
+        // Resource count will get increased as resource will not be restored
+        cy.filterInSearchBox(appName);
+        cy.verifyTableRow(0, appName, '2/2');
 
-      // Update exising GitRepo by enabling 'correctDrift'
-      cy.addFleetGitRepo({ repoName, correctDrift: 'yes', editConfig: true });
-      cy.clickButton('Save');
+        // Update exising GitRepo by enabling 'correctDrift'
+        cy.addFleetGitRepo({ repoName, correctDrift: 'yes', editConfig: true });
+        cy.clickButton('Save');
 
-      // This test is exception for using 'Force Update'.
-      // Wait added to mitigate problems before force ipdate on 2.11 onwards
-      // TODO: remove or rework when possible 
-      cy.wait(2000);
-      cy.open3dotsMenu(repoName, 'Force Update');
+        // This test is exception for using 'Force Update'.
+        // Wait added to mitigate problems before force ipdate on 2.11 onwards
+        // TODO: remove or rework when possible 
+        cy.wait(2000);
+        cy.open3dotsMenu(repoName, 'Force Update');
 
-      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-      cy.checkApplicationStatus(appName);
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+        cy.checkApplicationStatus(appName);
 
-      // Modify deployment count of application
-      cy.modifyDeployedApplication(appName);
+        // Modify deployment count of application
+        cy.modifyDeployedApplication(appName);
 
-      // Resources will be restored, hence count will be 1/1.
-      cy.filterInSearchBox(appName);
-      cy.verifyTableRow(0, appName, '1/1');
+        // Resources will be restored, hence count will be 1/1.
+        cy.filterInSearchBox(appName);
+        cy.verifyTableRow(0, appName, '1/1');
 
-      cy.deleteAllFleetRepos();
-    })
-});
+        cy.deleteAllFleetRepos();
+      })
+  });
+}
 
 describe('Test resource behavior after deleting GitRepo using keepResources option for exisiting GitRepo', { tags: ['@p1', '@pr-tests'] }, () => {
   it(qase(71, "Fleet-71: Test RESOURCES will be KEPT and NOT be DELETED after GitRepo is deleted when keepResources is set to true in existing GitRepo."), { tags: '@fleet-71' }, () => {
