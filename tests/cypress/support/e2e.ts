@@ -30,20 +30,62 @@ declare global {
       // Functions declared in commands.ts
       open3dotsMenu(name: string, selection?: string, checkNotInMenu?: boolean): Chainable<Element>;
       addPathOnGitRepoCreate(path: string, index?: number): Chainable<Element>;
-      gitRepoAuth(AuthType: string, userOrPublicKey?: string, pwdOrPrivateKey?: string, gitOrHelmAuth?: string, helmRepoURLRegex?: string): Chainable<Element>;
-      addFleetGitRepo(repoName: string, repoUrl?: string, branch?: string, path?: string, path2?: string, fleetNamespace?: string, editConfig?: boolean, helmRepoURLRegex?: string, deployToTarget?: string, tlsOption?: string, tlsCertificate?: string, allowedTargetNamespace?: string, local?: boolean): Chainable<Element>;
+      gitRepoAuth(
+        AuthType: string,
+        userOrPublicKey?: string,
+        pwdOrPrivateKey?: string,
+        gitOrHelmAuth?: string,
+        helmRepoURLRegex?: string,
+      ): Chainable<Element>;
+      addFleetGitRepo(
+        repoName: string,
+        repoUrl?: string,
+        branch?: string,
+        path?: string,
+        path2?: string,
+        fleetNamespace?: string,
+        editConfig?: boolean,
+        helmRepoURLRegex?: string,
+        deployToTarget?: string,
+        tlsOption?: string,
+        tlsCertificate?: string,
+        allowedTargetNamespace?: string,
+        local?: boolean,
+      ): Chainable<Element>;
       fleetNamespaceToggle(toggleOption: string): Chainable<Element>;
-      verifyTableRow(rowNumber: number, expectedText1?: string|RegExp, expectedText2?: string|RegExp, timeout?: number): Chainable<Element>;
+      verifyTableRow(
+        rowNumber: number,
+        expectedText1?: string | RegExp,
+        expectedText2?: string | RegExp,
+        timeout?: number,
+      ): Chainable<Element>;
       nameSpaceMenuToggle(namespaceName: string): Chainable<Element>;
       accesMenuSelection(firstAccessMenu: string, secondAccessMenu?: string, clickOption?: string): Chainable<Element>;
       filterInSearchBox(filterText: string): Chainable<Element>;
       deleteAll(fleetCheck?: boolean): Chainable<Element>;
       deleteAllFleetRepos(namespaceName?: string): Chainable<Element>;
-      checkGitRepoStatus(repoName: string, bundles?: string, resources?: string, options?: {timeout?:number, repoStatus?: string}): Chainable<Element>;
-      checkApplicationStatus(appName: string, clusterName?: string, appNamespace?: string, present?: boolean, firstNav?: string, resourceToCheck?: string): Chainable<Element>;
+      checkGitRepoStatus(
+        repoName: string,
+        bundles?: string,
+        resources?: string,
+        options?: { timeout?: number; repoStatus?: string },
+      ): Chainable<Element>;
+      checkApplicationStatus(
+        appName: string,
+        clusterName?: string,
+        appNamespace?: string,
+        present?: boolean,
+        firstNav?: string,
+        resourceToCheck?: string,
+      ): Chainable<Element>;
       deleteApplicationDeployment(clusterName?: string): Chainable<Element>;
       modifyDeployedApplication(appName: string, clusterName?: string): Chainable<Element>;
-      createRoleTemplate(roleType: string, roleName: string, newUserDefault?: string['yes'|'no'], rules?: string[]): Chainable<Element>;
+      createRoleTemplate(
+        roleType: string,
+        roleName: string,
+        newUserDefault?: string['yes' | 'no'],
+        rules?: string[],
+      ): Chainable<Element>;
       assignRoleToUser(userName: string, roleName: string): Chainable<Element>;
       deleteUser(userName: string): Chainable<Element>;
       deleteAllUsers(): Chainable<Element>;
@@ -52,25 +94,61 @@ declare global {
       allowRancherPreReleaseVersions(): Chainable<Element>;
       upgradeFleet(): Chainable<Element>;
       assignClusterLabel(clusterName: string, key: string, value: string): Chainable<Element>;
-      createClusterGroup(clusterGroupName: string, key: string, value: string, bannerMessageToAssert: string|RegExp, assignClusterGroupLabel?: boolean, clusterGroupLabelKey?: string, clusterGroupLabelValue?: string): Chainable<Element>;
+      createClusterGroup(
+        clusterGroupName: string,
+        key: string,
+        value: string,
+        bannerMessageToAssert: string | RegExp,
+        assignClusterGroupLabel?: boolean,
+        clusterGroupLabelKey?: string,
+        clusterGroupLabelValue?: string,
+      ): Chainable<Element>;
       deleteClusterGroups(): Chainable<Element>;
       deployToClusterOrClusterGroup(deployToTarget: string): Chainable<Element>;
       removeClusterLabels(clusterName: string, key: string, value: string): Chainable<Element>;
       clusterCountClusterGroup(clusterGroupName: string, clusterCount: number): Chainable<Element>;
       addYamlFile(yamlFilePath: string): Chainable<Element>;
-      verifyJobDeleted(repoName: string, verifyJobDeletedEvent?: boolean ): Chainable<Element>;
+      verifyJobDeleted(repoName: string, verifyJobDeletedEvent?: boolean): Chainable<Element>;
       typeIntoCanvasTermnal(textToType: string): Chainable<Element>;
       checkGitRepoAfterUpgrade(repoName: string, fleetNamespace?: string): Chainable<Element>;
       gitRepoResourceCountAsInteger(repoName: string, fleetNamespace?: string): Chainable<Element>;
       compareClusterResourceCount(multipliedResourceCount: boolean): Chainable<Element>;
-      createNewUser(username: string, password: string, role: string, uncheckStandardUser?: boolean): Chainable<Element>;
-      addFleetGitRepoNew(repoName: string, repoUrl?: string, branch?: string, path?: string, path2?: string, fleetNamespace?: string, editConfig?: boolean, helmUrlRegex?: string, deployToTarget?: string, tlsOption?: string, tlsCertificate?: string, allowedTargetNamespace?: string): Chainable<Element>;
+      createNewUser(
+        username: string,
+        password: string,
+        role: string,
+        uncheckStandardUser?: boolean,
+      ): Chainable<Element>;
+      addFleetGitRepoNew(
+        repoName: string,
+        repoUrl?: string,
+        branch?: string,
+        path?: string,
+        path2?: string,
+        fleetNamespace?: string,
+        editConfig?: boolean,
+        helmUrlRegex?: string,
+        deployToTarget?: string,
+        tlsOption?: string,
+        tlsCertificate?: string,
+        allowedTargetNamespace?: string,
+      ): Chainable<Element>;
       currentClusterResourceCount(clusterName: string): Chainable<Element>;
       actualResourceOnCluster(clusterName: string): Chainable<Element>;
       enableFeatureFlag(flagName: string): Chainable<Element>;
       checkModalCardTitle(expectedText: string, waitForRestart?: boolean, shouldHaveText?: boolean): Chainable<Element>;
-      moveClusterToWorkspace(clusterName: string, workspaceName: string, timeout: number, restore?: boolean): Chainable<Element>;
-      restoreClusterToDefaultWorkspace(clusterName: string, timeout: number, defaultWorkspaceName?: string, restore?: boolean): Chainable<Element>;
+      moveClusterToWorkspace(
+        clusterName: string,
+        workspaceName: string,
+        timeout: number,
+        restore?: boolean,
+      ): Chainable<Element>;
+      restoreClusterToDefaultWorkspace(
+        clusterName: string,
+        timeout: number,
+        defaultWorkspaceName?: string,
+        restore?: boolean,
+      ): Chainable<Element>;
       createNewFleetWorkspace(newWorkspaceName: string): Chainable<Element>;
       createConfigMap(configMapName: string): Chainable<Element>;
       deleteConfigMap(configMapName: string, clusterName?: string): Chainable<Element>;
@@ -81,12 +159,29 @@ declare global {
       continuousDeliveryBundlesMenu(): Chainable<Element>;
       checkAccessToCreateGitRepoPage(): Chainable<Element>;
       clickCreateGitRepo(local?: boolean): Chainable<Element>;
-      createCloudCredential(cloudProvider: string, credentialName: string, accessKey: string, secretKey: string, region?: string): Chainable<Element>;
+      createCloudCredential(
+        cloudProvider: string,
+        credentialName: string,
+        accessKey: string,
+        secretKey: string,
+        region?: string,
+      ): Chainable<Element>;
       createCloudCluster(cloudInstanceType: string, clusterName: string, subnetId: string): Chainable<Element>;
       deleteDownstreamCluster(clusterName: string, deleteOption?: boolean): Chainable<Element>;
-      addHelmOp(fleetNamespace: string?, repoName: string, repoUrl: string, chart: string, version?: string, values?: string, deployTo?: string, serviceAccountName?: string, targetNamespace?: string, helmAuth?: string): Chainable<Element>;
+      addHelmOp(
+        fleetNamespace: string?,
+        repoName: string,
+        repoUrl: string,
+        chart: string,
+        version?: string,
+        values?: string,
+        deployTo?: string,
+        serviceAccountName?: string,
+        targetNamespace?: string,
+        helmAuth?: string,
+      ): Chainable<Element>;
       addFleetRepoFromYaml(yamlFilePath: string, fleetNamespace?: string): Chainable<Element>;
-      executeKubectlCommand(labelCommand: string,clusterName?: string): Chainable<Element>;
+      executeKubectlCommand(labelCommand: string, clusterName?: string): Chainable<Element>;
       continuousDeliveryGitRepoRestrictionsMenu(): Chainable<Element>;
       getClusterIds(clusterList: string[]): Chainable<Record<string, string>>;
     }
@@ -113,5 +208,5 @@ require('cypress-dark');
 require('cy-verify-downloads').addCustomCommand();
 require('cypress-plugin-tab');
 require('@rancher-ecp-qa/cypress-library');
-import { register as registerCypressGrep } from '@cypress/grep'
+import { register as registerCypressGrep } from '@cypress/grep';
 registerCypressGrep();

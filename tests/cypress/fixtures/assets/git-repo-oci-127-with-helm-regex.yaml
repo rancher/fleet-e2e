@@ -7,9 +7,9 @@ spec:
   repo: https://github.com/fleetqa/fleet-qa-examples-public
   branch: main
   paths:
-  - helm-oci-auth
+    - helm-oci-auth
   targets:
-  - clusterSelector: {}
+    - clusterSelector: {}
   helmSecretNameForPaths: fleet-helm-secret-127
   helmRepoURLRegex: '^oci://ghcr\.io/.*'
 ---

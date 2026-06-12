@@ -5,15 +5,13 @@ metadata:
   namespace: cattle-fleet-system
 spec:
   rules:
-  - host: "{{EXTERNAL_IP}}.nip.io"
-    http:
-      paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: gitjob
-              port:
-                number: 80
-
-                
+    - host: '{{EXTERNAL_IP}}.nip.io'
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gitjob
+                port:
+                  number: 80

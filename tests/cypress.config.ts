@@ -1,11 +1,11 @@
-import { defineConfig } from 'cypress'
-import { plugin as cypressGrepPlugin } from '@cypress/grep/plugin'
+import { defineConfig } from 'cypress';
+import { plugin as cypressGrepPlugin } from '@cypress/grep/plugin';
 import { afterSpecHook } from 'cypress-qase-reporter/hooks';
 import { writeFileSync } from 'fs';
 
-const qaseAPIToken = process.env.QASE_API_TOKEN
-const qaseMode = (process.env.QASE_MODE === 'testops' && qaseAPIToken) ? 'testops' : 'off'
-const qaseCompleteRun = process.env.QASE_TESTOPS_COMPLETE_RUN !== 'false'
+const qaseAPIToken = process.env.QASE_API_TOKEN;
+const qaseMode = process.env.QASE_MODE === 'testops' && qaseAPIToken ? 'testops' : 'off';
+const qaseCompleteRun = process.env.QASE_TESTOPS_COMPLETE_RUN !== 'false';
 
 export default defineConfig({
   viewportWidth: 1596,
@@ -25,20 +25,20 @@ export default defineConfig({
     },
     cypressQaseReporterReporterOptions: {
       mode: qaseMode,
-        debug: false,
-        logging: {
-          console: false,
+      debug: false,
+      logging: {
+        console: false,
+      },
+      testops: {
+        api: {
+          token: qaseAPIToken,
         },
-        testops: {
-          api: {
-           token: qaseAPIToken,
-          },
-          project: 'FLEET',
-          uploadAttachments: true,
-          run: {
-            complete: qaseCompleteRun,
-          },
+        project: 'FLEET',
+        uploadAttachments: true,
+        run: {
+          complete: qaseCompleteRun,
         },
+      },
       framework: {
         cypress: {
           screenshotsFolder: './screenshots',
@@ -47,38 +47,36 @@ export default defineConfig({
     },
   },
   expose: {
-    "grepFilterSpecs": true
+    grepFilterSpecs: true,
   },
   e2e: {
     // We've imported your old cypress plugins here.
     // You may want to clean this up later by importing these.
     setupNodeEvents(on, config) {
       // Adding task logger
-      on('task', {
+      (on('task', {
         // Register the 'suiteLog' task
         suiteLog(message) {
-          console.log(message)
-          return null
+          console.log(message);
+          return null;
         },
       }),
-      // Help for memory issues.
-      // Ref: https://www.bigbinary.com/blog/how-we-fixed-the-cypress-out-of-memory-error-in-chromium-browsers
-      on("before:browser:launch", (browser, launchOptions) => {
-        
-        if (["chrome", "edge"].includes(browser.name)) {
-          
-          if (browser.isHeadless) {
-            launchOptions.args.push("--no-sandbox");
-            launchOptions.args.push("--disable-gl-drawing-for-tests");
-            launchOptions.args.push("--disable-gpu");
-            launchOptions.args.push("--js-flags=--max-old-space-size=3500");
+        // Help for memory issues.
+        // Ref: https://www.bigbinary.com/blog/how-we-fixed-the-cypress-out-of-memory-error-in-chromium-browsers
+        on('before:browser:launch', (browser, launchOptions) => {
+          if (['chrome', 'edge'].includes(browser.name)) {
+            if (browser.isHeadless) {
+              launchOptions.args.push('--no-sandbox');
+              launchOptions.args.push('--disable-gl-drawing-for-tests');
+              launchOptions.args.push('--disable-gpu');
+              launchOptions.args.push('--js-flags=--max-old-space-size=3500');
+            }
           }
-        }
-        return launchOptions;
-      });  
+          return launchOptions;
+        }));
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      require('cypress/plugins/index.ts')(on, config)
-      cypressGrepPlugin(config)
+      require('cypress/plugins/index.ts')(on, config);
+      cypressGrepPlugin(config);
       require('cypress-qase-reporter/plugin')(on, config);
       require('cypress-qase-reporter/metadata')(on);
       on('after:spec', async (spec, results) => {
@@ -92,13 +90,14 @@ export default defineConfig({
         const qaseRunId = process.env.QASE_TESTOPS_RUN_ID;
 
         if (qaseRunId) {
-          writeFileSync('./cypress/e2e/unit_tests/QASE_TESTOPS_RUN_ID.txt', qaseRunId, { encoding: 'utf8' });
-        } 
+          writeFileSync('./cypress/e2e/unit_tests/QASE_TESTOPS_RUN_ID.txt', qaseRunId, {
+            encoding: 'utf8',
+          });
+        }
       });
-      
+
       return config;
     },
     specPattern: 'cypress/e2e/unit_tests/*.spec.ts',
-    
   },
-})
+});
