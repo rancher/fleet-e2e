@@ -1034,19 +1034,6 @@ Cypress.Commands.add('verifyJobDeleted', (repoName, verifyJobDeletedEvent = true
 
 // Simulate typing on the canvas terminal
 Cypress.Commands.add('typeIntoCanvasTermnal', (textToType) => {
-  // Simulate typing on the canvas terminal
-  cy.get('canvas').then(($canvas) => {
-    const canvas = $canvas[0];
-    const rect = canvas.getBoundingClientRect();
-
-    // Simulate a click on the canvas
-    cy.wrap(canvas)
-      .trigger('mousedown', { clientX: rect.left + 10, clientY: rect.top + 10 })
-      .trigger('mouseup', { clientX: rect.left + 10, clientY: rect.top + 10 });
-
-    // Simulate typing on the canvas
-    cy.wrap(canvas).trigger('keydown', { key: 'k' }).type(textToType);
-  });
   // Simulate typing on the canvas/textarea terminal
   // Try newer version (textarea) first, fallback to canvas for older versions
   cy.get('body').then(($body) => {
