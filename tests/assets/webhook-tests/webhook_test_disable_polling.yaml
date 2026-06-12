@@ -11,10 +11,10 @@ spec:
   repo: https://github.com/fleetqa/webhook-github-test
   disablePolling: true
   targets:
-  - clusterSelector:
-      matchExpressions:
-      - key: provider.cattle.io
-        operator: NotIn
-        values:
-        - harvester
+    - clusterSelector:
+        matchExpressions:
+          - key: provider.cattle.io
+            operator: NotIn
+            values:
+              - harvester
 __clone: true

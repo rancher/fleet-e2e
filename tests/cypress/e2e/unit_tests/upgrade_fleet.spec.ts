@@ -14,8 +14,8 @@ limitations under the License.
 
 import 'cypress/support/commands';
 
-export const branch = "master";
-export let upgrade = Cypress.expose('upgrade') === 'true'
+export const branch = 'master';
+export const upgrade = Cypress.expose('upgrade') === 'true';
 
 beforeEach(() => {
   cy.login();
@@ -24,116 +24,132 @@ beforeEach(() => {
 
 Cypress.config();
 describe('Test Fleet deployment on PRIVATE repos with SSH auth', { tags: '@upgrade' }, () => {
-  it(qase(157, `FLEET-157: Test to install "NGINX" app using "SSH" auth on "GitLab" PRIVATE repository`), { tags: '@fleet-157', retries: 1 }, () => {
-      const repoName = 'default-cluster-fleet-157'
-      const gitAuthType = "ssh"
-      const userOrPublicKey = Cypress.expose("rsa_public_key_qa")
-      const pwdOrPrivateKey = Cypress.expose("rsa_private_key_qa")
-      const repoUrl = "git@gitlab.com:fleetqa/fleet-qa-examples.git"
-      const appName = "nginx-keep"
-      const branch = "main"
-      const path  = "nginx"
-      const clusterName = "imported-0";
+  it(
+    qase(157, `FLEET-157: Test to install "NGINX" app using "SSH" auth on "GitLab" PRIVATE repository`),
+    { tags: '@fleet-157', retries: 1 },
+    () => {
+      const repoName = 'default-cluster-fleet-157';
+      const gitAuthType = 'ssh';
+      const userOrPublicKey = Cypress.expose('rsa_public_key_qa');
+      const pwdOrPrivateKey = Cypress.expose('rsa_private_key_qa');
+      const repoUrl = 'git@gitlab.com:fleetqa/fleet-qa-examples.git';
+      const appName = 'nginx-keep';
+      const branch = 'main';
+      const path = 'nginx';
+      const clusterName = 'imported-0';
 
       if (upgrade) {
         cy.checkGitRepoAfterUpgrade(repoName, 'fleet-default');
-      }
-      else {
+      } else {
         cy.continuousDeliveryMenuSelection();
-        cy.fleetNamespaceToggle('fleet-default')
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey });
+        cy.fleetNamespaceToggle('fleet-default');
+        cy.addFleetGitRepo({
+          repoName,
+          repoUrl,
+          branch,
+          path,
+          gitAuthType,
+          userOrPublicKey,
+          pwdOrPrivateKey,
+        });
         cy.clickButton('Create');
       }
       cy.verifyTableRow(0, 'Active'); // Implicit wait due to https://github.corancher/dashboard/issues/12502
       cy.contains('0/0', { timeout: 20000 }).should('not.exist');
       cy.checkGitRepoStatus(repoName, '1 / 1');
       cy.checkApplicationStatus(appName, clusterName);
-    })
+    },
+  );
 });
 
-describe('Test Fleet deployment on PUBLIC repos',  { tags: '@upgrade' }, () => {
+describe('Test Fleet deployment on PUBLIC repos', { tags: '@upgrade' }, () => {
   it(qase(158, 'FLEET-158: Deploy application to local cluster'), { tags: '@fleet-158' }, () => {
-      const path = "simple"
-      const repoUrl = 'https://github.com/rancher/fleet-examples'
-      const repoName = "local-cluster-fleet-158"
-      cy.log("===========================");
-      cy.log("Cluster Upgraded: " + upgrade);
-      cy.log("===========================");
+    const path = 'simple';
+    const repoUrl = 'https://github.com/rancher/fleet-examples';
+    const repoName = 'local-cluster-fleet-158';
+    cy.log('===========================');
+    cy.log('Cluster Upgraded: ' + upgrade);
+    cy.log('===========================');
 
-      if (upgrade) {
-        cy.checkGitRepoAfterUpgrade(repoName, 'fleet-local');
-      }
-      else {
-        cy.continuousDeliveryMenuSelection();
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
-        // Adding check validate "Edit as Yaml" works
-        cy.clickButton('Edit as YAML');
-        cy.contains('apiVersion: fleet.cattle.io/v1alpha1').should('be.visible');
-        cy.clickButton('Create')
-      }
-      cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
-      cy.verifyTableRow(1, 'Service', 'frontend');
-      cy.verifyTableRow(3, 'Service', 'redis-master');
-      cy.verifyTableRow(5, 'Service', 'redis-slave');
-    })
+    if (upgrade) {
+      cy.checkGitRepoAfterUpgrade(repoName, 'fleet-local');
+    } else {
+      cy.continuousDeliveryMenuSelection();
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+      // Adding check validate "Edit as Yaml" works
+      cy.clickButton('Edit as YAML');
+      cy.contains('apiVersion: fleet.cattle.io/v1alpha1').should('be.visible');
+      cy.clickButton('Create');
+    }
+    cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
+    cy.verifyTableRow(1, 'Service', 'frontend');
+    cy.verifyTableRow(3, 'Service', 'redis-master');
+    cy.verifyTableRow(5, 'Service', 'redis-slave');
+  });
 });
 
 describe('Test gitrepos with cabundle', { tags: '@upgrade' }, () => {
-  it(qase(159, "Fleet-159 Test cabundle secrets are not created without TLS certificate"), { tags: '@fleet-159' }, () => {;
-      const repoName = 'default-159-test-cabundle-secrets-not-created'
-      const path = "qa-test-apps/nginx-app"
-      const repoUrl = "https://github.com/rancher/fleet-test-data/"
-      cy.log("===========================");
-      cy.log("Cluster Upgraded: " + upgrade);
-      cy.log("===========================");
+  it(
+    qase(159, 'Fleet-159 Test cabundle secrets are not created without TLS certificate'),
+    { tags: '@fleet-159' },
+    () => {
+      const repoName = 'default-159-test-cabundle-secrets-not-created';
+      const path = 'qa-test-apps/nginx-app';
+      const repoUrl = 'https://github.com/rancher/fleet-test-data/';
+      cy.log('===========================');
+      cy.log('Cluster Upgraded: ' + upgrade);
+      cy.log('===========================');
 
       if (upgrade) {
         cy.checkGitRepoAfterUpgrade(repoName, 'fleet-local');
-      }
-      else {
-          cy.continuousDeliveryMenuSelection();
-          cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
-          cy.clickButton('Create');
-          cy.verifyTableRow(0, 'Active', '1/1');
+      } else {
+        cy.continuousDeliveryMenuSelection();
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+        cy.clickButton('Create');
+        cy.verifyTableRow(0, 'Active', '1/1');
       }
       cy.accesMenuSelection('local', 'Storage', 'Secrets');
 
       // Confirm cabundle secret is NOT created for the specified gitrepo
       cy.nameSpaceMenuToggle('All Namespaces');
-      cy.filterInSearchBox(repoName+'-cabundle');
+      cy.filterInSearchBox(repoName + '-cabundle');
       cy.contains('There are no rows which match your search query.').should('be.visible');
-    })
+    },
+  );
 });
 
-describe('Test Crontab for Fleet job cleanup is present',  { tags: '@upgrade' }, () => {
+describe('Test Crontab for Fleet job cleanup is present', { tags: '@upgrade' }, () => {
   it(qase(162, 'FLEET-162: Test Crontab for Fleet job cleanup is present'), { tags: '@fleet-162' }, () => {
-      // This test doesnot require upgrade flag as it not creating anything,
-      // only checking the existance of Crontab for Fleet cleanup job.
+    // This test doesnot require upgrade flag as it not creating anything,
+    // only checking the existance of Crontab for Fleet cleanup job.
 
-      cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
-      cy.filterInSearchBox('fleet-cleanup-gitrepo-jobs');
+    cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
+    cy.filterInSearchBox('fleet-cleanup-gitrepo-jobs');
 
-      // Check Crontab for Fleet Cleanup job present and is Active
-      cy.verifyTableRow(0, 'Active', 'fleet-cleanup-gitrepo-jobs');
+    // Check Crontab for Fleet Cleanup job present and is Active
+    cy.verifyTableRow(0, 'Active', 'fleet-cleanup-gitrepo-jobs');
 
-      // Check Crontab schedule is '@daily'
-      cy.verifyTableRow(0, 'fleet-cleanup-gitrepo-jobs', '@daily');
-    })
+    // Check Crontab schedule is '@daily'
+    cy.verifyTableRow(0, 'fleet-cleanup-gitrepo-jobs', '@daily');
+  });
 });
 
-describe('Test "fleet-agent" image version on each downstream cluster',  { tags: '@upgrade' }, () => {
-  it(qase(163, 'FLEET-163: Test "fleet-agent" image version on each downstream cluster after upgrade '), { tags: '@fleet-163' }, () => {
-      const dsAllClusterList = ['imported-0', 'imported-1', 'imported-2']
-      cy.log("===========================");
-      cy.log("Cluster Upgraded: " + upgrade);
-      cy.log("===========================");
+describe('Test "fleet-agent" image version on each downstream cluster', { tags: '@upgrade' }, () => {
+  it(
+    qase(163, 'FLEET-163: Test "fleet-agent" image version on each downstream cluster after upgrade '),
+    { tags: '@fleet-163' },
+    () => {
+      const dsAllClusterList = ['imported-0', 'imported-1', 'imported-2'];
+      cy.log('===========================');
+      cy.log('Cluster Upgraded: ' + upgrade);
+      cy.log('===========================');
 
       //'fleet_app_version' is before upgrade version.
       // For example 'fleet_app_version' is fleet-105.0.3+up0.11.3, after splitting
       // we get 'fleet_agent_version' is '0.11.3'.
       if (upgrade) {
         const fleetAgentVersionBeforeUpgrade = Cypress.expose('fleet_app_version').split('+up')[1];
-        cy.log('Fleet Agent image version BEFORE upgrade:' + fleetAgentVersionBeforeUpgrade)
+        cy.log('Fleet Agent image version BEFORE upgrade:' + fleetAgentVersionBeforeUpgrade);
 
         // Check fleet-agent version of the downstream clusters.
         dsAllClusterList.forEach((dsCluster) => {
@@ -153,33 +169,34 @@ describe('Test "fleet-agent" image version on each downstream cluster',  { tags:
             .then((fleetAgentImageAfterUpgrade) => {
               if (typeof fleetAgentImageAfterUpgrade === 'string') {
                 const fleetAgentVersionAfterUpgrade = fleetAgentImageAfterUpgrade.split(':v')[1];
-                cy.log('Fleet Agent image version AFTER upgrade:' + fleetAgentVersionAfterUpgrade)
-                cy.wrap(fleetAgentVersionAfterUpgrade)
-                  .should('not.eq', fleetAgentVersionBeforeUpgrade)
+                cy.log('Fleet Agent image version AFTER upgrade:' + fleetAgentVersionAfterUpgrade);
+                cy.wrap(fleetAgentVersionAfterUpgrade).should('not.eq', fleetAgentVersionBeforeUpgrade);
+              } else {
+                cy.log('"fleetAgentImage" is "undefined" and can be processed further');
               }
-              else {
-                cy.log('"fleetAgentImage" is "undefined" and can be processed further')
-              }
-            })
-        })
+            });
+        });
+      } else {
+        cy.log('This test has to run After Upgrade only');
       }
-      else {
-        cy.log("This test has to run After Upgrade only")
-      }
-    })
+    },
+  );
 });
 
-describe('Test Upgrade Kubernetes version of imported cluster support for fleet',  { tags: '@k8supgrade' }, () => {
-  it(qase(90, 'FLEET-90: Test Upgrade Kubernetes version of imported cluster support for fleet'), { tags: '@fleet-90' }, () => {
-      const dsAllClusterList = ['imported-0','imported-1', 'imported-2']
+describe('Test Upgrade Kubernetes version of imported cluster support for fleet', { tags: '@k8supgrade' }, () => {
+  it(
+    qase(90, 'FLEET-90: Test Upgrade Kubernetes version of imported cluster support for fleet'),
+    { tags: '@fleet-90' },
+    () => {
+      const dsAllClusterList = ['imported-0', 'imported-1', 'imported-2'];
       if (upgrade) {
-        cy.log("K8s Version for all downstream cluster upgraded to given K8s version.")
-      }
-      else {
+        cy.log('K8s Version for all downstream cluster upgraded to given K8s version.');
+      } else {
         // Upgrade K8s version of downstream cluster.
         dsAllClusterList.forEach((dsCluster) => {
           cy.k8sUpgradeInRancher(dsCluster);
-        })
+        });
       }
-    })
+    },
+  );
 });

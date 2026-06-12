@@ -8,3 +8,4 @@
 /tests/cypress/downloads/*
 /tests/node_modules
 *package-lock.json
+.vscode/

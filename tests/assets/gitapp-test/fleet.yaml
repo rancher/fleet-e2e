@@ -8,5 +8,3 @@ spec:
   clientSecretName: github-app-secret
   repo: https://github.com/fleetrepoci/test
   pollingInterval: 1m0s
-
-  

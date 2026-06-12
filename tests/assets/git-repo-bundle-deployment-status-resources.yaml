@@ -7,6 +7,6 @@ spec:
   repo: https://github.com/rancher/fleet-test-data/
   branch: master
   paths:
-  - qa-test-apps/nginx-app
+    - qa-test-apps/nginx-app
   targets:
-  - clusterSelector: {}
+    - clusterSelector: {}

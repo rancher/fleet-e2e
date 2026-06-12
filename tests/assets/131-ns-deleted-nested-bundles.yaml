@@ -8,4 +8,4 @@ spec:
   repo: https://github.com/rancher/fleet-test-data
   deleteNamespace: true
   paths:
-  - helm-verify
+    - helm-verify

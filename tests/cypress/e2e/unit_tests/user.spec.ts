@@ -19,16 +19,16 @@ import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 
 Cypress.config();
 describe('User role testing', () => {
-  const stdUser       = "std-user"
-  const uiPassword    = "rancherpassword"
+  const stdUser = 'std-user';
+  const uiPassword = 'rancherpassword';
 
   beforeEach(() => {
     cy.visit('/');
   });
 
-    it('Create standard user', () => {
-      cy.login();
-      cypressLib.burgerMenuToggle();
-      cypressLib.createUser(stdUser, uiPassword);
-    })
+  it('Create standard user', () => {
+    cy.login();
+    cypressLib.burgerMenuToggle();
+    cypressLib.createUser(stdUser, uiPassword);
+  });
 });
