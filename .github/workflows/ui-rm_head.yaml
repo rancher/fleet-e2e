@@ -13,7 +13,7 @@ on:
         description: Existing QASE run ID (leave empty to create a new one)
         required: false
         type: string
-        default: ''
+        default: ""
       qase_complete_run:
         description: "`Uncheck` when appending test runs. `Check` on final run to close QASE. For daily runs, keep it checked."
         default: true
@@ -36,16 +36,16 @@ on:
         required: true
       upstream_cluster_version:
         description: K3s upstream cluster version where to install Rancher
-        default: 'v1.35.2+k3s1'
+        default: "v1.36.1+k3s1"
         type: string
         required: true
       grep_test_by_tag:
         description: Grep tags. For multiple selection separate with spaces. Keep always @login
         required: false
         type: string
-        default: '@login @p0 @p1 @p1_2 @rbac @special_tests'
+        default: "@login @p0 @p1 @p1_2 @rbac @special_tests"
   schedule:
-    - cron: '00 23 * * 1-5'
+    - cron: "00 23 * * 1-5"
 
 jobs:
   ui:
