@@ -89,7 +89,7 @@ on:
         description: Existing QASE run ID to report into (leave empty to create a new one)
         required: false
         type: string
-        default: ''
+        default: ""
       qase_complete_run:
         description: Complete the QASE run after tests finish (set false when appending multiple test suites to same run)
         required: false
@@ -110,7 +110,7 @@ on:
         description: Grep tags. For multiple selection separate with spaces
         required: false
         type: string
-        default: '@login @p0 @p1 @p1_2 @rbac @special_tests'
+        default: "@login @p0 @p1 @p1_2 @rbac @special_tests"
       hardening:
         description: Select if desired hardened cluster (if 'true' use only @login @hardening-tests)
         required: false
@@ -118,7 +118,7 @@ on:
         default: false
       hardening_cluster_version:
         description: Upstream cluster version for HARDENING where to install Rancher
-        default: 'v1.32.8+rke2r1'
+        default: "v1.32.8+rke2r1"
         type: string
         required: false
       runner_template:
@@ -288,7 +288,7 @@ jobs:
       - name: Cypress tests - Basics
         env:
           BROWSER: chrome
-          CYPRESS_DOCKER: 'cypress/included:15.14.2'
+          CYPRESS_DOCKER: "cypress/included:15.17.0"
           RANCHER_URL: https://${{ needs.create-runner.outputs.public_dns }}/dashboard
           RANCHER_USER: admin
           RANCHER_PASSWORD: ${{ secrets.rancher_password }}
@@ -310,7 +310,7 @@ jobs:
           QASE_TESTOPS_RUN_ID: ${{ inputs.qase_run_id }}
           QASE_MODE: ${{ inputs.qase_report == true && 'testops' || 'off' }}
           GREPTAGS: ${{ inputs.grep_test_by_tag }}
-          UPGRADE: 'false'
+          UPGRADE: "false"
           # Add cypress/e2e/unit_tests/user.spec.ts again when implementing RBAC tests.
           SPEC: |
             cypress/e2e/unit_tests/first_login_rancher.spec.ts
@@ -398,7 +398,7 @@ jobs:
         if: ${{ inputs.rancher_upgrade != '' }}
         env:
           BROWSER: chrome
-          CYPRESS_DOCKER: 'cypress/included:15.14.2'
+          CYPRESS_DOCKER: "cypress/included:15.17.0"
           RANCHER_URL: https://${{ needs.create-runner.outputs.public_dns }}/dashboard
           RANCHER_USER: admin
           RANCHER_PASSWORD: ${{ secrets.rancher_password }}
@@ -535,4 +535,3 @@ jobs:
             echo "View the detailed report [here](https://app.qase.io/run/FLEET/dashboard/${RUN_ID})" >> ${GITHUB_STEP_SUMMARY}
           fi
           echo "QASE run $RUN_ID marked as Completed" >> ${GITHUB_STEP_SUMMARY}
-          
