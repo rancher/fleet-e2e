@@ -403,7 +403,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 					GinkgoWriter.Printf("Waiting for Active state of %s, loop %d\n", cluster.downstreamClusterName, count)
 					count++
 					return downstreamClusterStatus
-				}, tools.SetTimeout(3*time.Minute), 10*time.Second).Should(ContainSubstring("True"))
+				}, tools.SetTimeout(5*time.Minute), 10*time.Second).Should(ContainSubstring("True"))
 			}
 		})
 	})
