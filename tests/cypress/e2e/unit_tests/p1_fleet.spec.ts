@@ -848,14 +848,20 @@ describe('Test GitRepo creation from a Git revision instead of a branch', { tags
   );
 });
 
-describe('Test correctDrift does not create excessive secrets after multiple modifications', { tags: '@p1'}, () => {
-  it(qase(138, "Fleet-138: Test correctDrift ensures secret count does not exceed 2 after multiple application modifications"), { tags: '@fleet-138' }, () => {
-      const repoName = "local-cluster-correct-138"
-      const appNamespace = "nginx-keep"
+describe('Test correctDrift does not create excessive secrets after multiple modifications', { tags: '@p1' }, () => {
+  it(
+    qase(
+      138,
+      'Fleet-138: Test correctDrift ensures secret count does not exceed 2 after multiple application modifications',
+    ),
+    { tags: '@fleet-138' },
+    () => {
+      const repoName = 'local-cluster-correct-138';
+      const appNamespace = 'nginx-keep';
 
       // Create GitRepo with correctDrift enabled via YAML
       cy.continuousDeliveryMenuSelection();
-      cy.fleetNamespaceToggle('fleet-local')
+      cy.fleetNamespaceToggle('fleet-local');
       cy.clickCreateGitRepo();
       cy.clickButton('Edit as YAML');
       cy.addYamlFile('assets/git-repo-correct-drift-138.yaml');
@@ -870,10 +876,10 @@ describe('Test correctDrift does not create excessive secrets after multiple mod
         cy.log(`Modification ${i} of 3`);
         cy.wait(2000);
         cy.get('[data-testid="button-group-child-0"]').then(($button) => {
-          if ($button.hasClass('bg-disabled')){
+          if ($button.hasClass('bg-disabled')) {
             $button.trigger('click');
           }
-        })
+        });
 
         cy.filterInSearchBox(appName);
         cy.contains(appName).click();
@@ -910,5 +916,6 @@ describe('Test correctDrift does not create excessive secrets after multiple mod
         cy.log(`Found ${secretCount} secrets in namespace ${appNamespace}`);
         expect(secretCount).to.be.lte(2, `Secret count should not exceed 2, but found ${secretCount}`);
       });
-    })
+    },
+  );
 });
