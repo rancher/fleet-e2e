@@ -143,13 +143,21 @@ describe(
       () => {
         const repoName = 'Test.1-repo-local-cluster';
 
-        // Add Fleet repository and create it
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
-        cy.clickButton('Create');
-
-        // Navigate back to GitRepo page
-        cy.clickButton('Cancel');
-        cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible');
+        // For version 2.15 onwards, only add invalid name and check Next button is disabled
+        if (!/\/2\.(1[0-4])/.test(rancherVersion)) {
+          cy.continuousDeliveryMenuSelection();
+          cy.clickCreateGitRepo();
+          cy.typeValue('Name', repoName);
+          cy.wait(500);
+          cy.contains('button', 'Next').should('be.disabled');
+          cy.clickButton('Cancel');
+        } else {
+          // For older versions (2.14 and below), allow Create but verify repo is not created
+          cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+          cy.clickButton('Create');
+          cy.clickButton('Cancel');
+          cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible');
+        }
       },
     );
 
@@ -193,13 +201,21 @@ describe(
       () => {
         const repoName = 'Test.1-repo-local-cluster';
 
-        // Add Fleet repository and create it
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
-        cy.clickButton('Create');
-
-        // Navigate back to GitRepo page
-        cy.clickButton('Cancel');
-        cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible');
+        // For version 2.15 onwards, only add invalid name and check Next button is disabled
+        if (!/\/2\.(1[0-4])/.test(rancherVersion)) {
+          cy.continuousDeliveryMenuSelection();
+          cy.clickCreateGitRepo();
+          cy.typeValue('Name', repoName);
+          cy.wait(500);
+          cy.contains('button', 'Next').should('be.disabled');
+          cy.clickButton('Cancel');
+        } else {
+          // For older versions (2.14 and below), allow Create but verify repo is not created
+          cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+          cy.clickButton('Create');
+          cy.clickButton('Cancel');
+          cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible');
+        }
       },
     );
   },
