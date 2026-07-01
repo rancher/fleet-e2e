@@ -121,7 +121,6 @@ describe(
         const branch = 'master';
         const path = 'simple';
         const repoUrl = 'https://github.com/rancher/fleet-examples';
-        const flagName = 'provisioningv2-fleet-workspace-back-population';
         const newWorkspaceName = 'new-fleet-workspace';
         const fleetDefault = 'fleet-default';
         let timeout = 30000;
@@ -130,9 +129,6 @@ describe(
         if (supported_versions_212_and_above.some((r) => r.test(rancherVersion))) {
           timeout = 70000;
         }
-
-        // Enable cluster can move to another Fleet workspace feature flag.
-        cy.enableFeatureFlag(flagName);
 
         // Create new workspace.
         cy.createNewFleetWorkspace(newWorkspaceName);
