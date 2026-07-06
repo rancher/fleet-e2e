@@ -302,11 +302,21 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				GinkgoWriter.Printf("Extracted internal cluster name: %s\n", internalClusterName)
 
 				// Wait for insecureCommand to be populated (Rancher eventually replaces {token})
-				// On vm-137 we confirmed Rancher does populate real tokens, just takes time
+				// First wait for CRT to exist, then get the command
+				var crtName string
 				Eventually(func() string {
-					insecureRegistrationCommand, _ = kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
+					crtName, _ = kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
 						"--namespace", internalClusterName,
-						"-o", "jsonpath={.items[0].status.insecureCommand}",
+						"-o", "jsonpath={.items[0].metadata.name}",
+					)
+					return crtName
+				}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(Not(BeEmpty()))
+
+				// Now wait for the command to be populated with real token
+				Eventually(func() string {
+					insecureRegistrationCommand, _ = kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io", crtName,
+						"--namespace", internalClusterName,
+						"-o", "jsonpath={.status.insecureCommand}",
 					)
 					return insecureRegistrationCommand
 				}, tools.SetTimeout(10*time.Minute), 15*time.Second).Should(And(
