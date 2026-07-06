@@ -302,6 +302,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				GinkgoWriter.Printf("Extracted internal cluster name: %s\n", internalClusterName)
 
 				// Get insecureCommand and replace {token} placeholder with actual token from secret
+				// TODO: Remove this workaround when Rancher bug:https://github.com/rancher/rancher/issues/55923 is fixed - status.insecureCommand should have actual token, not {token} placeholder
 				Eventually(func() string {
 					// Get the command template
 					cmdTemplate, _ := kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
