@@ -301,17 +301,48 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				// DEBUG uncomment to see the internal cluster name
 				GinkgoWriter.Printf("Extracted internal cluster name: %s\n", internalClusterName)
 
-				// Wait for Rancher to populate the token in insecureCommand (following rancher/rancher approach)
-				// Rancher eventually replaces {token} placeholder with actual token from secret
+				// Get insecureCommand and manually replace {token} (following rancher/rancher approach)
 				Eventually(func() string {
-					insecureRegistrationCommand, _ = kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
+					// Wait for CRT to have TokenSecretName and InsecureCommand
+					tokenSecretName, _ := kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
+						"--namespace", internalClusterName,
+						"-o", "jsonpath={.items[0].status.tokenSecretName}",
+					)
+					if tokenSecretName == "" {
+						return ""
+					}
+
+					cmdTemplate, _ := kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
 						"--namespace", internalClusterName,
 						"-o", "jsonpath={.items[0].status.insecureCommand}",
 					)
+					if cmdTemplate == "" || !strings.Contains(cmdTemplate, "curl") {
+						return ""
+					}
+
+					// Get token from secret (kubectl returns base64, decode it like: kubectl ... | base64 -d)
+					base64Token, _ := kubectl.Run("get", "secret", tokenSecretName,
+						"--namespace", internalClusterName,
+						"-o", "jsonpath={.data.token}",
+					)
+					if base64Token == "" {
+						return ""
+					}
+
+					// Decode token: echo '<base64>' | base64 -d
+					decodeCmd := exec.Command("bash", "-c", fmt.Sprintf("echo '%s' | base64 -d", base64Token))
+					decodedBytes, err := decodeCmd.CombinedOutput()
+					if err != nil || len(decodedBytes) == 0 {
+						return ""
+					}
+					token := strings.TrimSpace(string(decodedBytes))
+
+					// Replace {token} with actual token (like Rancher does: strings.ReplaceAll(crt.Status.InsecureCommand, "{token}", token))
+					insecureRegistrationCommand = strings.ReplaceAll(cmdTemplate, "{token}", token)
 					return insecureRegistrationCommand
-				}, tools.SetTimeout(5*time.Minute), 10*time.Second).Should(And(
+				}, tools.SetTimeout(3*time.Minute), 10*time.Second).Should(And(
 					ContainSubstring("curl --insecure"),
-					Not(ContainSubstring("{token}")), // Wait until {token} is replaced by actual token
+					Not(ContainSubstring("{token}")),
 				))
 
 				// Fill the struct with the values
