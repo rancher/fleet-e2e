@@ -301,25 +301,39 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				// DEBUG uncomment to see the internal cluster name
 				GinkgoWriter.Printf("Extracted internal cluster name: %s\n", internalClusterName)
 
-				// Get insecureCommand for importing cluster and wait until token is populated
-				// First verify the actual token field is generated, then fetch the command
+				// Get insecureCommand and replace {token} placeholder with actual token from secret
 				Eventually(func() string {
-					// Check if the token field is populated first
-					token, _ := kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
-						"--namespace", internalClusterName,
-						"-o", "jsonpath={.items[0].status.token}",
-					)
-					if token == "" {
-						return "" // Token not ready yet, return empty to retry
-					}
-
-					// Token exists, now fetch the insecure command
-					insecureRegistrationCommand, _ = kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
+					// Get the command template
+					cmdTemplate, _ := kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
 						"--namespace", internalClusterName,
 						"-o", "jsonpath={.items[0].status.insecureCommand}",
 					)
+					if cmdTemplate == "" {
+						return ""
+					}
+
+					// Get the token secret name
+					tokenSecretName, _ := kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
+						"--namespace", internalClusterName,
+						"-o", "jsonpath={.items[0].status.tokenSecretName}",
+					)
+					if tokenSecretName == "" {
+						return cmdTemplate
+					}
+
+					// Get the actual token from secret (kubectl auto-decodes base64)
+					actualToken, _ := kubectl.Run("get", "secret", tokenSecretName,
+						"--namespace", internalClusterName,
+						"-o", "go-template={{.data.token | base64decode}}",
+					)
+					if actualToken == "" {
+						return cmdTemplate
+					}
+
+					// Replace {token} with actual token
+					insecureRegistrationCommand = strings.ReplaceAll(cmdTemplate, "{token}", actualToken)
 					return insecureRegistrationCommand
-				}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(And(
+				}, tools.SetTimeout(3*time.Minute), 10*time.Second).Should(And(
 					ContainSubstring("curl --insecure"),
 					Not(ContainSubstring("{token}")),
 				))
