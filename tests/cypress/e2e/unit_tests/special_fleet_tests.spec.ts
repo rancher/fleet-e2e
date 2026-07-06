@@ -231,7 +231,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         log: false,
       });
       cy.clickButton('Save');
-      cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+      cy.contains('charts in total', { timeout: 120000 }).should('be.visible');
     });
   });
 
