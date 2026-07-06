@@ -425,6 +425,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				_, err = kubectl.Run("wait", "--for=condition=Established", "--timeout="+timeout, "crd", "--all")
 				Expect(err).To(Not(HaveOccurred()))
 				// Run the registration insecure command on downstream cluster
+				GinkgoWriter.Printf("Executing registration command for %s:\n%s\n", cluster.downstreamClusterName, cluster.InsecureRegistrationCmd)
 				regCmd := exec.Command("bash", "-c", cluster.InsecureRegistrationCmd)
 				out, err := regCmd.CombinedOutput()
 				GinkgoWriter.Printf("Registration command output for cluster %s:\n%s\n", cluster.downstreamClusterName, out)
