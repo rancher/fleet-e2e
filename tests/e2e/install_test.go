@@ -332,7 +332,8 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 						return cmdTemplate
 					}
 
-					// Get the base64-encoded token from secret
+					// Get the token from secret (following Rancher's approach: string(secret.Data["token"]))
+					// jsonpath returns base64-encoded value, we'll decode it with base64 -d
 					base64Token, _ := kubectl.Run("get", "secret", tokenSecretName,
 						"--namespace", internalClusterName,
 						"-o", "jsonpath={.data.token}",
@@ -341,15 +342,15 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 						return cmdTemplate
 					}
 
-					// Decode the base64 token
-					actualToken, err := exec.Command("bash", "-c", fmt.Sprintf("echo -n '%s' | base64 -d", base64Token)).CombinedOutput()
-					if err != nil {
+					// Decode base64 token using echo and pipe to base64 -d (like Rancher does)
+					decodeCmd := exec.Command("bash", "-c", fmt.Sprintf("echo '%s' | base64 -d", base64Token))
+					decodedToken, err := decodeCmd.CombinedOutput()
+					if err != nil || len(decodedToken) == 0 {
 						return cmdTemplate
 					}
-					actualTokenStr := strings.TrimSpace(string(actualToken))
 
-					// Replace {token} with actual token
-					finalCommand = strings.ReplaceAll(cmdTemplate, "{token}", actualTokenStr)
+					// Replace {token} with actual token (following Rancher's approach)
+					finalCommand = strings.ReplaceAll(cmdTemplate, "{token}", string(decodedToken))
 					return finalCommand
 				}, tools.SetTimeout(3*time.Minute), 10*time.Second).Should(And(
 					ContainSubstring("curl --insecure"),
