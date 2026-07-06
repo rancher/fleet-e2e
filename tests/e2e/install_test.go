@@ -309,7 +309,10 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 						"-o", "jsonpath={.items[0].status.insecureCommand}",
 					)
 					return insecureRegistrationCommand
-				}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(ContainSubstring("curl --insecure"))
+				}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(And(
+					ContainSubstring("curl --insecure"),
+					Not(ContainSubstring("{token}")),
+				))
 
 				// Fill the struct with the values
 				downstreamClusters = append(downstreamClusters, downstreamCluster{
