@@ -303,6 +303,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 
 				// TODO: Remove this entire block when Rancher bug:https://github.com/rancher/rancher/issues/55923 is fixed
 				// Workaround: Fetch token from secret and replace {token} placeholder in status.insecureCommand
+				var finalCommand string
 				Eventually(func() string {
 					// First check if ClusterRegistrationToken exists
 					tokenName, err := kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
@@ -341,12 +342,13 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 					}
 
 					// Replace {token} with actual token
-					insecureRegistrationCommand = strings.ReplaceAll(cmdTemplate, "{token}", actualToken)
-					return insecureRegistrationCommand
+					finalCommand = strings.ReplaceAll(cmdTemplate, "{token}", actualToken)
+					return finalCommand
 				}, tools.SetTimeout(3*time.Minute), 10*time.Second).Should(And(
 					ContainSubstring("curl --insecure"),
 					Not(ContainSubstring("{token}")),
 				))
+				insecureRegistrationCommand = finalCommand
 				// TODO: Replace above block with simple check once bug is fixed:
 				// Eventually(func() string {
 				//   insecureRegistrationCommand, _ = kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
