@@ -301,9 +301,19 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				// DEBUG uncomment to see the internal cluster name
 				GinkgoWriter.Printf("Extracted internal cluster name: %s\n", internalClusterName)
 
-				// Get insecureCommand for importing cluster
-				// INSECURE_COMMAND=$(kubectl get ClusterRegistrationToken.management.cattle.io -n $INTERNAL_CLUSTER_NAME -o jsonpath='{.items[0].status.insecureCommand}')
+				// Get insecureCommand for importing cluster and wait until token is populated
+				// First verify the actual token field is generated, then fetch the command
 				Eventually(func() string {
+					// Check if the token field is populated first
+					token, _ := kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
+						"--namespace", internalClusterName,
+						"-o", "jsonpath={.items[0].status.token}",
+					)
+					if token == "" {
+						return "" // Token not ready yet, return empty to retry
+					}
+
+					// Token exists, now fetch the insecure command
 					insecureRegistrationCommand, _ = kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
 						"--namespace", internalClusterName,
 						"-o", "jsonpath={.items[0].status.insecureCommand}",
