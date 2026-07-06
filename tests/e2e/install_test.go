@@ -332,17 +332,24 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 						return cmdTemplate
 					}
 
-					// Get the actual token from secret (kubectl auto-decodes base64)
-					actualToken, _ := kubectl.Run("get", "secret", tokenSecretName,
+					// Get the base64-encoded token from secret
+					base64Token, _ := kubectl.Run("get", "secret", tokenSecretName,
 						"--namespace", internalClusterName,
-						"-o", "go-template={{.data.token | base64decode}}",
+						"-o", "jsonpath={.data.token}",
 					)
-					if actualToken == "" {
+					if base64Token == "" {
 						return cmdTemplate
 					}
 
+					// Decode the base64 token
+					actualToken, err := exec.Command("bash", "-c", fmt.Sprintf("echo -n '%s' | base64 -d", base64Token)).CombinedOutput()
+					if err != nil {
+						return cmdTemplate
+					}
+					actualTokenStr := strings.TrimSpace(string(actualToken))
+
 					// Replace {token} with actual token
-					finalCommand = strings.ReplaceAll(cmdTemplate, "{token}", actualToken)
+					finalCommand = strings.ReplaceAll(cmdTemplate, "{token}", actualTokenStr)
 					return finalCommand
 				}, tools.SetTimeout(3*time.Minute), 10*time.Second).Should(And(
 					ContainSubstring("curl --insecure"),
@@ -427,7 +434,6 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				_, err = kubectl.Run("wait", "--for=condition=Established", "--timeout="+timeout, "crd", "--all")
 				Expect(err).To(Not(HaveOccurred()))
 				// Run the registration insecure command on downstream cluster
-				GinkgoWriter.Printf("Executing registration command for %s:\n%s\n", cluster.downstreamClusterName, cluster.InsecureRegistrationCmd)
 				regCmd := exec.Command("bash", "-c", cluster.InsecureRegistrationCmd)
 				out, err := regCmd.CombinedOutput()
 				GinkgoWriter.Printf("Registration command output for cluster %s:\n%s\n", cluster.downstreamClusterName, out)
