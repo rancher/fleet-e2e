@@ -309,6 +309,8 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 						"--namespace", internalClusterName,
 						"-o", "jsonpath={.items[0].status.insecureCommand}",
 					)
+					// DEBUG uncomment to see the internal CRD Template
+					GinkgoWriter.Printf("Extracted internal CRD Template: %s\n", cmdTemplate)
 					if cmdTemplate == "" {
 						return ""
 					}
@@ -318,6 +320,8 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 						"--namespace", internalClusterName,
 						"-o", "jsonpath={.items[0].status.tokenSecretName}",
 					)
+					// DEBUG uncomment to see the internal Template Secret Name
+					GinkgoWriter.Printf("Extracted internal Template Secret Name: %s\n", tokenSecretName)
 					if tokenSecretName == "" {
 						return cmdTemplate
 					}
@@ -327,12 +331,16 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 						"--namespace", internalClusterName,
 						"-o", "go-template={{.data.token | base64decode}}",
 					)
+					// DEBUG uncomment to see the actual token
+					GinkgoWriter.Printf("Extracted actual token: %s\n", actualToken)
 					if actualToken == "" {
 						return cmdTemplate
 					}
 
 					// Replace {token} with actual token
 					insecureRegistrationCommand = strings.ReplaceAll(cmdTemplate, "{token}", actualToken)
+					GinkgoWriter.Printf("Final insecure registration command: %s\n", insecureRegistrationCommand)
+
 					return insecureRegistrationCommand
 				}, tools.SetTimeout(3*time.Minute), 10*time.Second).Should(And(
 					ContainSubstring("curl --insecure"),
