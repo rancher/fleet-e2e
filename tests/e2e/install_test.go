@@ -308,6 +308,8 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 						"--namespace", internalClusterName,
 						"-o", "jsonpath={.items[0].status.insecureCommand}",
 					)
+				// DEBUG uncomment to see the insecure registration command
+				GinkgoWriter.Printf("============Insecure Command================: %s\n", insecureRegistrationCommand)
 					return insecureRegistrationCommand
 				}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(ContainSubstring("curl --insecure"))
 
