@@ -4,3 +4,5 @@ build
 coverage
 *.min.js
 package-lock.json
+assets/local-kubeconfig-skel.yaml
+assets/local-kubeconfig-token-skel.yaml

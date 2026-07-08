@@ -411,6 +411,41 @@ describe('Test OCI support', { tags: ['@p1', '@pr-tests'] }, () => {
       cy.get('section#data').should('contain', 'default-name').and('contain', 'value');
     },
   );
+
+  it(
+    qase(467, 'Fleet-467: Test PRIVATE OCI helm chart without helmRepoURLRegex returns propper error message'),
+    { tags: '@fleet-467' },
+    () => {
+      const repoName = 'local-oci-467';
+      const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public';
+      const branch = 'main';
+      const path = 'helm-oci-auth';
+      const gitOrHelmAuth = 'Helm';
+      const gitAuthType = 'http';
+      const userOrPublicKey = Cypress.expose('gh_private_user');
+      const pwdOrPrivateKey = Cypress.expose('gh_private_pwd');
+      const helmRepoURLRegex = '';
+
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.addFleetGitRepo({
+        repoName,
+        repoUrl,
+        branch,
+        path,
+        gitOrHelmAuth,
+        gitAuthType,
+        userOrPublicKey,
+        pwdOrPrivateKey,
+        helmRepoURLRegex,
+      });
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Git Updating', '0/0');
+      cy.contains(
+        '.text-error',
+        'response status code 401: unauthorized: authentication required: helmRepoURLRegex is empty, so Helm credentials were not forwarded; set spec.helmRepoURLRegex to allow credential forwarding',
+      ).should('be.visible');
+    },
+  );
 });
 
 describe(
