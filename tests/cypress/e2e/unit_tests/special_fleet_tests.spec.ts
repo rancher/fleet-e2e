@@ -211,3 +211,79 @@ describe('Global settings related tests', { tags: '@special_tests' }, () => {
     },
   );
 });
+
+describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
+  it(qase(468, 'Fleet-468: Verify AppCo connection with Fleet'), { tags: '@fleet-468' }, () => {
+    const appcoUsername = Cypress.expose('appco_username');
+    const appcoAccessToken = Cypress.expose('appco_access_token');
+    const namespaces = ['fleet-local', 'fleet-default'];
+
+    namespaces.forEach((namespace) => {
+      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+      cy.fleetNamespaceToggle(namespace);
+      cy.clickButton('Create App Bundle');
+      cy.contains('App Bundle: Create').should('be.visible');
+      cy.contains('SUSE Application Collection').should('be.visible').click();
+      cy.contains('Create an App Bundle from SUSE Application Collection').should('be.visible');
+      cy.get('input[placeholder="user@domain.org"]').type(appcoUsername);
+      cy.wait(1000);
+      cy.get('textarea[placeholder="Your SUSE Application Collection access token"]').type(appcoAccessToken, {
+        log: false,
+      });
+      cy.clickButton('Save');
+      cy.contains('charts in total', { timeout: 120000 }).should('be.visible');
+    });
+  });
+
+  it(qase(469, 'Fleet-469: Test AppCo charts can be installed in local cluster'), { tags: '@fleet-469' }, () => {
+    const charts = ['alertmanager'];
+
+    charts.forEach((chartName) => {
+      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.clickButton('Create App Bundle');
+      cy.contains('App Bundle: Create').should('be.visible');
+      cy.contains('SUSE Application Collection').should('be.visible').click();
+      cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+
+      cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+      cy.wait(1000);
+      cy.contains(chartName, { timeout: 15000 }).click();
+
+      cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+      cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+      cy.clickButton('Create');
+
+      cy.contains('App Bundles').should('be.visible');
+      cy.filterInSearchBox(chartName);
+      cy.verifyTableRow(0, 'Active', chartName, 120000);
+      cy.verifyTableRow(0, chartName, '1/1');
+    });
+  });
+
+  it(qase(470, 'Fleet-470: Test AppCo charts can be installed in downstream cluster'), { tags: '@fleet-470' }, () => {
+    const charts = ['tika', 'valkey'];
+
+    charts.forEach((chartName) => {
+      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.clickButton('Create App Bundle');
+      cy.contains('App Bundle: Create').should('be.visible');
+      cy.contains('SUSE Application Collection').should('be.visible').click();
+      cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+
+      cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+      cy.wait(1000);
+      cy.contains(chartName, { timeout: 15000 }).click();
+
+      cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+      cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+      cy.clickButton('Create');
+
+      cy.contains('App Bundles').should('be.visible');
+      cy.filterInSearchBox(chartName);
+      cy.verifyTableRow(0, 'Active', chartName, 180000);
+      cy.verifyTableRow(0, chartName, /([1-9]\d*)\/\1/);
+    });
+  });
+});

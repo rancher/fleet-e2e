@@ -68,6 +68,8 @@ docker run --init -v $PWD:/workdir -w /workdir ${GH_MOUNT} ${KUBECTL_MOUNT} ${KU
     -e "GH_APP_ID=$GH_APP_ID"                       \
     -e "GH_APP_INSTALLATION_ID=$GH_APP_INSTALLATION_ID"     \
     -e "GH_APP_PRIVATE_KEY=$GH_APP_PRIVATE_KEY"     \
+    -e "APPCO_USERNAME=$APPCO_USERNAME"                     \
+    -e "APPCO_ACCESS_TOKEN=$APPCO_ACCESS_TOKEN"             \
     --add-host host.docker.internal:host-gateway            \
     --ipc=host                                              \
     $CYPRESS_DOCKER                                         \
