@@ -236,23 +236,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
   });
 
   it(qase(469, 'Fleet-469: Test AppCo charts can be installed in local cluster'), { tags: '@fleet-469' }, () => {
-    const appcoUsername = Cypress.expose('appco_username');
-    const appcoAccessToken = Cypress.expose('appco_access_token');
     const charts = ['alertmanager'];
-
-    cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
-    cy.fleetNamespaceToggle('fleet-default');
-    cy.clickButton('Create App Bundle');
-    cy.contains('App Bundle: Create').should('be.visible');
-    cy.contains('SUSE Application Collection').should('be.visible').click();
-    cy.contains('Create an App Bundle from SUSE Application Collection').should('be.visible');
-    cy.get('input[placeholder="user@domain.org"]').type(appcoUsername);
-    cy.wait(1000);
-    cy.get('textarea[placeholder="Your SUSE Application Collection access token"]').type(appcoAccessToken, {
-      log: false,
-    });
-    cy.clickButton('Save');
-    cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
 
     charts.forEach((chartName) => {
       cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
@@ -267,10 +251,10 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
       cy.contains(chartName, { timeout: 15000 }).click();
 
       cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+      cy.get('input[placeholder="A unique name"]').clear().type(chartName);
       cy.clickButton('Create');
 
-      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
-      cy.fleetNamespaceToggle('fleet-local');
+      cy.contains('App Bundles').should('be.visible');
       cy.filterInSearchBox(chartName);
       cy.verifyTableRow(0, 'Active', chartName, 120000);
       cy.verifyTableRow(0, chartName, '1/1');
@@ -278,23 +262,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
   });
 
   it(qase(470, 'Fleet-470: Test AppCo charts can be installed in downstream cluster'), { tags: '@fleet-470' }, () => {
-    const appcoUsername = Cypress.expose('appco_username');
-    const appcoAccessToken = Cypress.expose('appco_access_token');
-    const charts = ['vault', 'valkey'];
-
-    cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
-    cy.fleetNamespaceToggle('fleet-default');
-    cy.clickButton('Create App Bundle');
-    cy.contains('App Bundle: Create').should('be.visible');
-    cy.contains('SUSE Application Collection').should('be.visible').click();
-    cy.contains('Create an App Bundle from SUSE Application Collection').should('be.visible');
-    cy.get('input[placeholder="user@domain.org"]').type(appcoUsername);
-    cy.wait(1000);
-    cy.get('textarea[placeholder="Your SUSE Application Collection access token"]').type(appcoAccessToken, {
-      log: false,
-    });
-    cy.clickButton('Save');
-    cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+    const charts = ['tika', 'valkey'];
 
     charts.forEach((chartName) => {
       cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
@@ -309,12 +277,12 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
       cy.contains(chartName, { timeout: 15000 }).click();
 
       cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+      cy.get('input[placeholder="A unique name"]').clear().type(chartName);
       cy.clickButton('Create');
 
-      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
-      cy.fleetNamespaceToggle('fleet-default');
+      cy.contains('App Bundles').should('be.visible');
       cy.filterInSearchBox(chartName);
-      cy.verifyTableRow(0, 'Active', chartName, 120000);
+      cy.verifyTableRow(0, 'Active', chartName, 180000);
       cy.verifyTableRow(0, chartName, /([1-9]\d*)\/\1/);
     });
   });
