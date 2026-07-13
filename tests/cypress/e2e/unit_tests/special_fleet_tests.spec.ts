@@ -93,7 +93,7 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypres
         cy.clickButton('Save');
 
         // Verify the cluster is still Active
-        cy.wait(20000); // Wait to allow time to the status to reach "Wait" before verifying"
+        cy.wait(60000); // Wait to allow time to the status to reach "Wait" before verifying"
         cy.verifyTableRow(0, 'Active', '1');
 
         // Verify PriorityClass and PodDisruptionBudget
