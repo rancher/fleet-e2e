@@ -141,7 +141,7 @@ on:
         type: string
         required: true
       zone:
-        description: GCP zone to host the runner
+        description: GCP zone(s) to host the runner. Space-separated list is tried in order until one succeeds (stockout fallback)
         default: us-east4-a
         type: string
 
@@ -152,6 +152,7 @@ jobs:
       uuid: ${{ steps.generator.outputs.uuid }}
       runner: ${{ steps.generator.outputs.runner }}
       public_dns: ${{ steps.dns.outputs.public_dns }}
+      zone: ${{ steps.create.outputs.zone }}
     steps:
       # actions/checkout MUST come before auth
       - name: Checkout
@@ -171,10 +172,20 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
       - name: Create runner
+        id: create
         run: |
-          gcloud compute instances create ${{ steps.generator.outputs.runner }} \
-            --source-instance-template ${{ inputs.runner_template }} \
-            --zone ${{ inputs.zone }}
+          for ZONE in ${{ inputs.zone }}; do
+            echo "Trying zone ${ZONE}..."
+            if gcloud compute instances create ${{ steps.generator.outputs.runner }} \
+              --source-instance-template ${{ inputs.runner_template }} \
+              --zone "${ZONE}"; then
+              echo "zone=${ZONE}" >> ${GITHUB_OUTPUT}
+              exit 0
+            fi
+            echo "Zone ${ZONE} failed, trying next..."
+          done
+          echo "All zones failed" >&2
+          exit 1
       - name: Create PAT token secrets
         run: |
           echo -n ${{ secrets.pat_token }} \
@@ -520,7 +531,7 @@ jobs:
         run: |
           gcloud --quiet compute instances delete ${{ needs.create-runner.outputs.runner }} \
             --delete-disks all \
-            --zone ${{ inputs.zone }}
+            --zone ${{ needs.create-runner.outputs.zone }}
 
   # Just to signify that something has been cancelled and it's not useful to check the test
   declare-cancelled:
