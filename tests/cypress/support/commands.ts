@@ -124,10 +124,12 @@ Cypress.Commands.add('continuousDeliveryWorkspacesMenu', () => {
   cy.get('body', { timeout: 15000 }).then(($body) => {
     if ($body.text().includes('App Bundles')) {
       cy.contains('App Bundles').should('be.visible');
-      cy.clickNavMenu(['Workspaces']);
+      cy.get('nav').contains('Workspaces').click({ force: true });
+      cy.get('.title').contains('Workspaces').should('be.visible');
     } else if ($body.text().includes('Git Repos')) {
       cy.contains('Git Repos').should('be.visible');
       cy.clickNavMenu(['Advanced', 'Workspaces']);
+      cy.contains('Workspaces').should('be.visible');
     } else {
       throw new Error('Neither "App Bundles" nor "Git Repos" found');
     }

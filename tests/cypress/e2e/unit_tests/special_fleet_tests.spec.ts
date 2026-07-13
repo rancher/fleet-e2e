@@ -134,6 +134,7 @@ describe(
         cy.createNewFleetWorkspace(newWorkspaceName);
 
         // Switch to 'fleet-default' workspace
+        cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle(fleetDefault);
         cy.clickNavMenu(['Clusters']);
 
