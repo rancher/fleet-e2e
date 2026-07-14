@@ -192,6 +192,7 @@ Cypress.Commands.add(
     repoName,
     repoUrl,
     branch,
+    revision,
     path,
     path2,
     gitOrHelmAuth,
@@ -225,7 +226,13 @@ Cypress.Commands.add(
       cy.clickButton('Next');
 
       cy.typeValue('Repository URL', repoUrl);
-      cy.typeValue('Branch Name', branch);
+      if (branch) {
+        cy.typeValue('Branch Name', branch);
+      }
+      // Use a specific Git revision (tag or commit) instead of a branch.
+      if (revision) {
+        cy.typeValue('Revision', revision);
+      }
     }
 
     if (path) {
