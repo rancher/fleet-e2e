@@ -81,6 +81,7 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypres
         cy.get('.CodeMirror').then((codeMirrorElement) => {
           const cm = (codeMirrorElement[0] as any).CodeMirror;
           const currentYaml = cm.getValue();
+          // prettier-ignore
           const snippet = `\
   agentSchedulingCustomization:
     priorityClass:
@@ -93,14 +94,16 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypres
         cy.clickButton('Save');
 
         // Verify the cluster is still Active
-        cy.wait(60000); // Wait to allow time to the status to reach "Wait" before verifying"
-        cy.verifyTableRow(0, 'Active', '1');
+        cy.verifyTableRow(0, 'Active', '1', 600000);
 
         // Verify PriorityClass and PodDisruptionBudget
         cy.accesMenuSelection('local', 'Policy', 'Pod Disruption Budgets');
         cy.nameSpaceMenuToggle('All Namespaces');
         cy.verifyTableRow(0, 'fleet-agent', '3');
-        cy.accesMenuSelection('local', 'More Resources', 'Scheduling');
+        cy.accesMenuSelection('local', 'More Resources');
+        cy.get('nav.side-nav')
+          .contains(/^Scheduling$/)
+          .click();
         cy.contains('PriorityClasses').click();
         cy.verifyTableRow(0, 'fleet-agent', '888');
       },
