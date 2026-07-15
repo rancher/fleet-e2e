@@ -67,7 +67,7 @@ describe('Test Fleet on AWS EC2 imported cluster', { tags: '@cloud_ds' }, () => 
 
 if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypress.expose('rancher_version'))) {
   describe('Agent Scheduling Customization', { tags: '@special_tests' }, () => {
-    it.only(
+    it(
       qase(200, 'FLEET-200: Test agent scheduling customization for PDB and PriorityClass'),
       { tags: '@fleet-200' },
       () => {
