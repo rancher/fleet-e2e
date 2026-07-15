@@ -301,43 +301,54 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				// DEBUG uncomment to see the internal cluster name
 				GinkgoWriter.Printf("Extracted internal cluster name: %s\n", internalClusterName)
 
-				// Get insecureCommand and replace {token} placeholder with actual token from secret
-				// TODO: Remove this workaround when Rancher bug:https://github.com/rancher/rancher/issues/55923 is fixed - status.insecureCommand should have actual token, not {token} placeholder
-				Eventually(func() string {
-					// Get the command template
-					cmdTemplate, _ := kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
-						"--namespace", internalClusterName,
-						"-o", "jsonpath={.items[0].status.insecureCommand}",
-					)
-					if cmdTemplate == "" {
-						return ""
-					}
+				// Get insecureCommand for importing cluster
+				if useDirectInsecureCmd {
+					// Rancher <= 2.12: status.insecureCommand already embeds the real token, use as-is.
+					Eventually(func() string {
+						insecureRegistrationCommand, _ = kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
+							"--namespace", internalClusterName,
+							"-o", "jsonpath={.items[0].status.insecureCommand}",
+						)
+						return insecureRegistrationCommand
+					}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(ContainSubstring("curl --insecure"))
+				} else {
+					// Rancher 2.13+: resolve the real token from the secret and replace the {token} placeholder (rancher/rancher#55923).
+					Eventually(func() string {
+						// Get the command template
+						cmdTemplate, _ := kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
+							"--namespace", internalClusterName,
+							"-o", "jsonpath={.items[0].status.insecureCommand}",
+						)
+						if cmdTemplate == "" {
+							return ""
+						}
 
-					// Get the token secret name
-					tokenSecretName, _ := kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
-						"--namespace", internalClusterName,
-						"-o", "jsonpath={.items[0].status.tokenSecretName}",
-					)
-					if tokenSecretName == "" {
-						return cmdTemplate
-					}
+						// Get the token secret name
+						tokenSecretName, _ := kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
+							"--namespace", internalClusterName,
+							"-o", "jsonpath={.items[0].status.tokenSecretName}",
+						)
+						if tokenSecretName == "" {
+							return cmdTemplate
+						}
 
-					// Get the actual token from secret (kubectl auto-decodes base64)
-					actualToken, _ := kubectl.Run("get", "secret", tokenSecretName,
-						"--namespace", internalClusterName,
-						"-o", "go-template={{.data.token | base64decode}}",
-					)
-					if actualToken == "" {
-						return cmdTemplate
-					}
+						// Get the actual token from secret (kubectl auto-decodes base64)
+						actualToken, _ := kubectl.Run("get", "secret", tokenSecretName,
+							"--namespace", internalClusterName,
+							"-o", "go-template={{.data.token | base64decode}}",
+						)
+						if actualToken == "" {
+							return cmdTemplate
+						}
 
-					// Replace {token} with actual token
-					insecureRegistrationCommand = strings.ReplaceAll(cmdTemplate, "{token}", actualToken)
-					return insecureRegistrationCommand
-				}, tools.SetTimeout(3*time.Minute), 10*time.Second).Should(And(
-					ContainSubstring("curl --insecure"),
-					Not(ContainSubstring("{token}")),
-				))
+						// Replace {token} with actual token
+						insecureRegistrationCommand = strings.ReplaceAll(cmdTemplate, "{token}", actualToken)
+						return insecureRegistrationCommand
+					}, tools.SetTimeout(3*time.Minute), 10*time.Second).Should(And(
+						ContainSubstring("curl --insecure"),
+						Not(ContainSubstring("{token}")),
+					))
+				}
 
 				// Fill the struct with the values
 				downstreamClusters = append(downstreamClusters, downstreamCluster{
