@@ -1700,7 +1700,6 @@ describe('Validate bundleDeployment labels and status.resources', { tags: '@p1_2
       cy.nameSpaceMenuToggle('All Namespaces');
       cy.clickNavMenu(['More Resources', 'Fleet', 'BundleDeployments']);
 
-
       // Search for the bundle created by our GitRepo
       cy.filterInSearchBox(repoName);
       cy.get('td.col-link-detail > span').contains(repoName).click();
