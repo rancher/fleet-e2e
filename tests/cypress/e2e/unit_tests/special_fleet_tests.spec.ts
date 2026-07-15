@@ -67,7 +67,7 @@ describe('Test Fleet on AWS EC2 imported cluster', { tags: '@cloud_ds' }, () => 
 
 if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypress.expose('rancher_version'))) {
   describe('Agent Scheduling Customization', { tags: '@special_tests' }, () => {
-    it(
+    it.only(
       qase(200, 'FLEET-200: Test agent scheduling customization for PDB and PriorityClass'),
       { tags: '@fleet-200' },
       () => {
@@ -78,19 +78,24 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypres
         cy.clickButton('Edit as YAML');
 
         // Append the agent scheduling customization
-        cy.get('.CodeMirror').then((codeMirrorElement) => {
-          const cm = (codeMirrorElement[0] as any).CodeMirror;
-          const currentYaml = cm.getValue();
-          // prettier-ignore
-          const snippet = `\
+        cy.get('.CodeMirror')
+          .should(($el) => {
+            expect(($el[0] as any).CodeMirror.getValue()).to.include('kind: Cluster');
+          })
+          .then((codeMirrorElement) => {
+            const cm = (codeMirrorElement[0] as any).CodeMirror;
+            const currentYaml = cm.getValue();
+            // prettier-ignore
+            const snippet = `\
   agentSchedulingCustomization:
     priorityClass:
       value: 888
     podDisruptionBudget:
       minAvailable: "3"`;
-          const newYaml = currentYaml.replace(/(\nspec:)/, `$1\n${snippet}`);
-          cm.setValue(newYaml);
-        });
+            const newYaml = currentYaml.replace(/(\nspec:)/, `$1\n${snippet}`);
+            expect(newYaml, 'snippet was actually inserted').to.not.eq(currentYaml);
+            cm.setValue(newYaml);
+          });
         cy.clickButton('Save');
 
         // Verify the cluster is still Active
@@ -101,9 +106,8 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypres
         cy.nameSpaceMenuToggle('All Namespaces');
         cy.verifyTableRow(0, 'fleet-agent', '3');
         cy.accesMenuSelection('local', 'More Resources');
-        cy.get('nav.side-nav')
-          .contains(/^Scheduling$/)
-          .click();
+        // prettier-ignore
+        cy.get('nav.side-nav').contains(/^Scheduling$/).scrollIntoView().click();
         cy.contains('PriorityClasses').click();
         cy.verifyTableRow(0, 'fleet-agent', '888');
       },
