@@ -1704,16 +1704,15 @@ describe('Validate bundleDeployment labels and status.resources', { tags: '@p1_2
       cy.filterInSearchBox(repoName);
       cy.get('td.col-link-detail > span').contains(repoName).click();
 
-      // Scroll the main content area to bottom to see resources section
-      cy.get('main').scrollTo('bottom');
-      cy.wait(500);
-
+      // The detail page's resources section loads asynchronously, so wait for
+      // the content to render and scroll it into view rather than scrolling to a
+      // guessed page bottom before the content exists.
       // Verify the deployment resource details in order: apiVersion, createdAt, kind, name, namespace
-      cy.contains('apiVersion: apps/v1').should('be.visible');
-      cy.contains(/createdAt:\s*'?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z'?/);
-      cy.contains('kind: Deployment').should('be.visible');
-      cy.contains(`name: ${appName}`).should('be.visible');
-      cy.contains(`namespace: ${appName}`).should('be.visible');
+      cy.contains('apiVersion: apps/v1', { timeout: 30000 }).scrollIntoView().should('be.visible');
+      cy.contains(/createdAt:\s*'?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z'?/).should('be.visible');
+      cy.contains('kind: Deployment').scrollIntoView().should('be.visible');
+      cy.contains(`name: ${appName}`).scrollIntoView().should('be.visible');
+      cy.contains(`namespace: ${appName}`).scrollIntoView().should('be.visible');
     },
   );
 });
