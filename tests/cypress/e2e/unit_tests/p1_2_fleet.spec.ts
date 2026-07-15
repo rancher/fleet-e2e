@@ -1697,8 +1697,9 @@ describe('Validate bundleDeployment labels and status.resources', { tags: '@p1_2
 
       // Navigate to BundleDeployments
       cy.accesMenuSelection('local');
-      cy.clickNavMenu(['More Resources', 'Fleet', 'BundleDeployments']);
       cy.nameSpaceMenuToggle('All Namespaces');
+      cy.clickNavMenu(['More Resources', 'Fleet', 'BundleDeployments']);
+
 
       // Search for the bundle created by our GitRepo
       cy.filterInSearchBox(repoName);
