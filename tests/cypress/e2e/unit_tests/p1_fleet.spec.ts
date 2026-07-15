@@ -829,7 +829,7 @@ if (
   });
 }
 
-describe.only('Test GitRepo creation from a Git revision instead of a branch', { tags: '@p1' }, () => {
+describe('Test GitRepo creation from a Git revision instead of a branch', { tags: '@p1' }, () => {
   it(
     qase(122, 'Fleet-122: Test GitRepo can be created from a specific Git revision (tag) instead of a branch'),
     { tags: '@fleet-122' },
