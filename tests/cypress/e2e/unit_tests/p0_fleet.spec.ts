@@ -805,7 +805,7 @@ describe('Test GitJob security context', { tags: ['@p0', '@pr-tests'] }, () => {
   });
 });
 
-describe.only('Test GitJob tolerations', { tags: '@p0' }, () => {
+describe('Test GitJob tolerations', { tags: '@p0' }, () => {
   // Ref: https://github.com/rancher/fleet/issues/2783
   // GitJob must tolerate the common cloud provider taint
   // 'node.cloudprovider.kubernetes.io/uninitialized' so that jobs can be
