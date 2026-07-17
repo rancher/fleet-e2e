@@ -832,17 +832,23 @@ describe('Test GitJob tolerations', { tags: '@p0' }, () => {
     cy.filterInSearchBox(repoName);
     cy.get('table > tbody > tr').contains(repoName).should('be.visible');
 
-    // Open the Job's YAML from its detail page and verify the cloud provider
-    // toleration is present. Assert on booleans (not the YAML string) so
-    // Cypress does not dump the entire Job YAML into the command log/output.
-    cy.contains(repoName).click();
-    // 'Show Configuration' + YAML tab is available from Rancher 2.14 onwards;
-    // older versions expose a direct 'YAML' button on the detail page.
-    if (!/\/2\.(1[0-3])/.test(Cypress.expose('rancher_version'))) {
+    // Open the Job's YAML and verify the cloud provider toleration is
+    // present. Assert on booleans (not the YAML string) so Cypress does not
+    // dump the entire Job YAML into the command log/output.
+    if (/\/2\.11/.test(Cypress.expose('rancher_version'))) {
+      // Rancher 2.11 has no 'Show Configuration' detail view; open the Job YAML
+      // from the list 3-dot menu instead. The action is labelled 'Edit YAML' or
+      // 'View YAML' depending on the Job's edit permission - accept either.
+      cy.contains('tr.main-row', repoName).find('.icon.icon-actions').click({ force: true });
+      cy.get('.list-unstyled.menu li, [role="menuitem"]')
+        .contains(/View YAML|Edit YAML/)
+        .click({ force: true });
+    } else {
+      // 'Show Configuration' + YAML tab exists on the resource detail page
+      // from Rancher 2.12 onwards.
+      cy.contains(repoName).click();
       cy.clickButton('Show Configuration');
       cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
-    } else {
-      cy.clickButton('YAML');
     }
     cy.get('.CodeMirror', { log: false }).then(($el) => {
       const yamlText = $el.text();
