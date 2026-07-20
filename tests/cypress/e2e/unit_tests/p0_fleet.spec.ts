@@ -832,15 +832,19 @@ describe('Test GitJob tolerations', { tags: '@p0' }, () => {
       .contains(/View YAML|Edit YAML/)
       .click({ force: true });
 
-    // Assert on booleans so Cypress does not dump the whole YAML into the log.
+    // Existence: read the full document (getValue) since CodeMirror only renders
+    // the visible lines. Assert on booleans so the whole YAML is not logged.
     cy.get('.CodeMirror', { log: false }).then(($el) => {
-      const yamlText = $el.text();
+      const yamlText = ($el[0] as any).CodeMirror.getValue();
       expect(
         yamlText.includes(cloudProviderToleration),
         `GitJob's Job should tolerate the "${cloudProviderToleration}" taint`,
       ).to.be.true;
       expect(yamlText.includes('NoSchedule'), 'Toleration should use the "NoSchedule" effect').to.be.true;
     });
+
+    // Visibility: scroll the toleration line into view and confirm it renders.
+    cy.get('.CodeMirror').contains(cloudProviderToleration).scrollIntoView().should('be.visible');
   });
 });
 
