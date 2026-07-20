@@ -192,6 +192,7 @@ Cypress.Commands.add(
     repoName,
     repoUrl,
     branch,
+    revision,
     path,
     path2,
     gitOrHelmAuth,
@@ -225,7 +226,16 @@ Cypress.Commands.add(
       cy.clickButton('Next');
 
       cy.typeValue('Repository URL', repoUrl);
-      cy.typeValue('Branch Name', branch);
+      if (branch) {
+        cy.typeValue('Branch Name', branch);
+      }
+      // Use a specific Git revision (tag or commit) instead of a branch.
+      if (revision) {
+        cy.get('div.labeled-select.create.hoverable').first().should('be.visible');
+        cy.get('div.labeled-select.create.hoverable').first().click({ force: true });
+        cy.get('ul.vs__dropdown-menu > li').contains('A Revision').should('exist').click();
+        cy.typeValue('Tag or Commit Hash', revision);
+      }
     }
 
     if (path) {

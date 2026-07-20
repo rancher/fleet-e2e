@@ -41,6 +41,7 @@ declare global {
         repoName: string,
         repoUrl?: string,
         branch?: string,
+        revision?: string,
         path?: string,
         path2?: string,
         fleetNamespace?: string,
