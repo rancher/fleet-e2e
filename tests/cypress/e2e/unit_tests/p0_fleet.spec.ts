@@ -807,56 +807,38 @@ describe('Test GitJob security context', { tags: ['@p0', '@pr-tests'] }, () => {
 
 describe('Test GitJob tolerations', { tags: '@p0' }, () => {
   // Ref: https://github.com/rancher/fleet/issues/2783
-  // GitJob must tolerate the common cloud provider taint
-  // 'node.cloudprovider.kubernetes.io/uninitialized' so that jobs can be
-  // scheduled on nodes that are still being initialized by the cloud provider.
   it(qase(150, 'FLEET-150: Test GitJob tolerates cloud provider "uninitialized" taint'), { tags: '@fleet-150' }, () => {
     const repoName = 'local-150-gitjob-cloudprovider-toleration';
     const repoUrl = 'https://github.com/rancher/fleet-test-data/';
     const branch = 'master';
-    // Use a bad path on purpose: an unsuccessful GitJob is NOT cleaned up, so
-    // the Job (with its tolerations) remains available for inspection. On a
-    // successful run the Job is removed immediately, which makes the
-    // toleration impossible to verify reliably from the UI.
+    // Bad path keeps the (unsuccessful) Job around; successful Jobs are deleted immediately.
     const path = 'qa-test-apps/nginx-app-bad-path';
     const cloudProviderToleration = 'node.cloudprovider.kubernetes.io/uninitialized';
 
-    // Deploy GitRepo
     cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
     cy.clickButton('Create');
     cy.verifyTableRow(0, /Git Updating|Error/, '0/0');
 
-    // Navigate to the Kubernetes Job created by GitJob
+    // Open the Job created by GitJob
     cy.accesMenuSelection('local', 'Workloads', 'Jobs');
     cy.nameSpaceMenuToggle('All Namespaces');
     cy.filterInSearchBox(repoName);
-    cy.get('table > tbody > tr').contains(repoName).should('be.visible');
+    cy.verifyTableRow(0, /Active|Running|Failed/, repoName);
 
-    // Open the Job's YAML and verify the cloud provider toleration is
-    // present. Assert on booleans (not the YAML string) so Cypress does not
-    // dump the entire Job YAML into the command log/output.
-    if (/\/2\.11/.test(Cypress.expose('rancher_version'))) {
-      // Rancher 2.11 has no 'Show Configuration' detail view; open the Job YAML
-      // from the list 3-dot menu instead. The action is labelled 'Edit YAML' or
-      // 'View YAML' depending on the Job's edit permission - accept either.
-      cy.contains('tr.main-row', repoName).find('.icon.icon-actions').click({ force: true });
-      cy.get('.list-unstyled.menu li, [role="menuitem"]')
-        .contains(/View YAML|Edit YAML/)
-        .click({ force: true });
-    } else {
-      // 'Show Configuration' + YAML tab exists on the resource detail page
-      // from Rancher 2.12 onwards.
-      cy.contains(repoName).click();
-      cy.clickButton('Show Configuration');
-      cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
-    }
+    // 3-dot YAML action opens CodeMirror on all versions (2.11 - 2.15);
+    // its label is 'Edit YAML' or 'View YAML' depending on edit permission.
+    cy.contains('tr.main-row', repoName).find('.icon.icon-actions').click({ force: true });
+    cy.get('.list-unstyled.menu li, [role="menuitem"]')
+      .contains(/View YAML|Edit YAML/)
+      .click({ force: true });
+
+    // Assert on booleans so Cypress does not dump the whole YAML into the log.
     cy.get('.CodeMirror', { log: false }).then(($el) => {
       const yamlText = $el.text();
       expect(
         yamlText.includes(cloudProviderToleration),
         `GitJob's Job should tolerate the "${cloudProviderToleration}" taint`,
       ).to.be.true;
-      // The toleration is a NoSchedule/Equal toleration with value "true".
       expect(yamlText.includes('NoSchedule'), 'Toleration should use the "NoSchedule" effect').to.be.true;
     });
   });
