@@ -90,7 +90,7 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
   });
   cy.clickButton('Import');
   cy.get('div.card-container')
-    .contains(/Applied \d+ Resources/)
+    .contains(/Applied \d+ Resources?/)
     .should('be.visible');
 
   // Check if there is a column with age which contains a number
