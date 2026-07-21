@@ -1280,9 +1280,8 @@ Cypress.Commands.add('moveClusterToWorkspace', (clusterName, workspaceName, time
   cy.clickNavMenu(['Clusters']);
   cy.filterInSearchBox(clusterName);
 
-  // After move, cluster requires around 60seconds to back in Active state.
-  cy.wait(timeout);
-  cy.verifyTableRow(0, 'Active', clusterName);
+  // After move, cluster requires more than 60 seconds to back in Active state.
+  cy.verifyTableRow(0, 'Active', clusterName, timeout);
 });
 
 Cypress.Commands.add(
