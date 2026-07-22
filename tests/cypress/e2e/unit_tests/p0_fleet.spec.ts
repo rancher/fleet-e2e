@@ -849,7 +849,6 @@ describe('Test GitJob tolerations', { tags: '@p0' }, () => {
       ).to.eq(true);
       expect(yamlText.includes('NoSchedule'), 'Toleration should use the "NoSchedule" effect').to.eq(true);
     });
-
     // Visibility: scroll the toleration line into view and confirm it renders.
     cy.get('.CodeMirror').contains(cloudProviderToleration).scrollIntoView().should('be.visible');
   });
