@@ -847,3 +847,75 @@ describe('Test GitRepo creation from a Git revision instead of a branch', { tags
     },
   );
 });
+
+describe('Test correctDrift does not create excessive secrets after multiple modifications', { tags: '@p1' }, () => {
+  it(
+    qase(
+      138,
+      'Fleet-138: Test correctDrift ensures secret count does not exceed 2 after multiple application modifications',
+    ),
+    { tags: '@fleet-138' },
+    () => {
+      const repoName = 'local-cluster-correct-138';
+      const appNamespace = 'nginx-keep';
+
+      // Create GitRepo with correctDrift enabled via YAML
+      cy.continuousDeliveryMenuSelection();
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.clickCreateGitRepo();
+      cy.clickButton('Edit as YAML');
+      cy.addYamlFile('assets/git-repo-correct-drift-138.yaml');
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      cy.checkApplicationStatus(appName);
+
+      // Modify deployment three times without verification (correctDrift heals too fast)
+      cy.accesMenuSelection('local', 'Workloads', 'Deployments');
+
+      for (let i = 1; i <= 3; i++) {
+        cy.log(`Modification ${i} of 3`);
+        cy.wait(2000);
+        cy.get('[data-testid="button-group-child-0"]').then(($button) => {
+          if ($button.hasClass('bg-disabled')) {
+            $button.trigger('click');
+          }
+        });
+
+        cy.filterInSearchBox(appName);
+        cy.contains(appName).click();
+
+        // Wait for deployment detail page to fully load
+        cy.wait(1000);
+
+        // Click increase button without verifying the intermediate state
+        // Use force:true because correctDrift may cause page re-renders during click
+        cy.get('div.scaler > button.increase, div.plus-minus.text-right > .btn > .icon-plus')
+          .should('be.visible')
+          .click({ force: true });
+
+        // Navigate back to Deployments list
+        cy.clickNavMenu(['Deployments']);
+
+        // Wait for correctDrift to restore
+        cy.wait(15000);
+      }
+
+      // Verify application is restored to 1/1 after all modifications
+      cy.nameSpaceMenuToggle(appNamespace);
+      cy.filterInSearchBox(appName);
+      cy.verifyTableRow(0, 'Active', '1/1');
+
+      // Check secrets in the application namespace
+      cy.accesMenuSelection('local', 'Storage', 'Secrets');
+      cy.nameSpaceMenuToggle(appNamespace);
+      cy.filterInSearchBox('sh.helm.release');
+
+      // Count the secrets and verify count is not more than 2
+      cy.get('table > tbody > tr.main-row').then(($rows) => {
+        const secretCount = $rows.length;
+        cy.log(`Found ${secretCount} secrets in namespace ${appNamespace}`);
+        expect(secretCount).to.be.lte(2, `Secret count should not exceed 2, but found ${secretCount}`);
+      });
+    },
+  );
+});
