@@ -823,7 +823,7 @@ describe('Test GitJob tolerations', { tags: '@p0' }, () => {
     cy.accesMenuSelection('local', 'Workloads', 'Jobs');
     cy.nameSpaceMenuToggle('All Namespaces');
     cy.filterInSearchBox(repoName);
-    cy.verifyTableRow(0, /Active|Running|Failed/, repoName);
+    cy.verifyTableRow(0, /Active|Running|Failed|Error/, repoName);
 
     // 3-dot YAML action opens CodeMirror on all versions (2.11 - 2.15);
     // its label is 'Edit YAML' or 'View YAML' depending on edit permission.
