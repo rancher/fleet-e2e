@@ -1308,8 +1308,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
 
       // Add "limited-service-account" on the downstream cluster, pointed at by the restriction below.
-      // It has no RoleBinding, so it has no permissions on the downstream cluster.
-      cy.importYaml(dsCluster, 'assets/limited-service-account-rolebinding.yaml');
+      cy.importYaml({ clusterName: dsCluster, yamlFilePath: 'assets/limited-service-account.yaml' });
 
       // Add GitRepoRestriction on the upstream cluster, defaulting the GitRepo's service account.
       cy.continuousDeliveryMenuSelection();
@@ -1320,7 +1319,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
 
       // Let the page settle on the GitRepoRestrictions list before navigating away,
       // otherwise the burger-menu click below can be intercepted by a covering nav element.
-      cy.contains('restriction').should('be.visible');
+      cy.verifyTableRow(0, 'Active', 'restriction');
 
       // Force update the GitRepo, so it picks up the "defaultServiceAccount" restriction.
       cy.continuousDeliveryMenuSelection();
@@ -1328,19 +1327,16 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       cy.open3dotsMenu(repoName, 'Force Update');
 
       // Deploy is now denied: the Bundle's error banner names the defaulted service
-      // account, proving the restriction's defaulting was applied, and that its lack
-      // of RBAC on the downstream cluster is what denies the deploy.
+      // account, proving the restriction's defaulting was applied.
       cy.verifyTableRow(0, 'Err Applied', repoName);
       cy.contains(repoName).click();
       cy.contains('limited-service-account').should('be.visible');
 
-      // Cleanup: remove the restriction. The GitRepo itself is cleaned up by the
-      // top-level beforeEach's cy.deleteAllFleetRepos() before the next test runs.
+      // Cleanup: remove the restriction.
       cy.continuousDeliveryMenuSelection();
       cy.continuousDeliveryGitRepoRestrictionsMenu();
       cy.fleetNamespaceToggle('fleet-default');
-      cy.get('table > tbody > tr').contains('restriction').should('be.visible');
-      cy.wait(1000);
+      cy.verifyTableRow(0, 'Active', 'restriction');
       cy.deleteAll(false);
     },
   );
