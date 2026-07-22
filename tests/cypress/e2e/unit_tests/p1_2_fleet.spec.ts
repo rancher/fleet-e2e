@@ -1285,6 +1285,61 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       cy.deleteAll(false);
     },
   );
+
+  it(
+    qase(153, 'Fleet-153: Test "defaultServiceAccount" from "GitRepoRestrictions" is enforced on downstream cluster'),
+    { tags: '@fleet-153' },
+    () => {
+      const repoName = 'local-gitreporestrictions-fleet-153';
+      const dsCluster = 'imported-0';
+
+      // Ensure no GitRepoRestriction is left over from a previous (failed) run,
+      // otherwise the "unrestricted" deploy below would be restricted too.
+      cy.continuousDeliveryMenuSelection();
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.wait(1000);
+      cy.deleteAll(false);
+
+      // Deploy GitRepo, no restriction present yet, deploy succeeds using the fleet-agent's own credentials.
+      cy.addFleetRepoFromYaml('assets/git-repo-restrictions-153.yaml', 'fleet-default');
+      cy.verifyTableRow(0, 'Active', repoName);
+      cy.checkGitRepoStatus(repoName, '1 / 1');
+      cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+
+      // Add "limited-service-account" on the downstream cluster, pointed at by the restriction below.
+      cy.importYaml({ clusterName: dsCluster, yamlFilePath: 'assets/limited-service-account.yaml' });
+
+      // Add GitRepoRestriction on the upstream cluster, defaulting the GitRepo's service account.
+      cy.continuousDeliveryMenuSelection();
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
+      cy.clickButton('Create from YAML');
+      cy.addYamlFile('assets/git-repo-restrictions-default-service-account.yaml');
+      cy.clickButton('Create');
+
+      // Let the page settle on the GitRepoRestrictions list before navigating away,
+      // otherwise the burger-menu click below can be intercepted by a covering nav element.
+      cy.verifyTableRow(0, 'Active', 'restriction');
+
+      // Force update the GitRepo, so it picks up the "defaultServiceAccount" restriction.
+      cy.continuousDeliveryMenuSelection();
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.open3dotsMenu(repoName, 'Force Update');
+
+      // Deploy is now denied: the Bundle's error banner names the defaulted service
+      // account, proving the restriction's defaulting was applied.
+      cy.verifyTableRow(0, 'Err Applied', repoName);
+      cy.contains(repoName).click();
+      cy.contains('limited-service-account').should('be.visible');
+
+      // Cleanup: remove the restriction.
+      cy.continuousDeliveryMenuSelection();
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.verifyTableRow(0, 'Active', 'restriction');
+      cy.deleteAll(false);
+    },
+  );
 });
 
 describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.', { tags: '@p1_2' }, () => {
