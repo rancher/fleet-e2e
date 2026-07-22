@@ -825,12 +825,19 @@ describe('Test GitJob tolerations', { tags: '@p0' }, () => {
     cy.filterInSearchBox(repoName);
     cy.verifyTableRow(0, /Active|Running|Failed|Error/, repoName);
 
-    // 3-dot YAML action opens CodeMirror on all versions (2.11 - 2.15);
-    // its label is 'Edit YAML' or 'View YAML' depending on edit permission.
-    cy.contains('tr.main-row', repoName).find('.icon.icon-actions').click({ force: true });
-    cy.get('.list-unstyled.menu li, [role="menuitem"]')
-      .contains(/View YAML|Edit YAML/)
-      .click({ force: true });
+    // Open the Job's YAML. From 2.12 onwards the detail page exposes
+    // 'Show Configuration' + a YAML tab; 2.11 has neither, so fall back to the
+    // list 3-dot action ('Edit YAML' / 'View YAML' depending on edit permission).
+    if (/\/2\.11/.test(Cypress.expose('rancher_version'))) {
+      cy.contains('tr.main-row', repoName).find('.icon.icon-actions').click({ force: true });
+      cy.get('.list-unstyled.menu li, [role="menuitem"]')
+        .contains(/View YAML|Edit YAML/)
+        .click({ force: true });
+    } else {
+      cy.contains(repoName).click();
+      cy.clickButton('Show Configuration');
+      cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
+    }
 
     // Existence: read the full document (getValue) since CodeMirror only renders
     // the visible lines. Assert on booleans so the whole YAML is not logged.
@@ -839,8 +846,8 @@ describe('Test GitJob tolerations', { tags: '@p0' }, () => {
       expect(
         yamlText.includes(cloudProviderToleration),
         `GitJob's Job should tolerate the "${cloudProviderToleration}" taint`,
-      ).to.be.true;
-      expect(yamlText.includes('NoSchedule'), 'Toleration should use the "NoSchedule" effect').to.be.true;
+      ).to.eq(true);
+      expect(yamlText.includes('NoSchedule'), 'Toleration should use the "NoSchedule" effect').to.eq(true);
     });
 
     // Visibility: scroll the toleration line into view and confirm it renders.
