@@ -45,6 +45,8 @@ docker run --init -v $PWD:/workdir -w /workdir ${GH_MOUNT} ${KUBECTL_MOUNT} ${KU
     -e QASE_TESTOPS_RUN_DESCRIPTION="$QASE_TESTOPS_RUN_DESCRIPTION" \
     -e QASE_TESTOPS_RUN_ID=$QASE_TESTOPS_RUN_ID             \
     -e QASE_TESTOPS_BATCH_SIZE=1                            \
+    -e QASE_LOGGING_CONSOLE=$QASE_LOGGING_CONSOLE           \
+    -e QASE_DEBUG=$QASE_DEBUG                               \
     -e RANCHER_VERSION=$RANCHER_VERSION                     \
     -e RANCHER_PASSWORD=$RANCHER_PASSWORD                   \
     -e RANCHER_URL=$RANCHER_URL                             \
