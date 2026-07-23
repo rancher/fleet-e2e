@@ -884,7 +884,7 @@ describe(
 );
 
 describe(
-  'Test Fleet access with RBAC with "CUSTOM ROLES" and "GITREPOS" using "USER-BASE" user',
+  'Test Fleet access with RBAC with "CUSTOM ROLES" and "FLEETWORKSPACES" using "USER-BASE" user',
   { tags: '@rbac' },
   () => {
     it(
