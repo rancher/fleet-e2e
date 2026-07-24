@@ -274,7 +274,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
   it(
     qase(
       42,
-      'Test "Standard User" role user with custom role to "fleetworkspaces", "gitrepos" and "bundles" and  ALL verbs access CAN access "Workspaces", "Bundles" and "Git Repos" but NOT "Cluster Registration Tokens" "BundleNamespaceMappings" and "GitRepoRestrictions"',
+      'Test "Standard User" role with custom role to "fleetworkspaces", "gitrepos" and "bundles" and ALL verbs CAN access "Workspaces", "Bundles" and "Git Repos" but NOT "Cluster Registration Tokens", "BundleNamespaceMappings" and "GitRepoRestrictions"',
     ),
     { tags: '@fleet-42' },
     () => {
