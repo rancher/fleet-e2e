@@ -320,15 +320,7 @@ jobs:
           GREPTAGS: ${{ inputs.grep_test_by_tag }}
           UPGRADE: "false"
           # Add cypress/e2e/unit_tests/user.spec.ts again when implementing RBAC tests.
-          SPEC: |
-            cypress/e2e/unit_tests/first_login_rancher.spec.ts
-            cypress/e2e/unit_tests/p0_fleet.spec.ts
-            cypress/e2e/unit_tests/p1_fleet.spec.ts
-            cypress/e2e/unit_tests/p1_2_fleet.spec.ts
-            cypress/e2e/unit_tests/rbac_fleet.spec.ts
-            cypress/e2e/unit_tests/upgrade_fleet.spec.ts
-            cypress/e2e/unit_tests/hardened_fleet.spec.ts
-            cypress/e2e/unit_tests/special_fleet_tests.spec.ts
+          SPEC: cypress/e2e/unit_tests/first_login_rancher.spec.ts,cypress/e2e/unit_tests/p0_fleet.spec.ts,cypress/e2e/unit_tests/p1_fleet.spec.ts,cypress/e2e/unit_tests/p1_2_fleet.spec.ts,cypress/e2e/unit_tests/rbac_fleet.spec.ts,cypress/e2e/unit_tests/upgrade_fleet.spec.ts,cypress/e2e/unit_tests/hardened_fleet.spec.ts,cypress/e2e/unit_tests/special_fleet_tests.spec.ts
         run: |
           if [[ "${{ inputs.qase_report }}" != "true" ]]; then
             unset QASE_API_TOKEN
@@ -433,9 +425,7 @@ jobs:
           K8S_VERSION_UPGRADE_DS_CLUSTER_TO: ${{ inputs.k8s_version_to_upgrade_ds_cluster_to }}
           QASE_TESTOPS_RUN_ID: ${{ steps.qase_run_id.outputs.qase_run_id }}
           QASE_MODE: ${{ inputs.qase_report == true && 'testops' || 'off' }}
-          SPEC: |
-            cypress/e2e/unit_tests/first_login_rancher.spec.ts
-            cypress/e2e/unit_tests/upgrade_fleet.spec.ts
+          SPEC: cypress/e2e/unit_tests/first_login_rancher.spec.ts,cypress/e2e/unit_tests/upgrade_fleet.spec.ts
         run: |
           if [[ "${{ inputs.qase_report }}" != "true" ]]; then
             unset QASE_API_TOKEN

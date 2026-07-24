@@ -73,4 +73,4 @@ docker run --init -v $PWD:/workdir -w /workdir ${GH_MOUNT} ${KUBECTL_MOUNT} ${KU
     --add-host host.docker.internal:host-gateway            \
     --ipc=host                                              \
     $CYPRESS_DOCKER                                         \
-    -s $SPEC
+    -s "$SPEC"
