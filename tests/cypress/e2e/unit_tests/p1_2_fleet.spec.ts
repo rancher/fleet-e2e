@@ -2031,3 +2031,64 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
     },
   );
 });
+
+describe(
+  'Old Helm release is removed within garbageCollectionInterval when bundle release name/namespace changes',
+  { tags: '@p1_2' },
+  () => {
+    it(
+      qase(140, 'Fleet-140: Test remove old release when new release is updated in fleet.yaml'),
+      { tags: '@fleet-140' },
+      () => {
+        // Configure a short Garbage Collection (GC) interval (default 15m) via the rancher-config fleet-agent key.
+        // Keep a newline right after each `{` so Cypress .type() reads it as a literal brace, not a special-key sequence.
+        const patchGarbageCollectionInterval = `\
+            kubectl patch configmap rancher-config \
+            -n cattle-system \
+            --type merge \
+            -p '{
+              "data": {
+                "fleet-agent": "garbageCollectionInterval: 30s"
+              }
+            }'{enter}`;
+        const pathVer1 = 'qa-test-apps/check-old-release-removal/app-version-1';
+        const pathVer2 = 'qa-test-apps/check-old-release-removal/app-version-2';
+        const repoName = 'test-remove-old-release';
+        const release1Secret = 'sh.helm.release.v1.release1.v1';
+        const release2Secret = 'sh.helm.release.v1.release2.v1';
+
+        // Patch the rancher-config fleet-agent key to set a 30s garbage collection interval, then wait 60s for it to take effect.
+        cy.executeKubectlCommand(patchGarbageCollectionInterval);
+        cy.wait(60000);
+
+        // Deploy app-version-1 -> release1 in namespace app-version-1.
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path: pathVer1, local: true });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+        cy.accesMenuSelection('local', 'Storage', 'Secrets');
+        cy.nameSpaceMenuToggle('All Namespaces');
+        cy.filterInSearchBox(release1Secret);
+        cy.verifyTableRow(0, 'Active', release1Secret);
+
+        // Update the path to app-version-2, changing both the release name and namespace.
+        cy.addFleetGitRepo({ repoName, path: pathVer2, editConfig: true });
+        cy.clickButton('Save');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+        // New release2 secret appears.
+        cy.accesMenuSelection('local', 'Storage', 'Secrets');
+        cy.nameSpaceMenuToggle('All Namespaces');
+        cy.filterInSearchBox(release2Secret);
+        cy.verifyTableRow(0, 'Active', release2Secret);
+
+        // Old release1 secret is garbage-collected within the interval. Retry until it disappears
+        // (30s interval + reconcile) instead of a fixed wait, so the test passes as soon as it's gone.
+        cy.accesMenuSelection('local', 'Storage', 'Secrets');
+        cy.nameSpaceMenuToggle('All Namespaces');
+        cy.filterInSearchBox(release1Secret);
+        cy.contains(release1Secret, { timeout: 120000 }).should('not.exist');
+      },
+    );
+  },
+);
