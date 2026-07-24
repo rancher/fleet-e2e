@@ -90,7 +90,7 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
   });
   cy.clickButton('Import');
   cy.get('div.card-container')
-    .contains(/Applied \d+ Resources/)
+    .contains(/Applied \d+ Resources?/)
     .should('be.visible');
 
   // Check if there is a column with age which contains a number
@@ -1280,9 +1280,8 @@ Cypress.Commands.add('moveClusterToWorkspace', (clusterName, workspaceName, time
   cy.clickNavMenu(['Clusters']);
   cy.filterInSearchBox(clusterName);
 
-  // After move, cluster requires around 60seconds to back in Active state.
-  cy.wait(timeout);
-  cy.verifyTableRow(0, 'Active', clusterName);
+  // After move, cluster requires more than 60 seconds to back in Active state.
+  cy.verifyTableRow(0, 'Active', clusterName, timeout);
 });
 
 Cypress.Commands.add(

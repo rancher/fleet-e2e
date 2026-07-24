@@ -134,7 +134,7 @@ describe(
 
         //Version check for 2.12 (head)
         if (supported_versions_212_and_above.some((r) => r.test(rancherVersion))) {
-          timeout = 70000;
+          timeout = 180000; // 3 minutes for 2.12 and above
         }
 
         // Create new workspace.
