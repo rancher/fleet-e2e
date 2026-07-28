@@ -217,6 +217,19 @@ describe('Global settings related tests', { tags: '@special_tests' }, () => {
 });
 
 describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
+  beforeEach(() => {
+    // deleteAllFleetRepos() (global beforeEach) only reaches App Bundles when
+    // continuousDeliveryMenuSelection() resolves to the App Bundles nav (Rancher 2.12+ AND
+    // rancher_version detected correctly) - it silently no-ops on App Bundles otherwise, since
+    // an App Bundle isn't a GitRepo. Clean the App Bundles page directly so leftovers from a
+    // previous run never carry into this one, regardless of version detection.
+    cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+    cy.fleetNamespaceToggle('fleet-local');
+    cy.deleteAll();
+    cy.fleetNamespaceToggle('fleet-default');
+    cy.deleteAll();
+  });
+
   it(qase(468, 'Fleet-468: Verify AppCo connection with Fleet'), { tags: '@fleet-468' }, () => {
     const appcoUsername = Cypress.expose('appco_username');
     const appcoAccessToken = Cypress.expose('appco_access_token');
@@ -240,11 +253,26 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
   });
 
   it(qase(469, 'Fleet-469: Test AppCo charts can be installed in local cluster'), { tags: '@fleet-469' }, () => {
-    const charts = ['alertmanager'];
+    // Batch 1 - controllers/operators, no PV. Lightest charts, kept small on purpose (see other
+    // qase('TBD-469-N') tests below for the remaining batches, split to stay under the local
+    // cluster pod cap).
+    const charts = [
+      'alertmanager',
+      'argo-rollouts',
+      'cert-manager',
+      'cert-manager-approver-policy',
+      'cloudnative-pg',
+      'coredns',
+      'external-dns',
+      'external-secrets-operator',
+    ];
 
+    cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+    cy.fleetNamespaceToggle('fleet-local');
+
+    // Fire off every install first so Fleet reconciles them concurrently on the cluster, instead of
+    // waiting for each chart to reach Active before starting the next one.
     charts.forEach((chartName) => {
-      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
-      cy.fleetNamespaceToggle('fleet-local');
       cy.clickButton('Create App Bundle');
       cy.contains('App Bundle: Create').should('be.visible');
       cy.contains('SUSE Application Collection').should('be.visible').click();
@@ -259,18 +287,263 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
       cy.clickButton('Create');
 
       cy.contains('App Bundles').should('be.visible');
+      // Stagger installs so Fleet doesn't burst-pull several charts from the OCI registry at once (429s).
+      cy.wait(3000);
+    });
+
+    // Then check every row reached Active/N-of-N.
+    charts.forEach((chartName) => {
       cy.filterInSearchBox(chartName);
       cy.verifyTableRow(0, 'Active', chartName, 120000);
       cy.verifyTableRow(0, chartName, '1/1');
     });
   });
 
+  it(
+    qase('TBD-469-2', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 2'),
+    { tags: '@fleet-469-batch2' },
+    () => {
+      // Batch 2 - daemonsets/small controllers, no PV.
+      const charts = [
+        'jaeger-operator',
+        'kube-state-metrics',
+        'kubernetes-cluster-autoscaler',
+        'kubernetes-csi-driver-nfs',
+        'kured',
+        'metacontroller',
+        'metallb',
+        // 'metallb-fips',
+      ];
+
+      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+      cy.fleetNamespaceToggle('fleet-local');
+
+      charts.forEach((chartName) => {
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('SUSE Application Collection').should('be.visible').click();
+        cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+
+        cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+        cy.wait(1000);
+        cy.contains(chartName, { timeout: 15000 }).click();
+
+        cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+        cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+        cy.clickButton('Create');
+
+        cy.contains('App Bundles').should('be.visible');
+        cy.wait(3000);
+      });
+
+      charts.forEach((chartName) => {
+        cy.filterInSearchBox(chartName);
+        cy.verifyTableRow(0, 'Active', chartName, 120000);
+        cy.verifyTableRow(0, chartName, '1/1');
+      });
+    },
+  );
+
+  it.only(
+    qase('TBD-469-3', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 3'),
+    { tags: '@fleet-469-batch3' },
+    () => {
+      // Batch 3 - single-pod charts, no PV.
+      const charts = [
+        'node-exporter',
+        'oauth2-proxy',
+        'open-webui-mcpo',
+        'open-webui-pipelines',
+        'opentelemetry-operator',
+        'prometheus-blackbox-exporter',
+        'prometheus-pushgateway',
+        'prometheus-statsd-exporter',
+        'suse-security-admission-controller',
+        'kiali',
+        'apache-tika',
+        'fluent-bit',
+        'fluentd',
+      ];
+
+      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+      cy.fleetNamespaceToggle('fleet-local');
+
+      charts.forEach((chartName) => {
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('SUSE Application Collection').should('be.visible').click();
+        cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+
+        cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+        cy.wait(1000);
+        cy.contains(chartName, { timeout: 15000 }).click();
+
+        cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+        cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+        cy.clickButton('Create');
+
+        cy.contains('App Bundles').should('be.visible');
+        cy.wait(3000);
+      });
+
+      charts.forEach((chartName) => {
+        cy.filterInSearchBox(chartName);
+        cy.verifyTableRow(0, 'Active', chartName, 120000);
+        cy.verifyTableRow(0, chartName, '1/1');
+      });
+    },
+  );
+
+  it(
+    qase('TBD-469-4', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 4'),
+    { tags: '@fleet-469-batch4' },
+    () => {
+      // Batch 4 - medium weight, multi-pod, no PV by default.
+      const charts = ['argo-cd', 'argo-workflows', 'apache-apisix', 'grafana', 'thanos', 'pytorch', 'ollama'];
+
+      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+      cy.fleetNamespaceToggle('fleet-local');
+
+      charts.forEach((chartName) => {
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('SUSE Application Collection').should('be.visible').click();
+        cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+
+        cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+        cy.wait(1000);
+        cy.contains(chartName, { timeout: 15000 }).click();
+
+        cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+        cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+        cy.clickButton('Create');
+
+        cy.contains('App Bundles').should('be.visible');
+        cy.wait(3000);
+      });
+
+      charts.forEach((chartName) => {
+        cy.filterInSearchBox(chartName);
+        cy.verifyTableRow(0, 'Active', chartName, 180000);
+        cy.verifyTableRow(0, chartName, '1/1');
+      });
+    },
+  );
+
+  it(
+    qase('TBD-469-5', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 5'),
+    { tags: '@fleet-469-batch5' },
+    () => {
+      // Batch 5 - PV-backed databases. Each chart's bundle+PV is torn down before the next install
+      // so several DB charts' storage never coexists (that's the actual exhaustion risk).
+      const charts = ['mariadb', 'postgresql', 'redis', 'valkey', 'influxdb', 'etcd'];
+
+      charts.forEach((chartName) => {
+        cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+        cy.fleetNamespaceToggle('fleet-local');
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('SUSE Application Collection').should('be.visible').click();
+        cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+
+        cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+        cy.wait(1000);
+        cy.contains(chartName, { timeout: 15000 }).click();
+
+        cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+        cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+        cy.clickButton('Create');
+
+        cy.contains('App Bundles').should('be.visible');
+        cy.filterInSearchBox(chartName);
+        cy.verifyTableRow(0, 'Active', chartName, 300000);
+        cy.verifyTableRow(0, chartName, '1/1');
+
+        // Delete the bundle first (frees the StatefulSet), then the now-orphaned PV it leaves behind.
+        cy.deleteAll();
+        cy.accesMenuSelection('local', 'Storage', 'PersistentVolumes');
+        cy.deleteAll(false);
+      });
+    },
+  );
+
+  it(
+    qase('TBD-469-6', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 6'),
+    { tags: '@fleet-469-batch6' },
+    () => {
+      // Batch 6 - PV-backed, multi-component charts. Same per-chart teardown as batch 5.
+      const charts = ['nats', 'harbor', 'vault', 'suse-virtual-cluster-engine'];
+
+      charts.forEach((chartName) => {
+        cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+        cy.fleetNamespaceToggle('fleet-local');
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('SUSE Application Collection').should('be.visible').click();
+        cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+
+        cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+        cy.wait(1000);
+        cy.contains(chartName, { timeout: 15000 }).click();
+
+        cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+        cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+        cy.clickButton('Create');
+
+        cy.contains('App Bundles').should('be.visible');
+        cy.filterInSearchBox(chartName);
+        cy.verifyTableRow(0, 'Active', chartName, 300000);
+        cy.verifyTableRow(0, chartName, '1/1');
+
+        cy.deleteAll();
+        cy.accesMenuSelection('local', 'Storage', 'PersistentVolumes');
+        cy.deleteAll(false);
+      });
+    },
+  );
+
+  it(
+    qase('TBD-469-7', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 7'),
+    { tags: '@fleet-469-batch7' },
+    () => {
+      // Batch 7 - heaviest full stacks. Longest timeout; same per-chart teardown as batch 5/6.
+      const charts = ['apache-kafka', 'apache-airflow', 'milvus', 'prometheus', 'prometheus-operator'];
+
+      charts.forEach((chartName) => {
+        cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+        cy.fleetNamespaceToggle('fleet-local');
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('SUSE Application Collection').should('be.visible').click();
+        cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+
+        cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+        cy.wait(1000);
+        cy.contains(chartName, { timeout: 15000 }).click();
+
+        cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+        cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+        cy.clickButton('Create');
+
+        cy.contains('App Bundles').should('be.visible');
+        cy.filterInSearchBox(chartName);
+        cy.verifyTableRow(0, 'Active', chartName, 600000);
+        cy.verifyTableRow(0, chartName, '1/1');
+
+        cy.deleteAll();
+        cy.accesMenuSelection('local', 'Storage', 'PersistentVolumes');
+        cy.deleteAll(false);
+      });
+    },
+  );
+
   it(qase(470, 'Fleet-470: Test AppCo charts can be installed in downstream cluster'), { tags: '@fleet-470' }, () => {
-    const charts = ['tika', 'valkey'];
+    const charts = ['tika', 'coredns'];
+
+    cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+    cy.fleetNamespaceToggle('fleet-default');
 
     charts.forEach((chartName) => {
-      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
-      cy.fleetNamespaceToggle('fleet-default');
       cy.clickButton('Create App Bundle');
       cy.contains('App Bundle: Create').should('be.visible');
       cy.contains('SUSE Application Collection').should('be.visible').click();
@@ -285,6 +558,10 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
       cy.clickButton('Create');
 
       cy.contains('App Bundles').should('be.visible');
+      cy.wait(3000);
+    });
+
+    charts.forEach((chartName) => {
       cy.filterInSearchBox(chartName);
       cy.verifyTableRow(0, 'Active', chartName, 180000);
       cy.verifyTableRow(0, chartName, /([1-9]\d*)\/\1/);
