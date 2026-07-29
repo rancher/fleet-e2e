@@ -2092,3 +2092,39 @@ describe(
     );
   },
 );
+
+describe(
+  'Test custom namespaceLabels and namespaceAnnotations are applied to the bundle namespace from fleet.yaml file.',
+  { tags: '@p1_2' },
+  () => {
+    it(
+      qase(72, 'Fleet-72: Test as an admin user, add GitRepo having labels "new: fleet-label2" in fleet.yaml file.'),
+      { tags: '@fleet-72' },
+      () => {
+        const repoUrl = 'https://github.com/rancher/fleet-test-data.git';
+        const branch = 'test-data-ns-label-annotation';
+        const repoName = 'test-namespace-labels';
+        const path = 'qa-test-apps/namespace-labels-annotations';
+        const namespaceName = 'my-labeled-namespace';
+
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+        cy.accesMenuSelection('local', 'Projects/Namespaces');
+        cy.filterInSearchBox(namespaceName);
+        cy.verifyTableRow(0, 'Active', namespaceName);
+
+        cy.open3dotsMenu(namespaceName, 'Edit YAML');
+        // Read the full YAML via getValue (CodeMirror only renders visible lines).
+        cy.get('.CodeMirror', { log: false }).then(($el) => {
+          const yamlText = ($el[0] as any).CodeMirror.getValue();
+          expect(yamlText.includes('env: test'), 'Namespace should carry the configured namespaceLabels').to.eq(true);
+          expect(yamlText.includes('pod: deny'), 'Namespace should carry the configured namespaceAnnotations').to.eq(
+            true,
+          );
+        });
+      },
+    );
+  },
+);
