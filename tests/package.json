@@ -29,7 +29,7 @@
     "serialize-javascript": "7.0.7"
   },
   "dependencies": {
-    "@rancher-ecp-qa/cypress-library": "^2.2.0",
+    "@rancher-ecp-qa/cypress-library": "^2.3.0",
     "cy-verify-downloads": "^0.3.0",
     "cypress": "^15.17.0",
     "cypress-dark": "^1.8.3",
