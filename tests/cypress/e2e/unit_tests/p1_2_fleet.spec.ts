@@ -2128,3 +2128,52 @@ describe(
     );
   },
 );
+
+describe('Test "helm.sh/resource-policy: keep" annotation is added to CRDs only.', { tags: '@p1_2' }, () => {
+  it(
+    qase(149, 'Fleet-149: Test "helm/resource-policy" was set to keep when installing helm charts via fleet'),
+    { tags: '@fleet-149' },
+    () => {
+      const basePath = 'qa-test-apps/helm-resource-policy';
+      const keepCrdName = 'resourcepolicykeeps.qa.fleet.cattle.io';
+      const deleteCrdName = 'resourcepolicydeletes.qa.fleet.cattle.io';
+      const configMapName = 'resource-policy-cm';
+      const serviceName = 'resource-policy-svc';
+      const keepRepoName = 'test-resource-policy-keep';
+      const deleteRepoName = 'test-resource-policy-delete';
+
+      // deleteCRDResources unset (defaults to false): only the CRD is annotated.
+      cy.addFleetGitRepo({ repoName: keepRepoName, repoUrl, branch, path: `${basePath}/default`, local: true });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(keepRepoName, '1 / 1', '3 / 3');
+      cy.checkResourcePolicyAnnotation({
+        crdName: keepCrdName,
+        serviceName,
+        configMapName,
+        annotationOnCrd: true,
+      });
+
+      // The kept CRD outlives its GitRepo by design, so remove it before the next
+      // scenario; a leftover would break Helm release ownership on re-runs.
+      cy.deleteAllFleetRepos();
+      cy.executeKubectlCommand(`kubectl delete crd ${keepCrdName} --ignore-not-found {enter}`);
+
+      // deleteCRDResources: true: nothing is annotated, not even the CRD.
+      cy.addFleetGitRepo({
+        repoName: deleteRepoName,
+        repoUrl,
+        branch,
+        path: `${basePath}/delete-crd-resources`,
+        local: true,
+      });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(deleteRepoName, '1 / 1', '3 / 3');
+      cy.checkResourcePolicyAnnotation({
+        crdName: deleteCrdName,
+        serviceName,
+        configMapName,
+        annotationOnCrd: false,
+      });
+    },
+  );
+});

@@ -185,6 +185,20 @@ declare global {
       executeKubectlCommand(labelCommand: string, clusterName?: string): Chainable<Element>;
       continuousDeliveryGitRepoRestrictionsMenu(): Chainable<Element>;
       getClusterIds(clusterList: string[]): Chainable<Record<string, string>>;
+      checkAnnotationInYaml(resourceName: string, annotation: string, shouldBePresent?: boolean): Chainable<Element>;
+      checkResourcePolicyAnnotation({
+        crdName,
+        serviceName,
+        configMapName,
+        annotationOnCrd,
+        clusterName,
+      }: {
+        crdName: string;
+        serviceName: string;
+        configMapName: string;
+        annotationOnCrd: boolean;
+        clusterName?: string;
+      }): Chainable<Element>;
     }
   }
 }
