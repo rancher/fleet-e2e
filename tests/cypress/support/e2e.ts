@@ -63,7 +63,7 @@ declare global {
       nameSpaceMenuToggle(namespaceName: string): Chainable<Element>;
       accesMenuSelection(firstAccessMenu: string, secondAccessMenu?: string, clickOption?: string): Chainable<Element>;
       filterInSearchBox(filterText: string): Chainable<Element>;
-      deleteAll(fleetCheck?: boolean): Chainable<Element>;
+      deleteAll(fleetCheck?: boolean, textCheckTimeout?: number): Chainable<Element>;
       deleteAllFleetRepos(namespaceName?: string): Chainable<Element>;
       checkGitRepoStatus(
         repoName: string,

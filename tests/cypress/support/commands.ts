@@ -561,7 +561,7 @@ Cypress.Commands.add('fleetNamespaceToggle', (toggleOption = 'local') => {
 // Command to delete all rows if check box and delete button are present
 // Note: This function may be substituted by 'cypressLib.deleteAllResources'
 // when hardcoded texts present can be parameterized
-Cypress.Commands.add('deleteAll', (fleetCheck = true) => {
+Cypress.Commands.add('deleteAll', (fleetCheck = true, textCheckTimeout = 30000) => {
   cy.get('body').then(($body) => {
     if ($body.text().match('/Actions/')) {
       cy.wait(250); // Add small wait to give time for things to settle
@@ -581,6 +581,9 @@ Cypress.Commands.add('deleteAll', (fleetCheck = true) => {
     if ($body.text().includes('Delete')) {
       cy.wait(250); // Add small wait to give time for things to settle
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
+
+      // cy.get('span.checkbox-custom[aria-checked=true]', { timeout: 50000 }).should('have.value', 'true');
+      cy.get('span.checkbox-custom[aria-checked=true]', { timeout: 50000 }).first().should('exist');
       cy.get('.btn').contains('Delete').click({ ctrlKey: true, force: true });
       // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
       cy.wait(2500);
@@ -588,10 +591,10 @@ Cypress.Commands.add('deleteAll', (fleetCheck = true) => {
 
     if (fleetCheck === true) {
       cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|')), {
-        timeout: 20000,
+        timeout: textCheckTimeout,
       }).should('be.visible');
     } else {
-      cy.contains(new RegExp(noRowsMessages.join('|')), { timeout: 30000 }).should('be.visible');
+      cy.contains(new RegExp(noRowsMessages.join('|')), { timeout: textCheckTimeout }).should('be.visible');
     }
   });
 });

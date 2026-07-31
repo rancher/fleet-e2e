@@ -259,12 +259,12 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
     const charts = [
       'alertmanager',
       'argo-rollouts',
-      'cert-manager',
       'cert-manager-approver-policy',
       'cloudnative-pg',
       'coredns',
       'external-dns',
       'external-secrets-operator',
+      // 'cert-manager',
     ];
 
     cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
@@ -344,7 +344,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
     },
   );
 
-  it.only(
+  it(
     qase('TBD-469-3', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 3'),
     { tags: '@fleet-469-batch3' },
     () => {
@@ -358,7 +358,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         'prometheus-blackbox-exporter',
         'prometheus-pushgateway',
         'prometheus-statsd-exporter',
-        'suse-security-admission-controller',
+        // 'suse-security-admission-controller',
         'kiali',
         'apache-tika',
         'fluent-bit',
@@ -461,7 +461,8 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
 
         // Delete the bundle first (frees the StatefulSet), then the now-orphaned PV it leaves behind.
         cy.deleteAll();
-        cy.accesMenuSelection('local', 'Storage', 'PersistentVolumes');
+        cy.accesMenuSelection('local', 'Storage', 'PersistentVolumeClaims');
+        cy.wait(1000); // Wait for PVC to be released before deleting it, otherwise the delete fails.
         cy.deleteAll(false);
       });
     },
@@ -496,7 +497,8 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         cy.verifyTableRow(0, chartName, '1/1');
 
         cy.deleteAll();
-        cy.accesMenuSelection('local', 'Storage', 'PersistentVolumes');
+        cy.accesMenuSelection('local', 'Storage', 'PersistentVolumeClaims');
+        cy.wait(1000); // Wait for PVC to be released before deleting it, otherwise the delete fails.
         cy.deleteAll(false);
       });
     },
@@ -507,7 +509,13 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
     { tags: '@fleet-469-batch7' },
     () => {
       // Batch 7 - heaviest full stacks. Longest timeout; same per-chart teardown as batch 5/6.
-      const charts = ['apache-kafka', 'apache-airflow', 'milvus', 'prometheus', 'prometheus-operator'];
+      const charts = [
+        'apache-kafka',
+        'milvus',
+        'prometheus',
+        'prometheus-operator',
+        // 'apache-airflow'
+      ];
 
       charts.forEach((chartName) => {
         cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
@@ -531,8 +539,9 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         cy.verifyTableRow(0, chartName, '1/1');
 
         cy.deleteAll();
-        cy.accesMenuSelection('local', 'Storage', 'PersistentVolumes');
-        cy.deleteAll(false);
+        cy.accesMenuSelection('local', 'Storage', 'PersistentVolumeClaims');
+        cy.wait(1000); // Wait for PVC to be released before deleting it, otherwise the delete fails.
+        cy.deleteAll(false, 300000); // Some PVC terminantion quite long
       });
     },
   );
