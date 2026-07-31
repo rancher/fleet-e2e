@@ -1514,3 +1514,46 @@ Cypress.Commands.add('getClusterIds', (clusterList) => {
 
   return cy.wrap(clusterMap);
 });
+
+// Assert whether a resource's YAML carries the given annotation.
+// Reads the full document via getValue, since CodeMirror only renders visible lines.
+Cypress.Commands.add('checkAnnotationInYaml', (resourceName, annotation, shouldBePresent = true) => {
+  // Big lists (CustomResourceDefinitions especially) take longer than the default
+  // command timeout to render, and the search box only appears with the table.
+  cy.get('table > tbody > tr.main-row', { timeout: 60000 }).should('exist');
+  cy.filterInSearchBox(resourceName);
+  cy.verifyTableRow(0, resourceName);
+  cy.open3dotsMenu(resourceName, 'Edit YAML');
+  cy.get('.CodeMirror', { log: false }).should(($el) => {
+    const yamlText = ($el[0] as any).CodeMirror.getValue();
+    expect(
+      yamlText.includes(annotation),
+      `${resourceName} should ${shouldBePresent ? '' : 'not '}have "${annotation}"`,
+    ).to.eq(shouldBePresent);
+  });
+  cy.clickButton('Cancel');
+});
+
+// Check "helm.sh/resource-policy: keep" on every resource of the helm-resource-policy
+// bundle. Only the CRD may carry it; the Service and the ConfigMap never should.
+Cypress.Commands.add(
+  'checkResourcePolicyAnnotation',
+  ({ crdName, serviceName, configMapName, annotationOnCrd, clusterName = 'local' }) => {
+    const resourcePolicyAnnotation = 'helm.sh/resource-policy: keep';
+
+    cy.accesMenuSelection(clusterName);
+    cy.clickNavMenu(['More Resources', 'API', 'CustomResourceDefinitions']);
+    cy.checkAnnotationInYaml(crdName, resourcePolicyAnnotation, annotationOnCrd);
+
+    // Helm renders Services after CRDs, so the Service is the resource which used
+    // to inherit the annotation. This is the actual regression check.
+    cy.accesMenuSelection(clusterName, 'Service Discovery', 'Services');
+    cy.nameSpaceMenuToggle('All Namespaces');
+    cy.checkAnnotationInYaml(serviceName, resourcePolicyAnnotation, false);
+
+    // ConfigMaps are rendered before CRDs and were never affected. Control check.
+    cy.accesMenuSelection(clusterName, 'Storage', 'ConfigMaps');
+    cy.nameSpaceMenuToggle('All Namespaces');
+    cy.checkAnnotationInYaml(configMapName, resourcePolicyAnnotation, false);
+  },
+);
