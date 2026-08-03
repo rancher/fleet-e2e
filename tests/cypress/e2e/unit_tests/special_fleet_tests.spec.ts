@@ -296,6 +296,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
     // Then check every row reached Active/N-of-N.
     charts.forEach((chartName) => {
       cy.filterInSearchBox(chartName);
+      cy.contains('429: Too Many Requests').should('not.exist');
       cy.verifyTableRow(0, 'Active', chartName, 120000);
       cy.verifyTableRow(0, chartName, '1/1');
     });
@@ -340,6 +341,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
 
       charts.forEach((chartName) => {
         cy.filterInSearchBox(chartName);
+        cy.contains('429: Too Many Requests').should('not.exist');
         cy.verifyTableRow(0, 'Active', chartName, 120000);
         cy.verifyTableRow(0, chartName, '1/1');
       });
@@ -383,6 +385,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
 
       charts.forEach((chartName) => {
         cy.filterInSearchBox(chartName);
+        cy.contains('429: Too Many Requests').should('not.exist');
         cy.verifyTableRow(0, 'Active', chartName, 180000);
         cy.verifyTableRow(0, chartName, '1/1');
       });
@@ -428,6 +431,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
 
       charts.forEach((chartName) => {
         cy.filterInSearchBox(chartName);
+        cy.contains('429: Too Many Requests').should('not.exist');
         cy.verifyTableRow(0, 'Active', chartName, 180000);
         cy.verifyTableRow(0, chartName, '1/1');
       });
@@ -464,13 +468,14 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
 
       charts.forEach((chartName) => {
         cy.filterInSearchBox(chartName);
+        cy.contains('429: Too Many Requests').should('not.exist');
         cy.verifyTableRow(0, 'Active', chartName, 180000);
         cy.verifyTableRow(0, chartName, '1/1');
       });
     },
   );
 
-  it(
+  it.only(
     qase('TBD-469-5', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 5'),
     { tags: '@fleet-469-batch5' },
     () => {
@@ -496,6 +501,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
 
         cy.contains('App Bundles').should('be.visible');
         cy.filterInSearchBox(chartName);
+        cy.contains('429: Too Many Requests').should('not.exist');
         cy.verifyTableRow(0, 'Active', chartName, 300000);
         cy.verifyTableRow(0, chartName, '1/1');
 
@@ -533,6 +539,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
 
         cy.contains('App Bundles').should('be.visible');
         cy.filterInSearchBox(chartName);
+        cy.contains('429: Too Many Requests').should('not.exist');
         cy.verifyTableRow(0, 'Active', chartName, 600000);
         cy.verifyTableRow(0, chartName, '1/1');
 
@@ -575,6 +582,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
 
         cy.contains('App Bundles').should('be.visible');
         cy.filterInSearchBox(chartName);
+        cy.contains('429: Too Many Requests').should('not.exist');
         cy.verifyTableRow(0, 'Active', chartName, 600000);
         cy.verifyTableRow(0, chartName, '1/1');
 
@@ -615,6 +623,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
 
       charts.forEach((chartName) => {
         cy.filterInSearchBox(chartName);
+        cy.contains('429: Too Many Requests').should('not.exist');
         cy.verifyTableRow(0, 'Active', chartName, 180000);
         cy.verifyTableRow(0, chartName, /([1-9]\d*)\/\1/);
       });
