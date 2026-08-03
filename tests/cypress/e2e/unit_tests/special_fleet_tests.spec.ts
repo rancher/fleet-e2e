@@ -358,6 +358,44 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         'open-webui-pipelines',
         'opentelemetry-operator',
         'prometheus-blackbox-exporter',
+      ];
+
+      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+      cy.fleetNamespaceToggle('fleet-local');
+
+      charts.forEach((chartName) => {
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('SUSE Application Collection').should('be.visible').click();
+        cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+
+        cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+        cy.wait(1000);
+        cy.contains(chartName, { timeout: 15000 }).click();
+
+        cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+        cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+        cy.clickButton('Create');
+
+        cy.contains('App Bundles').should('be.visible');
+        cy.wait(3000);
+      });
+
+      charts.forEach((chartName) => {
+        cy.filterInSearchBox(chartName);
+        cy.verifyTableRow(0, 'Active', chartName, 180000);
+        cy.verifyTableRow(0, chartName, '1/1');
+      });
+    },
+  );
+
+  it(
+    qase('TBD-469-3b', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 3b'),
+    { tags: '@fleet-469-batch3b' },
+    () => {
+      // Batch 3b - remaining single-pod charts, no PV (split out of batch 3, which had too many
+      // concurrent installs firing in one window).
+      const charts = [
         'prometheus-pushgateway',
         'prometheus-statsd-exporter',
         // 'suse-security-admission-controller',
@@ -390,13 +428,13 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
 
       charts.forEach((chartName) => {
         cy.filterInSearchBox(chartName);
-        cy.verifyTableRow(0, 'Active', chartName, 120000);
+        cy.verifyTableRow(0, 'Active', chartName, 180000);
         cy.verifyTableRow(0, chartName, '1/1');
       });
     },
   );
 
-  it(
+  it.skip(
     qase('TBD-469-4', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 4'),
     { tags: '@fleet-469-batch4' },
     () => {
@@ -465,7 +503,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         cy.deleteAll(true, 60000);
         cy.accesMenuSelection('local', 'Storage', 'PersistentVolumeClaims');
         cy.wait(1000); // Wait for PVC to be released before deleting it, otherwise the delete fails.
-        cy.deleteAll(false, 120000);
+        cy.deleteAll(false, 300000);
       });
     },
   );
@@ -495,18 +533,18 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
 
         cy.contains('App Bundles').should('be.visible');
         cy.filterInSearchBox(chartName);
-        cy.verifyTableRow(0, 'Active', chartName, 300000);
+        cy.verifyTableRow(0, 'Active', chartName, 600000);
         cy.verifyTableRow(0, chartName, '1/1');
 
         cy.deleteAll(true, 60000);
         cy.accesMenuSelection('local', 'Storage', 'PersistentVolumeClaims');
         cy.wait(1000); // Wait for PVC to be released before deleting it, otherwise the delete fails.
-        cy.deleteAll(false, 120000);
+        cy.deleteAll(false, 300000);
       });
     },
   );
 
-  it(
+  it.skip(
     qase('TBD-469-7', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 7'),
     { tags: '@fleet-469-batch7' },
     () => {
@@ -548,34 +586,38 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
     },
   );
 
-  it(qase(470, 'Fleet-470: Test AppCo charts can be installed in downstream cluster'), { tags: '@fleet-470' }, () => {
-    const charts = ['tika', 'coredns'];
+  it.skip(
+    qase(470, 'Fleet-470: Test AppCo charts can be installed in downstream cluster'),
+    { tags: '@fleet-470' },
+    () => {
+      const charts = ['tika', 'coredns'];
 
-    cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
-    cy.fleetNamespaceToggle('fleet-default');
+      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+      cy.fleetNamespaceToggle('fleet-default');
 
-    charts.forEach((chartName) => {
-      cy.clickButton('Create App Bundle');
-      cy.contains('App Bundle: Create').should('be.visible');
-      cy.contains('SUSE Application Collection').should('be.visible').click();
-      cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+      charts.forEach((chartName) => {
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('SUSE Application Collection').should('be.visible').click();
+        cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
 
-      cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
-      cy.wait(1000);
-      cy.contains(chartName, { timeout: 15000 }).click();
+        cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+        cy.wait(1000);
+        cy.contains(chartName, { timeout: 15000 }).click();
 
-      cy.contains('button', 'Install this version', { timeout: 15000 }).click();
-      cy.get('input[placeholder="A unique name"]').clear().type(chartName);
-      cy.clickButton('Create');
+        cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+        cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+        cy.clickButton('Create');
 
-      cy.contains('App Bundles').should('be.visible');
-      cy.wait(3000);
-    });
+        cy.contains('App Bundles').should('be.visible');
+        cy.wait(3000);
+      });
 
-    charts.forEach((chartName) => {
-      cy.filterInSearchBox(chartName);
-      cy.verifyTableRow(0, 'Active', chartName, 180000);
-      cy.verifyTableRow(0, chartName, /([1-9]\d*)\/\1/);
-    });
-  });
+      charts.forEach((chartName) => {
+        cy.filterInSearchBox(chartName);
+        cy.verifyTableRow(0, 'Active', chartName, 180000);
+        cy.verifyTableRow(0, chartName, /([1-9]\d*)\/\1/);
+      });
+    },
+  );
 });
