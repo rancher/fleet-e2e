@@ -41,6 +41,7 @@ declare global {
         repoName: string,
         repoUrl?: string,
         branch?: string,
+        revision?: string,
         path?: string,
         path2?: string,
         fleetNamespace?: string,
@@ -90,7 +91,7 @@ declare global {
       deleteUser(userName: string): Chainable<Element>;
       deleteAllUsers(): Chainable<Element>;
       deleteRole(roleName: string, roleTypeTemplate: string): Chainable<Element>;
-      importYaml(clusterName: string, yamlFilePath: string): Chainable<Element>;
+      importYaml({ clusterName, yamlFilePath }: { clusterName: string; yamlFilePath: string }): Chainable<Element>;
       allowRancherPreReleaseVersions(): Chainable<Element>;
       upgradeFleet(): Chainable<Element>;
       assignClusterLabel(clusterName: string, key: string, value: string): Chainable<Element>;
@@ -184,6 +185,14 @@ declare global {
       executeKubectlCommand(labelCommand: string, clusterName?: string): Chainable<Element>;
       continuousDeliveryGitRepoRestrictionsMenu(): Chainable<Element>;
       getClusterIds(clusterList: string[]): Chainable<Record<string, string>>;
+      checkAnnotationInYaml(resourceName: string, annotation: string, shouldBePresent?: boolean): Chainable<Element>;
+      checkResourcePolicyAnnotation(
+        crdName: string,
+        serviceName: string,
+        configMapName: string,
+        annotationOnCrd: boolean,
+        clusterName?: string,
+      ): Chainable<Element>;
     }
   }
 }

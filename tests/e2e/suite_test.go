@@ -20,6 +20,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -54,6 +55,8 @@ var (
 	rancherUpgradeHeadVersion string
 	rancherUpgradeVersion     string
 	testCaseID                int64
+	// useDirectInsecureCmd is true for Rancher <= 2.12, whose insecureCommand embeds the real token.
+	useDirectInsecureCmd bool
 )
 
 /**
@@ -141,6 +144,19 @@ var _ = BeforeSuite(func() {
 		}
 		if len(s) > 2 {
 			rancherHeadVersion = s[2]
+		}
+
+		// Set useDirectInsecureCmd for Rancher <= 2.12 (e.g. "2.11", "2.12.12-alpha1").
+		if v := strings.SplitN(rancherVersion, ".", 3); len(v) >= 2 {
+			maj, errMaj := strconv.Atoi(strings.TrimSpace(v[0]))
+			minStr := v[1]
+			if i := strings.IndexFunc(minStr, func(r rune) bool { return r < '0' || r > '9' }); i >= 0 {
+				minStr = minStr[:i]
+			}
+			min, errMin := strconv.Atoi(minStr)
+			if errMaj == nil && errMin == nil {
+				useDirectInsecureCmd = maj < 2 || (maj == 2 && min <= 12)
+			}
 		}
 	}
 

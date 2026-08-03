@@ -805,6 +805,55 @@ describe('Test GitJob security context', { tags: ['@p0', '@pr-tests'] }, () => {
   });
 });
 
+describe('Test GitJob tolerations', { tags: '@p0' }, () => {
+  // Ref: https://github.com/rancher/fleet/issues/2783
+  it(qase(150, 'FLEET-150: Test GitJob tolerates cloud provider "uninitialized" taint'), { tags: '@fleet-150' }, () => {
+    const repoName = 'local-150-gitjob-cloudprovider-toleration';
+    const repoUrl = 'https://github.com/rancher/fleet-test-data/';
+    const branch = 'master';
+    // Bad path keeps the (unsuccessful) Job around; successful Jobs are deleted immediately.
+    const path = 'qa-test-apps/nginx-app-bad-path';
+    const cloudProviderToleration = 'node.cloudprovider.kubernetes.io/uninitialized';
+
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+    cy.clickButton('Create');
+    cy.verifyTableRow(0, /Git Updating|Error/, '0/0');
+
+    // Open the Job created by GitJob
+    cy.accesMenuSelection('local', 'Workloads', 'Jobs');
+    cy.nameSpaceMenuToggle('All Namespaces');
+    cy.filterInSearchBox(repoName);
+    cy.verifyTableRow(0, /Active|Running|Failed|Error/, repoName);
+
+    // Open the Job's YAML. From 2.12 onwards the detail page exposes
+    // 'Show Configuration' + a YAML tab; 2.11 has neither, so fall back to the
+    // list 3-dot action ('Edit YAML' / 'View YAML' depending on edit permission).
+    if (/\/2\.11/.test(Cypress.expose('rancher_version'))) {
+      cy.contains('tr.main-row', repoName).find('.icon.icon-actions').click({ force: true });
+      cy.get('.list-unstyled.menu li, [role="menuitem"]')
+        .contains(/View YAML|Edit YAML/)
+        .click({ force: true });
+    } else {
+      cy.contains(repoName).click();
+      cy.clickButton('Show Configuration');
+      cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
+    }
+
+    // Existence: read the full document (getValue) since CodeMirror only renders
+    // the visible lines. Assert on booleans so the whole YAML is not logged.
+    cy.get('.CodeMirror', { log: false }).then(($el) => {
+      const yamlText = ($el[0] as any).CodeMirror.getValue();
+      expect(
+        yamlText.includes(cloudProviderToleration),
+        `GitJob's Job should tolerate the "${cloudProviderToleration}" taint`,
+      ).to.eq(true);
+      expect(yamlText.includes('NoSchedule'), 'Toleration should use the "NoSchedule" effect').to.eq(true);
+    });
+    // Visibility: scroll the toleration line into view and confirm it renders.
+    cy.get('.CodeMirror').contains(cloudProviderToleration).scrollIntoView().should('be.visible');
+  });
+});
+
 describe('Test lifecycle secrets', { tags: '@p0' }, () => {
   const repoUrl = 'https://github.com/rancher/fleet-test-data/';
   const branch = 'master';

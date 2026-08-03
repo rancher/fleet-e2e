@@ -143,13 +143,21 @@ describe(
       () => {
         const repoName = 'Test.1-repo-local-cluster';
 
-        // Add Fleet repository and create it
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
-        cy.clickButton('Create');
-
-        // Navigate back to GitRepo page
-        cy.clickButton('Cancel');
-        cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible');
+        // For version 2.15 onwards, only add invalid name and check Next button is disabled
+        if (!/\/2\.(1[0-4])/.test(rancherVersion)) {
+          cy.continuousDeliveryMenuSelection();
+          cy.clickCreateGitRepo();
+          cy.typeValue('Name', repoName);
+          cy.wait(500);
+          cy.contains('button', 'Next').should('be.disabled');
+          cy.clickButton('Cancel');
+        } else {
+          // For older versions (2.14 and below), allow Create but verify repo is not created
+          cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+          cy.clickButton('Create');
+          cy.clickButton('Cancel');
+          cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible');
+        }
       },
     );
 
@@ -193,13 +201,21 @@ describe(
       () => {
         const repoName = 'Test.1-repo-local-cluster';
 
-        // Add Fleet repository and create it
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
-        cy.clickButton('Create');
-
-        // Navigate back to GitRepo page
-        cy.clickButton('Cancel');
-        cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible');
+        // For version 2.15 onwards, only add invalid name and check Next button is disabled
+        if (!/\/2\.(1[0-4])/.test(rancherVersion)) {
+          cy.continuousDeliveryMenuSelection();
+          cy.clickCreateGitRepo();
+          cy.typeValue('Name', repoName);
+          cy.wait(500);
+          cy.contains('button', 'Next').should('be.disabled');
+          cy.clickButton('Cancel');
+        } else {
+          // For older versions (2.14 and below), allow Create but verify repo is not created
+          cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
+          cy.clickButton('Create');
+          cy.clickButton('Cancel');
+          cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|'))).should('be.visible');
+        }
       },
     );
   },
@@ -1269,6 +1285,61 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       cy.deleteAll(false);
     },
   );
+
+  it(
+    qase(153, 'Fleet-153: Test "defaultServiceAccount" from "GitRepoRestrictions" is enforced on downstream cluster'),
+    { tags: '@fleet-153' },
+    () => {
+      const repoName = 'local-gitreporestrictions-fleet-153';
+      const dsCluster = 'imported-0';
+
+      // Ensure no GitRepoRestriction is left over from a previous (failed) run,
+      // otherwise the "unrestricted" deploy below would be restricted too.
+      cy.continuousDeliveryMenuSelection();
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.wait(1000);
+      cy.deleteAll(false);
+
+      // Deploy GitRepo, no restriction present yet, deploy succeeds using the fleet-agent's own credentials.
+      cy.addFleetRepoFromYaml('assets/git-repo-restrictions-153.yaml', 'fleet-default');
+      cy.verifyTableRow(0, 'Active', repoName);
+      cy.checkGitRepoStatus(repoName, '1 / 1');
+      cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+
+      // Add "limited-service-account" on the downstream cluster, pointed at by the restriction below.
+      cy.importYaml({ clusterName: dsCluster, yamlFilePath: 'assets/limited-service-account.yaml' });
+
+      // Add GitRepoRestriction on the upstream cluster, defaulting the GitRepo's service account.
+      cy.continuousDeliveryMenuSelection();
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
+      cy.clickButton('Create from YAML');
+      cy.addYamlFile('assets/git-repo-restrictions-default-service-account.yaml');
+      cy.clickButton('Create');
+
+      // Let the page settle on the GitRepoRestrictions list before navigating away,
+      // otherwise the burger-menu click below can be intercepted by a covering nav element.
+      cy.verifyTableRow(0, 'Active', 'restriction');
+
+      // Force update the GitRepo, so it picks up the "defaultServiceAccount" restriction.
+      cy.continuousDeliveryMenuSelection();
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.open3dotsMenu(repoName, 'Force Update');
+
+      // Deploy is now denied: the Bundle's error banner names the defaulted service
+      // account, proving the restriction's defaulting was applied.
+      cy.verifyTableRow(0, 'Err Applied', repoName);
+      cy.contains(repoName).click();
+      cy.contains('limited-service-account').should('be.visible');
+
+      // Cleanup: remove the restriction.
+      cy.continuousDeliveryMenuSelection();
+      cy.continuousDeliveryGitRepoRestrictionsMenu();
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.verifyTableRow(0, 'Active', 'restriction');
+      cy.deleteAll(false);
+    },
+  );
 });
 
 describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.', { tags: '@p1_2' }, () => {
@@ -1681,23 +1752,22 @@ describe('Validate bundleDeployment labels and status.resources', { tags: '@p1_2
 
       // Navigate to BundleDeployments
       cy.accesMenuSelection('local');
-      cy.clickNavMenu(['More Resources', 'Fleet', 'BundleDeployments']);
       cy.nameSpaceMenuToggle('All Namespaces');
+      cy.clickNavMenu(['More Resources', 'Fleet', 'BundleDeployments']);
 
       // Search for the bundle created by our GitRepo
       cy.filterInSearchBox(repoName);
       cy.get('td.col-link-detail > span').contains(repoName).click();
 
-      // Scroll the main content area to bottom to see resources section
-      cy.get('main').scrollTo('bottom');
-      cy.wait(500);
-
+      // The detail page's resources section loads asynchronously, so wait for
+      // the content to render and scroll it into view rather than scrolling to a
+      // guessed page bottom before the content exists.
       // Verify the deployment resource details in order: apiVersion, createdAt, kind, name, namespace
-      cy.contains('apiVersion: apps/v1').should('be.visible');
-      cy.contains(/createdAt:\s*'?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z'?/);
-      cy.contains('kind: Deployment').should('be.visible');
-      cy.contains(`name: ${appName}`).should('be.visible');
-      cy.contains(`namespace: ${appName}`).should('be.visible');
+      cy.contains('apiVersion: apps/v1', { timeout: 30000 }).scrollIntoView().should('be.visible');
+      cy.contains(/createdAt:\s*'?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z'?/).should('be.visible');
+      cy.contains('kind: Deployment').scrollIntoView().should('be.visible');
+      cy.contains(`name: ${appName}`).scrollIntoView().should('be.visible');
+      cy.contains(`namespace: ${appName}`).scrollIntoView().should('be.visible');
     },
   );
 });
@@ -1958,6 +2028,152 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       });
 
       cy.clickButton('Close');
+    },
+  );
+});
+
+describe(
+  'Old Helm release is removed within garbageCollectionInterval when bundle release name/namespace changes',
+  { tags: '@p1_2' },
+  () => {
+    it(
+      qase(140, 'Fleet-140: Test remove old release when new release is updated in fleet.yaml'),
+      { tags: '@fleet-140' },
+      () => {
+        // Configure a short Garbage Collection (GC) interval (default 15m) via the rancher-config fleet-agent key.
+        // Keep a newline right after each `{` so Cypress .type() reads it as a literal brace, not a special-key sequence.
+        const patchGarbageCollectionInterval = `\
+            kubectl patch configmap rancher-config \
+            -n cattle-system \
+            --type merge \
+            -p '{
+              "data": {
+                "fleet-agent": "garbageCollectionInterval: 30s"
+              }
+            }'{enter}`;
+        const pathVer1 = 'qa-test-apps/check-old-release-removal/app-version-1';
+        const pathVer2 = 'qa-test-apps/check-old-release-removal/app-version-2';
+        const repoName = 'test-remove-old-release';
+        const release1Secret = 'sh.helm.release.v1.release1.v1';
+        const release2Secret = 'sh.helm.release.v1.release2.v1';
+
+        // Patch the rancher-config fleet-agent key to set a 30s garbage collection interval, then wait 60s for it to take effect.
+        cy.executeKubectlCommand(patchGarbageCollectionInterval);
+        cy.wait(60000);
+
+        // Deploy app-version-1 -> release1 in namespace app-version-1.
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path: pathVer1, local: true });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+        cy.accesMenuSelection('local', 'Storage', 'Secrets');
+        cy.nameSpaceMenuToggle('All Namespaces');
+        cy.filterInSearchBox(release1Secret);
+        cy.verifyTableRow(0, 'Active', release1Secret);
+
+        // Update the path to app-version-2, changing both the release name and namespace.
+        cy.addFleetGitRepo({ repoName, path: pathVer2, editConfig: true });
+        cy.clickButton('Save');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+        // New release2 secret appears.
+        cy.accesMenuSelection('local', 'Storage', 'Secrets');
+        cy.nameSpaceMenuToggle('All Namespaces');
+        cy.filterInSearchBox(release2Secret);
+        cy.verifyTableRow(0, 'Active', release2Secret);
+
+        // Old release1 secret is garbage-collected within the interval. Retry until it disappears
+        // (30s interval + reconcile) instead of a fixed wait, so the test passes as soon as it's gone.
+        cy.accesMenuSelection('local', 'Storage', 'Secrets');
+        cy.nameSpaceMenuToggle('All Namespaces');
+        cy.filterInSearchBox(release1Secret);
+        cy.contains(release1Secret, { timeout: 120000 }).should('not.exist');
+      },
+    );
+  },
+);
+
+describe(
+  'Test custom namespaceLabels and namespaceAnnotations are applied to the bundle namespace from fleet.yaml file.',
+  { tags: '@p1_2' },
+  () => {
+    it(
+      qase(72, 'Fleet-72: Test as an admin user, add GitRepo having labels "new: fleet-label2" in fleet.yaml file.'),
+      { tags: '@fleet-72' },
+      () => {
+        const repoUrl = 'https://github.com/rancher/fleet-test-data.git';
+        const branch = 'test-data-ns-label-annotation';
+        const repoName = 'test-namespace-labels';
+        const path = 'qa-test-apps/namespace-labels-annotations';
+        const namespaceName = 'my-labeled-namespace';
+
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+        cy.accesMenuSelection('local', 'Projects/Namespaces');
+        cy.filterInSearchBox(namespaceName);
+        cy.verifyTableRow(0, 'Active', namespaceName);
+
+        cy.open3dotsMenu(namespaceName, 'Edit YAML');
+        // Read the full YAML via getValue (CodeMirror only renders visible lines).
+        cy.get('.CodeMirror', { log: false }).then(($el) => {
+          const yamlText = ($el[0] as any).CodeMirror.getValue();
+          expect(yamlText.includes('env: test'), 'Namespace should carry the configured namespaceLabels').to.eq(true);
+          expect(yamlText.includes('pod: deny'), 'Namespace should carry the configured namespaceAnnotations').to.eq(
+            true,
+          );
+        });
+      },
+    );
+  },
+);
+
+describe('Test "helm.sh/resource-policy: keep" annotation is added to CRDs only.', { tags: '@p1_2' }, () => {
+  it(
+    qase(149, 'Fleet-149: Test "helm/resource-policy" was set to keep when installing helm charts via fleet'),
+    { tags: '@fleet-149' },
+    () => {
+      const basePath = 'qa-test-apps/helm-resource-policy';
+      const keepCrdName = 'resourcepolicykeeps.qa.fleet.cattle.io';
+      const deleteCrdName = 'resourcepolicydeletes.qa.fleet.cattle.io';
+      const configMapName = 'resource-policy-cm';
+      const serviceName = 'resource-policy-svc';
+      const keepRepoName = 'test-resource-policy-keep';
+      const deleteRepoName = 'test-resource-policy-delete';
+
+      // deleteCRDResources unset (defaults to false): only the CRD is annotated.
+      cy.addFleetGitRepo({ repoName: keepRepoName, repoUrl, branch, path: `${basePath}/default`, local: true });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(keepRepoName, '1 / 1', '3 / 3');
+      cy.checkResourcePolicyAnnotation({
+        crdName: keepCrdName,
+        serviceName,
+        configMapName,
+        annotationOnCrd: true,
+      });
+
+      // The kept CRD outlives its GitRepo by design, so remove it before the next
+      // scenario; a leftover would break Helm release ownership on re-runs.
+      cy.deleteAllFleetRepos();
+      cy.executeKubectlCommand(`kubectl delete crd ${keepCrdName} --ignore-not-found {enter}`);
+
+      // deleteCRDResources: true: nothing is annotated, not even the CRD.
+      cy.addFleetGitRepo({
+        repoName: deleteRepoName,
+        repoUrl,
+        branch,
+        path: `${basePath}/delete-crd-resources`,
+        local: true,
+      });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(deleteRepoName, '1 / 1', '3 / 3');
+      cy.checkResourcePolicyAnnotation({
+        crdName: deleteCrdName,
+        serviceName,
+        configMapName,
+        annotationOnCrd: false,
+      });
     },
   );
 });

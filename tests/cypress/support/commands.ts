@@ -90,7 +90,7 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
   });
   cy.clickButton('Import');
   cy.get('div.card-container')
-    .contains(/Applied \d+ Resources/)
+    .contains(/Applied \d+ Resources?/)
     .should('be.visible');
 
   // Check if there is a column with age which contains a number
@@ -124,10 +124,12 @@ Cypress.Commands.add('continuousDeliveryWorkspacesMenu', () => {
   cy.get('body', { timeout: 15000 }).then(($body) => {
     if ($body.text().includes('App Bundles')) {
       cy.contains('App Bundles').should('be.visible');
-      cy.clickNavMenu(['Workspaces']);
+      cy.get('nav').contains('Workspaces').click({ force: true });
+      cy.get('.title').contains('Workspaces').should('be.visible');
     } else if ($body.text().includes('Git Repos')) {
       cy.contains('Git Repos').should('be.visible');
       cy.clickNavMenu(['Advanced', 'Workspaces']);
+      cy.contains('Workspaces').should('be.visible');
     } else {
       throw new Error('Neither "App Bundles" nor "Git Repos" found');
     }
@@ -190,6 +192,7 @@ Cypress.Commands.add(
     repoName,
     repoUrl,
     branch,
+    revision,
     path,
     path2,
     gitOrHelmAuth,
@@ -223,7 +226,16 @@ Cypress.Commands.add(
       cy.clickButton('Next');
 
       cy.typeValue('Repository URL', repoUrl);
-      cy.typeValue('Branch Name', branch);
+      if (branch) {
+        cy.typeValue('Branch Name', branch);
+      }
+      // Use a specific Git revision (tag or commit) instead of a branch.
+      if (revision) {
+        cy.get('div.labeled-select.create.hoverable').first().should('be.visible');
+        cy.get('div.labeled-select.create.hoverable').first().click({ force: true });
+        cy.get('ul.vs__dropdown-menu > li').contains('A Revision').should('exist').click();
+        cy.typeValue('Tag or Commit Hash', revision);
+      }
     }
 
     if (path) {
@@ -1268,9 +1280,8 @@ Cypress.Commands.add('moveClusterToWorkspace', (clusterName, workspaceName, time
   cy.clickNavMenu(['Clusters']);
   cy.filterInSearchBox(clusterName);
 
-  // After move, cluster requires around 60seconds to back in Active state.
-  cy.wait(timeout);
-  cy.verifyTableRow(0, 'Active', clusterName);
+  // After move, cluster requires more than 60 seconds to back in Active state.
+  cy.verifyTableRow(0, 'Active', clusterName, timeout);
 });
 
 Cypress.Commands.add(
@@ -1503,3 +1514,46 @@ Cypress.Commands.add('getClusterIds', (clusterList) => {
 
   return cy.wrap(clusterMap);
 });
+
+// Assert whether a resource's YAML carries the given annotation.
+// Reads the full document via getValue, since CodeMirror only renders visible lines.
+Cypress.Commands.add('checkAnnotationInYaml', (resourceName, annotation, shouldBePresent = true) => {
+  // Big lists (CustomResourceDefinitions especially) take longer than the default
+  // command timeout to render, and the search box only appears with the table.
+  cy.get('table > tbody > tr.main-row', { timeout: 60000 }).should('exist');
+  cy.filterInSearchBox(resourceName);
+  cy.verifyTableRow(0, resourceName);
+  cy.open3dotsMenu(resourceName, 'Edit YAML');
+  cy.get('.CodeMirror', { log: false }).should(($el) => {
+    const yamlText = ($el[0] as any).CodeMirror.getValue();
+    expect(
+      yamlText.includes(annotation),
+      `${resourceName} should ${shouldBePresent ? '' : 'not '}have "${annotation}"`,
+    ).to.eq(shouldBePresent);
+  });
+  cy.clickButton('Cancel');
+});
+
+// Check "helm.sh/resource-policy: keep" on every resource of the helm-resource-policy
+// bundle. Only the CRD may carry it; the Service and the ConfigMap never should.
+Cypress.Commands.add(
+  'checkResourcePolicyAnnotation',
+  ({ crdName, serviceName, configMapName, annotationOnCrd, clusterName = 'local' }) => {
+    const resourcePolicyAnnotation = 'helm.sh/resource-policy: keep';
+
+    cy.accesMenuSelection(clusterName);
+    cy.clickNavMenu(['More Resources', 'API', 'CustomResourceDefinitions']);
+    cy.checkAnnotationInYaml(crdName, resourcePolicyAnnotation, annotationOnCrd);
+
+    // Helm renders Services after CRDs, so the Service is the resource which used
+    // to inherit the annotation. This is the actual regression check.
+    cy.accesMenuSelection(clusterName, 'Service Discovery', 'Services');
+    cy.nameSpaceMenuToggle('All Namespaces');
+    cy.checkAnnotationInYaml(serviceName, resourcePolicyAnnotation, false);
+
+    // ConfigMaps are rendered before CRDs and were never affected. Control check.
+    cy.accesMenuSelection(clusterName, 'Storage', 'ConfigMaps');
+    cy.nameSpaceMenuToggle('All Namespaces');
+    cy.checkAnnotationInYaml(configMapName, resourcePolicyAnnotation, false);
+  },
+);

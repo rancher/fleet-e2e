@@ -55,7 +55,7 @@ describe('Test Fleet on AWS EC2 imported cluster', { tags: '@cloud_ds' }, () => 
     cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: false });
     cy.clickButton('Create');
     cy.wait(45000); // Adding 45 seconds due to slow comunication and size of ec2 cluster
-    cy.verifyTableRow(0, 'Active', '4/4'); // 4 clusters means gitrepo was deployed to ec2 cluster
+    cy.verifyTableRow(0, 'Active', '4/4', 1200000); // 4 clusters means gitrepo was deployed to ec2 cluster
   });
 
   it(qase(188, 'Delete EC2 cluster'), () => {
@@ -78,29 +78,36 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypres
         cy.clickButton('Edit as YAML');
 
         // Append the agent scheduling customization
-        cy.get('.CodeMirror').then((codeMirrorElement) => {
-          const cm = (codeMirrorElement[0] as any).CodeMirror;
-          const currentYaml = cm.getValue();
-          const snippet = `\
+        cy.get('.CodeMirror')
+          .should(($el) => {
+            expect(($el[0] as any).CodeMirror.getValue()).to.include('kind: Cluster');
+          })
+          .then((codeMirrorElement) => {
+            const cm = (codeMirrorElement[0] as any).CodeMirror;
+            const currentYaml = cm.getValue();
+            // prettier-ignore
+            const snippet = `\
   agentSchedulingCustomization:
     priorityClass:
       value: 888
     podDisruptionBudget:
       minAvailable: "3"`;
-          const newYaml = currentYaml.replace(/(\nspec:)/, `$1\n${snippet}`);
-          cm.setValue(newYaml);
-        });
+            const newYaml = currentYaml.replace(/(\nspec:)/, `$1\n${snippet}`);
+            expect(newYaml, 'snippet was actually inserted').to.not.eq(currentYaml);
+            cm.setValue(newYaml);
+          });
         cy.clickButton('Save');
 
         // Verify the cluster is still Active
-        cy.wait(2000); // Wait to allow time to the status to reach "Wait" before verifying"
-        cy.verifyTableRow(0, 'Active', '1');
+        cy.verifyTableRow(0, 'Active', '1', 600000);
 
         // Verify PriorityClass and PodDisruptionBudget
         cy.accesMenuSelection('local', 'Policy', 'Pod Disruption Budgets');
         cy.nameSpaceMenuToggle('All Namespaces');
         cy.verifyTableRow(0, 'fleet-agent', '3');
-        cy.accesMenuSelection('local', 'More Resources', 'Scheduling');
+        cy.accesMenuSelection('local', 'More Resources');
+        // prettier-ignore
+        cy.get('nav.side-nav').contains(/^Scheduling$/).scrollIntoView().click();
         cy.contains('PriorityClasses').click();
         cy.verifyTableRow(0, 'fleet-agent', '888');
       },
@@ -121,23 +128,20 @@ describe(
         const branch = 'master';
         const path = 'simple';
         const repoUrl = 'https://github.com/rancher/fleet-examples';
-        const flagName = 'provisioningv2-fleet-workspace-back-population';
         const newWorkspaceName = 'new-fleet-workspace';
         const fleetDefault = 'fleet-default';
         let timeout = 30000;
 
         //Version check for 2.12 (head)
         if (supported_versions_212_and_above.some((r) => r.test(rancherVersion))) {
-          timeout = 70000;
+          timeout = 180000; // 3 minutes for 2.12 and above
         }
-
-        // Enable cluster can move to another Fleet workspace feature flag.
-        cy.enableFeatureFlag(flagName);
 
         // Create new workspace.
         cy.createNewFleetWorkspace(newWorkspaceName);
 
         // Switch to 'fleet-default' workspace
+        cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle(fleetDefault);
         cy.clickNavMenu(['Clusters']);
 
@@ -210,4 +214,80 @@ describe('Global settings related tests', { tags: '@special_tests' }, () => {
       cy.verifyTableRow(0, 'Active', 'fleet-cleanup-gitrepo-jobs');
     },
   );
+});
+
+describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
+  it(qase(468, 'Fleet-468: Verify AppCo connection with Fleet'), { tags: '@fleet-468' }, () => {
+    const appcoUsername = Cypress.expose('appco_username');
+    const appcoAccessToken = Cypress.expose('appco_access_token');
+    const namespaces = ['fleet-local', 'fleet-default'];
+
+    namespaces.forEach((namespace) => {
+      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+      cy.fleetNamespaceToggle(namespace);
+      cy.clickButton('Create App Bundle');
+      cy.contains('App Bundle: Create').should('be.visible');
+      cy.contains('SUSE Application Collection').should('be.visible').click();
+      cy.contains('Create an App Bundle from SUSE Application Collection').should('be.visible');
+      cy.get('input[placeholder="user@domain.org"]').type(appcoUsername);
+      cy.wait(1000);
+      cy.get('textarea[placeholder="Your SUSE Application Collection access token"]').type(appcoAccessToken, {
+        log: false,
+      });
+      cy.clickButton('Save');
+      cy.contains('charts in total', { timeout: 120000 }).should('be.visible');
+    });
+  });
+
+  it(qase(469, 'Fleet-469: Test AppCo charts can be installed in local cluster'), { tags: '@fleet-469' }, () => {
+    const charts = ['alertmanager'];
+
+    charts.forEach((chartName) => {
+      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.clickButton('Create App Bundle');
+      cy.contains('App Bundle: Create').should('be.visible');
+      cy.contains('SUSE Application Collection').should('be.visible').click();
+      cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+
+      cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+      cy.wait(1000);
+      cy.contains(chartName, { timeout: 15000 }).click();
+
+      cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+      cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+      cy.clickButton('Create');
+
+      cy.contains('App Bundles').should('be.visible');
+      cy.filterInSearchBox(chartName);
+      cy.verifyTableRow(0, 'Active', chartName, 120000);
+      cy.verifyTableRow(0, chartName, '1/1');
+    });
+  });
+
+  it(qase(470, 'Fleet-470: Test AppCo charts can be installed in downstream cluster'), { tags: '@fleet-470' }, () => {
+    const charts = ['tika', 'valkey'];
+
+    charts.forEach((chartName) => {
+      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.clickButton('Create App Bundle');
+      cy.contains('App Bundle: Create').should('be.visible');
+      cy.contains('SUSE Application Collection').should('be.visible').click();
+      cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+
+      cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+      cy.wait(1000);
+      cy.contains(chartName, { timeout: 15000 }).click();
+
+      cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+      cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+      cy.clickButton('Create');
+
+      cy.contains('App Bundles').should('be.visible');
+      cy.filterInSearchBox(chartName);
+      cy.verifyTableRow(0, 'Active', chartName, 180000);
+      cy.verifyTableRow(0, chartName, /([1-9]\d*)\/\1/);
+    });
+  });
 });
