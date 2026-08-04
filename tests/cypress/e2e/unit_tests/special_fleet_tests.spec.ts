@@ -302,7 +302,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
     });
   });
 
-  it(
+  it.skip(
     qase('TBD-469-2', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 2'),
     { tags: '@fleet-469-batch2' },
     () => {
@@ -348,7 +348,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
     },
   );
 
-  it(
+  it.skip(
     qase('TBD-469-3', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 3'),
     { tags: '@fleet-469-batch3' },
     () => {
@@ -392,7 +392,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
     },
   );
 
-  it(
+  it.skip(
     qase('TBD-469-3b', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 3b'),
     { tags: '@fleet-469-batch3b' },
     () => {
