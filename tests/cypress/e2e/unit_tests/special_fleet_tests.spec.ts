@@ -514,7 +514,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
     },
   );
 
-  it(
+  it.only(
     qase('TBD-469-6', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 6'),
     { tags: '@fleet-469-batch6' },
     () => {
