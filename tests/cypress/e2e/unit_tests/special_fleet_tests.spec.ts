@@ -232,7 +232,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
     cy.deleteAll(true, 60000);
   });
 
-  it(qase(468, 'Fleet-468: Verify AppCo connection with Fleet'), { tags: '@fleet-468' }, () => {
+  it.only(qase(468, 'Fleet-468: Verify AppCo connection with Fleet'), { tags: '@fleet-468' }, () => {
     const appcoUsername = Cypress.expose('appco_username');
     const appcoAccessToken = Cypress.expose('appco_access_token');
     const namespaces = ['fleet-local', 'fleet-default'];
