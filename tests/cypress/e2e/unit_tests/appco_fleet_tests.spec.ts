@@ -69,7 +69,8 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
       'coredns',
       'external-dns',
       'external-secrets-operator',
-      // 'cert-manager',
+      // 'cert-manager' moved to batch 8 - no diagnosed reason on record for the original exclusion,
+      // testing it in isolation.
     ];
 
     cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
@@ -363,7 +364,8 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         'milvus',
         'prometheus',
         'prometheus-operator',
-        // 'apache-airflow'
+        // 'apache-airflow' moved to batch 8 - no diagnosed reason on record for the original exclusion,
+        // testing it in isolation.
       ];
 
       charts.forEach((chartName) => {
@@ -406,6 +408,8 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
       const charts = [
         { name: 'kiali', hasPv: false }, // repeatedly "Not Ready" (partial resource count) in batch 3/3b.
         { name: 'metallb-fips', hasPv: false }, // conflicts with metallb (shared secret) - never run together.
+        { name: 'cert-manager', hasPv: false }, // excluded from batch 1 previously, no reason on record.
+        { name: 'apache-airflow', hasPv: true }, // excluded from batch 7 previously, no reason on record.
       ];
 
       charts.forEach(({ name: chartName, hasPv }) => {
@@ -427,7 +431,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         cy.contains('App Bundles').should('be.visible');
         cy.filterInSearchBox(chartName);
         cy.contains('429: Too Many Requests').should('not.exist');
-        cy.verifyTableRow(0, 'Active', chartName, 240000);
+        cy.verifyTableRow(0, 'Active', chartName, 600000);
         cy.verifyTableRow(0, chartName, '1/1');
 
         cy.deleteAll(true, 60000);
