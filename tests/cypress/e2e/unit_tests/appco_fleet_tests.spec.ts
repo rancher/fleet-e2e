@@ -69,8 +69,6 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
       'coredns',
       'external-dns',
       'external-secrets-operator',
-      // 'cert-manager' moved to batch 8 - no diagnosed reason on record for the original exclusion,
-      // testing it in isolation.
     ];
 
     cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
@@ -119,7 +117,6 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         'kured',
         'metacontroller',
         'metallb',
-        // 'metallb-fips' moved to batch 8 - conflicts with metallb (shared secret) when both installed at once.
       ];
 
       cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
@@ -359,14 +356,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
     { tags: '@fleet-469-batch7' },
     () => {
       // Batch 7 - heaviest full stacks. Longest timeout; same per-chart teardown as batch 5/6.
-      const charts = [
-        'apache-kafka',
-        'milvus',
-        'prometheus',
-        'prometheus-operator',
-        // 'apache-airflow' moved to batch 8 - no diagnosed reason on record for the original exclusion,
-        // testing it in isolation.
-      ];
+      const charts = ['apache-kafka', 'milvus', 'prometheus', 'prometheus-operator'];
 
       charts.forEach((chartName) => {
         cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
@@ -408,8 +398,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
       const charts = [
         { name: 'kiali', hasPv: false }, // repeatedly "Not Ready" (partial resource count) in batch 3/3b.
         { name: 'metallb-fips', hasPv: false }, // conflicts with metallb (shared secret) - never run together.
-        { name: 'cert-manager', hasPv: false }, // excluded from batch 1 previously, no reason on record.
-        { name: 'apache-airflow', hasPv: true }, // excluded from batch 7 previously, no reason on record.
+        { name: 'apache-airflow', hasPv: true },
       ];
 
       charts.forEach(({ name: chartName, hasPv }) => {
@@ -445,7 +434,9 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
   );
 
   it(qase(470, 'Fleet-470: Test AppCo charts can be installed in downstream cluster'), { tags: '@fleet-470' }, () => {
-    const charts = ['tika', 'coredns'];
+    // cert-manager installed here specifically due to conflict with the cert-manager already existing
+    // in fleet-local.
+    const charts = ['tika', 'coredns', 'cert-manager'];
 
     cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
     cy.fleetNamespaceToggle('fleet-default');
