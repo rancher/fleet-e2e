@@ -95,7 +95,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
       // Stagger installs so Fleet doesn't burst-pull several charts from the OCI registry at once (429s).
       cy.wait(3000);
     });
-    s;
+
     // Then check every row reached Active/N-of-N.
     charts.forEach((chartName) => {
       cy.filterInSearchBox(chartName);
@@ -118,7 +118,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         'kured',
         'metacontroller',
         'metallb',
-        // 'metallb-fips',
+        // 'metallb-fips' moved to batch 8 - conflicts with metallb (shared secret) when both installed at once.
       ];
 
       cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
@@ -205,7 +205,6 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         'prometheus-pushgateway',
         'prometheus-statsd-exporter',
         'suse-security-admission-controller',
-        'kiali',
         'apache-tika',
         'fluent-bit',
         'fluentd',
@@ -393,6 +392,50 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         cy.accesMenuSelection('local', 'Storage', 'PersistentVolumeClaims');
         cy.wait(1000); // Wait for PVC to be released before deleting it, otherwise the delete fails.
         cy.deleteAll(false, 300000); // Some PVC terminantion quite long
+      });
+    },
+  );
+
+  it(
+    qase('TBD-469-8', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 8'),
+    { tags: '@fleet-469-batch8' },
+    () => {
+      // Batch 8 - charts that misbehaved when installed alongside others; run one at a time in their
+      // own isolated batch so a noisy neighbor can't be the cause. Each entry declares whether it's
+      // PV-backed so the right teardown runs afterwards.
+      const charts = [
+        { name: 'kiali', hasPv: false }, // repeatedly "Not Ready" (partial resource count) in batch 3/3b.
+        { name: 'metallb-fips', hasPv: false }, // conflicts with metallb (shared secret) - never run together.
+      ];
+
+      charts.forEach(({ name: chartName, hasPv }) => {
+        cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+        cy.fleetNamespaceToggle('fleet-local');
+        cy.clickButton('Create App Bundle');
+        cy.contains('App Bundle: Create').should('be.visible');
+        cy.contains('SUSE Application Collection').should('be.visible').click();
+        cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+
+        cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+        cy.wait(1000);
+        cy.contains(chartName, { timeout: 15000 }).click();
+
+        cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+        cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+        cy.clickButton('Create');
+
+        cy.contains('App Bundles').should('be.visible');
+        cy.filterInSearchBox(chartName);
+        cy.contains('429: Too Many Requests').should('not.exist');
+        cy.verifyTableRow(0, 'Active', chartName, 240000);
+        cy.verifyTableRow(0, chartName, '1/1');
+
+        cy.deleteAll(true, 60000);
+        if (hasPv) {
+          cy.accesMenuSelection('local', 'Storage', 'PersistentVolumeClaims');
+          cy.wait(1000); // Wait for PVC to be released before deleting it, otherwise the delete fails.
+          cy.deleteAll(false, 300000);
+        }
       });
     },
   );
