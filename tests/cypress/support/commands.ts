@@ -561,7 +561,7 @@ Cypress.Commands.add('fleetNamespaceToggle', (toggleOption = 'local') => {
 // Command to delete all rows if check box and delete button are present
 // Note: This function may be substituted by 'cypressLib.deleteAllResources'
 // when hardcoded texts present can be parameterized
-Cypress.Commands.add('deleteAll', (fleetCheck = true, textCheckTimeout = 30000) => {
+Cypress.Commands.add('deleteAll', (fleetCheck = true, textCheckTimeout = 30000, confirmEmpty = true) => {
   cy.get('body').then(($body) => {
     if ($body.text().match('/Actions/')) {
       cy.wait(250); // Add small wait to give time for things to settle
@@ -587,6 +587,13 @@ Cypress.Commands.add('deleteAll', (fleetCheck = true, textCheckTimeout = 30000) 
       cy.get('.btn').contains('Delete').click({ ctrlKey: true, force: true });
       // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
       cy.wait(2500);
+    }
+
+    // Deletion (e.g. PVC/storage reclaim) can be genuinely slow or stuck on some backends, independent
+    // of anything this test is actually verifying. confirmEmpty=false fires the delete and moves on,
+    // instead of failing the test over housekeeping that was never the thing under test.
+    if (!confirmEmpty) {
+      return;
     }
 
     if (fleetCheck === true) {

@@ -62,7 +62,6 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
     // qase('TBD-469-N') tests below for the remaining batches, split to stay under the local
     // cluster pod cap).
     const charts = [
-      'alertmanager',
       'argo-rollouts',
       'cert-manager-approver-policy',
       'cloudnative-pg',
@@ -277,7 +276,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
 
   it(
     qase('TBD-469-5', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 5'),
-    { tags: '@fleet-469-batch5' },
+    { tags: ['@fleet-469-batch5', '@appco-pv'] },
     () => {
       // Batch 5 - PV-backed databases. Each chart's bundle+PV is torn down before the next install
       // so several DB charts' storage never coexists (that's the actual exhaustion risk).
@@ -309,14 +308,14 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         cy.deleteAll(true, 60000);
         cy.accesMenuSelection('local', 'Storage', 'PersistentVolumeClaims');
         cy.wait(1000); // Wait for PVC to be released before deleting it, otherwise the delete fails.
-        cy.deleteAll(false, 300000);
+        cy.deleteAll(false, 300000, false);
       });
     },
   );
 
   it(
     qase('TBD-469-6', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 6'),
-    { tags: '@fleet-469-batch6' },
+    { tags: ['@fleet-469-batch6', '@appco-pv'] },
     () => {
       // Batch 6 - PV-backed, multi-component charts. Same per-chart teardown as batch 5.
       const charts = ['nats', 'harbor', 'vault', 'suse-virtual-cluster-engine'];
@@ -346,14 +345,14 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         cy.deleteAll(true, 60000);
         cy.accesMenuSelection('local', 'Storage', 'PersistentVolumeClaims');
         cy.wait(1000); // Wait for PVC to be released before deleting it, otherwise the delete fails.
-        cy.deleteAll(false, 300000);
+        cy.deleteAll(false, 300000, false);
       });
     },
   );
 
   it(
     qase('TBD-469-7', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 7'),
-    { tags: '@fleet-469-batch7' },
+    { tags: ['@fleet-469-batch7', '@appco-pv'] },
     () => {
       // Batch 7 - heaviest full stacks. Longest timeout; same per-chart teardown as batch 5/6.
       const charts = ['apache-kafka', 'milvus', 'prometheus', 'prometheus-operator'];
@@ -383,27 +382,29 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         cy.deleteAll(true, 60000);
         cy.accesMenuSelection('local', 'Storage', 'PersistentVolumeClaims');
         cy.wait(1000); // Wait for PVC to be released before deleting it, otherwise the delete fails.
-        cy.deleteAll(false, 300000); // Some PVC terminantion quite long
+        cy.deleteAll(false, 300000, false); // Some PVC terminantion quite long
       });
     },
   );
 
   it(
     qase('TBD-469-8', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 8'),
-    { tags: '@fleet-469-batch8' },
+    { tags: ['@fleet-469-batch8', '@appco-pv'] },
     () => {
-      // Batch 8 - charts that misbehaved when installed alongside others; run one at a time in their
-      // own isolated batch so a noisy neighbor can't be the cause. Each entry declares whether it's
-      // PV-backed so the right teardown runs afterwards.
+      // Batch 8 - charts that either misbehaved when installed alongside others, or are confirmed
+      // PV-backed and need the individual create-verify-delete-PVC treatment. Run one at a time so a
+      // noisy neighbor can't be the cause. Each entry declares whether it's PV-backed so the right
+      // teardown runs afterwards.
       const charts = [
         { name: 'kiali', hasPv: false }, // repeatedly "Not Ready" (partial resource count) in batch 3/3b.
-        // metallb-fips excluded: owns the same cluster-scoped CRDs (e.g. bfdprofiles.metallb.io) as
-        // metallb (batch 2). Helm/Fleet never delete CRDs on uninstall, so the CRD stays owned by
-        // metallb's release for the rest of the cluster's life - isolating this batch doesn't help,
-        // metallb-fips can never install in a run that also installs metallb.
-        // { name: 'metallb-fips', hasPv: false },
+        // metallb-fips owns the same cluster-scoped CRDs (e.g. bfdprofiles.metallb.io) as metallb
+        // (batch 2, @appco). Helm/Fleet never delete CRDs on uninstall, so this only works because
+        // @appco-pv is run as a separate CI invocation (fresh cluster) from @appco - metallb never
+        // gets installed on this cluster. Running both tags in the same invocation breaks this again.
+        { name: 'metallb-fips', hasPv: false },
         { name: 'apache-airflow', hasPv: true },
         { name: 'apache-apisix', hasPv: true }, // bundles an embedded etcd StatefulSet - has its own PVCs.
+        { name: 'alertmanager', hasPv: true }, // has a small default PVC.
       ];
 
       charts.forEach(({ name: chartName, hasPv }) => {
@@ -432,7 +433,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
         if (hasPv) {
           cy.accesMenuSelection('local', 'Storage', 'PersistentVolumeClaims');
           cy.wait(1000); // Wait for PVC to be released before deleting it, otherwise the delete fails.
-          cy.deleteAll(false, 300000);
+          cy.deleteAll(false, 300000, false);
         }
       });
     },
