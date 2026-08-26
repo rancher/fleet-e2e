@@ -243,7 +243,7 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
     { tags: '@fleet-469-batch4' },
     () => {
       // Batch 4 - medium weight, multi-pod, no PV by default.
-      const charts = ['argo-cd', 'argo-workflows', 'apache-apisix', 'grafana', 'thanos', 'pytorch', 'ollama'];
+      const charts = ['argo-cd', 'argo-workflows', 'grafana', 'thanos', 'pytorch', 'ollama'];
 
       cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
       cy.fleetNamespaceToggle('fleet-local');
@@ -397,8 +397,13 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
       // PV-backed so the right teardown runs afterwards.
       const charts = [
         { name: 'kiali', hasPv: false }, // repeatedly "Not Ready" (partial resource count) in batch 3/3b.
-        { name: 'metallb-fips', hasPv: false }, // conflicts with metallb (shared secret) - never run together.
+        // metallb-fips excluded: owns the same cluster-scoped CRDs (e.g. bfdprofiles.metallb.io) as
+        // metallb (batch 2). Helm/Fleet never delete CRDs on uninstall, so the CRD stays owned by
+        // metallb's release for the rest of the cluster's life - isolating this batch doesn't help,
+        // metallb-fips can never install in a run that also installs metallb.
+        // { name: 'metallb-fips', hasPv: false },
         { name: 'apache-airflow', hasPv: true },
+        { name: 'apache-apisix', hasPv: true }, // bundles an embedded etcd StatefulSet - has its own PVCs.
       ];
 
       charts.forEach(({ name: chartName, hasPv }) => {
