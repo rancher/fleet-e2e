@@ -310,8 +310,18 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
 });
 
 describe('Test Appco - Fleet integration (PV-backed charts)', { tags: '@appco-pv' }, () => {
-  before(() => {
-    // Establish the AppCo connection once for this describe's dedicated cluster - this runs as a
+  beforeEach(() => {
+    // Same App Bundles cleanup as the @appco describe's beforeEach - hooks don't cross describe
+    // boundaries, so this needs its own copy.
+    cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+    cy.fleetNamespaceToggle('fleet-local');
+    cy.deleteAll(true, 60000);
+    cy.fleetNamespaceToggle('fleet-default');
+    cy.deleteAll(true, 60000);
+  });
+
+  it(qase('TBD-468-pv', 'Fleet-468: Verify AppCo connection with Fleet (PV cluster)'), { tags: '@fleet-468' }, () => {
+    // Establish the AppCo connection for this describe's own dedicated cluster - this runs as a
     // separate CI invocation from the @appco describe above, so its cluster never gets the
     // connection set up by that describe's own Fleet-468 test.
     const appcoUsername = Cypress.expose('appco_username');
@@ -333,16 +343,6 @@ describe('Test Appco - Fleet integration (PV-backed charts)', { tags: '@appco-pv
       cy.clickButton('Save');
       cy.contains('charts in total', { timeout: 120000 }).should('be.visible');
     });
-  });
-
-  beforeEach(() => {
-    // Same App Bundles cleanup as the @appco describe's beforeEach - hooks don't cross describe
-    // boundaries, so this needs its own copy.
-    cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
-    cy.fleetNamespaceToggle('fleet-local');
-    cy.deleteAll(true, 60000);
-    cy.fleetNamespaceToggle('fleet-default');
-    cy.deleteAll(true, 60000);
   });
 
   it(
