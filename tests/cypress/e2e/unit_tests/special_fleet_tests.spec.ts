@@ -130,11 +130,13 @@ describe(
         const repoUrl = 'https://github.com/rancher/fleet-examples';
         const newWorkspaceName = 'new-fleet-workspace';
         const fleetDefault = 'fleet-default';
-        let timeout = 30000;
+        // Moving the cluster between workspaces (especially back to 'fleet-default')
+        // takes a significant amount of time, hence the generous timeouts.
+        let timeout = 120000; // 2 minutes
 
         //Version check for 2.12 (head)
         if (supported_versions_212_and_above.some((r) => r.test(rancherVersion))) {
-          timeout = 180000; // 3 minutes for 2.12 and above
+          timeout = 300000; // 5 minutes for 2.12 and above
         }
 
         // Create new workspace.
@@ -152,6 +154,7 @@ describe(
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         cy.fleetNamespaceToggle(newWorkspaceName);
         cy.clickButton('Create');
+        cy.verifyTableRow(0, 'Active', repoName);
 
         // Review below line after all tests passed.
         cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
