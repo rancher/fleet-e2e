@@ -346,6 +346,43 @@ describe('Test Appco - Fleet integration (PV-backed charts)', { tags: '@appco-pv
   });
 
   it(
+    qase('TBD-469-7b', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 7b'),
+    { tags: '@fleet-469-batch7b' },
+    () => {
+      // Batch 7b - prometheus-operator alone, first in this describe so it starts on an otherwise-empty
+      // cluster. Full kube-prometheus-stack (115 resources) was still at 112/115 after 10 minutes in a
+      // real run - isolated here so its long timeout doesn't gate batch 7.
+      const chartName = 'prometheus-operator';
+
+      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.clickButton('Create App Bundle');
+      cy.contains('App Bundle: Create').should('be.visible');
+      cy.contains('SUSE Application Collection').should('be.visible').click();
+      cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+
+      cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+      cy.wait(1000);
+      cy.contains(chartName, { timeout: 15000 }).click();
+
+      cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+      cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+      cy.clickButton('Create');
+
+      cy.contains('App Bundles').should('be.visible');
+      cy.filterInSearchBox(chartName);
+      cy.contains('429: Too Many Requests').should('not.exist');
+      cy.verifyTableRow(0, 'Active', chartName, 1200000);
+      cy.verifyTableRow(0, chartName, '1/1');
+
+      cy.deleteAll(true, 60000);
+      cy.accesMenuSelection('local', 'Storage', 'PersistentVolumeClaims');
+      cy.wait(1000); // Wait for PVC to be released before deleting it, otherwise the delete fails.
+      cy.deleteAll(false, 300000, false);
+    },
+  );
+
+  it(
     qase('TBD-469-5', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch 5'),
     { tags: '@fleet-469-batch5' },
     () => {
@@ -426,7 +463,9 @@ describe('Test Appco - Fleet integration (PV-backed charts)', { tags: '@appco-pv
     { tags: '@fleet-469-batch7' },
     () => {
       // Batch 7 - heaviest full stacks. Longest timeout; same per-chart teardown as batch 5/6.
-      const charts = ['apache-kafka', 'milvus', 'prometheus', 'prometheus-operator'];
+      // prometheus-operator lives in its own it() below - it's a much heavier outlier (115 resources)
+      // than the rest of this batch and needs a far longer timeout on its own.
+      const charts = ['apache-kafka', 'milvus', 'prometheus'];
 
       charts.forEach((chartName) => {
         cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
