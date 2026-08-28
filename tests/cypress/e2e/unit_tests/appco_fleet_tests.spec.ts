@@ -75,8 +75,8 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
   );
 
   it(
-    qase('TBD-469-2', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch-2'),
-    { tags: '@fleet-469-batch2' },
+    qase(471, 'Fleet-471: Test AppCo charts can be installed in local cluster - batch-2'),
+    { tags: '@fleet-471' },
     () => {
       // Batch 2 - daemonsets/small controllers, no PV.
       const charts = [
@@ -104,8 +104,8 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
   );
 
   it(
-    qase('TBD-469-3', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch-3'),
-    { tags: '@fleet-469-batch3' },
+    qase(472, 'Fleet-472: Test AppCo charts can be installed in local cluster - batch-3'),
+    { tags: '@fleet-472' },
     () => {
       // Batch 3 - single-pod charts, no PV.
       const charts = [
@@ -132,8 +132,8 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
   );
 
   it(
-    qase('TBD-469-4', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch-4'),
-    { tags: '@fleet-469-batch4' },
+    qase(473, 'Fleet-473: Test AppCo charts can be installed in local cluster - batch-4'),
+    { tags: '@fleet-473' },
     () => {
       // Batch 4 - remaining single-pod charts, no PV (split out of batch 3, which had too many
       // concurrent installs firing in one window).
@@ -161,8 +161,8 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
   );
 
   it(
-    qase('TBD-469-5', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch-5'),
-    { tags: '@fleet-469-batch5' },
+    qase(474, 'Fleet-474: Test AppCo charts can be installed in local cluster - batch-5'),
+    { tags: '@fleet-474' },
     () => {
       // Batch 5 - medium weight, multi-pod, no PV by default.
       const charts = ['argo-cd', 'argo-workflows', 'grafana', 'thanos', 'pytorch', 'ollama'];
@@ -219,8 +219,8 @@ describe('Test Appco - Fleet integration (PV-backed charts)', { tags: '@appco-pv
   });
 
   it(
-    qase('TBD-469-7', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch-7'),
-    { tags: '@fleet-469-batch7' },
+    qase(475, 'Fleet-475: Test AppCo charts can be installed in local cluster - batch-7'),
+    { tags: '@fleet-475' },
     () => {
       // Batch 7 - prometheus-operator alone, first in this describe so it starts on an otherwise-empty
       // cluster. Full kube-prometheus-stack (115 resources) was still at 112/115 after 10 minutes in a
@@ -235,8 +235,8 @@ describe('Test Appco - Fleet integration (PV-backed charts)', { tags: '@appco-pv
   );
 
   it(
-    qase('TBD-469-8', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch-8'),
-    { tags: '@fleet-469-batch8' },
+    qase(476, 'Fleet-476: Test AppCo charts can be installed in local cluster - batch-8'),
+    { tags: '@fleet-476' },
     () => {
       // Batch 8 - PV-backed databases. Each chart's bundle+PV is torn down before the next install
       // so several DB charts' storage never coexists (that's the actual exhaustion risk).
@@ -254,8 +254,8 @@ describe('Test Appco - Fleet integration (PV-backed charts)', { tags: '@appco-pv
   );
 
   it(
-    qase('TBD-469-9', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch-9'),
-    { tags: '@fleet-469-batch9' },
+    qase(477, 'Fleet-477: Test AppCo charts can be installed in local cluster - batch-9'),
+    { tags: '@fleet-477' },
     () => {
       // Batch 9 - PV-backed, multi-component charts. Same per-chart teardown as batch 8.
       const charts = ['nats', 'harbor', 'vault', 'suse-virtual-cluster-engine'];
@@ -271,8 +271,8 @@ describe('Test Appco - Fleet integration (PV-backed charts)', { tags: '@appco-pv
   );
 
   it(
-    qase('TBD-469-10', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch-10'),
-    { tags: '@fleet-469-batch10' },
+    qase(478, 'Fleet-478: Test AppCo charts can be installed in local cluster - batch-10'),
+    { tags: '@fleet-478' },
     () => {
       // Batch 10 - heaviest full stacks. Longest timeout; same per-chart teardown as batch 8/9.
       // prometheus-operator lives in its own it() above (batch 7) - it's a much heavier outlier
@@ -290,8 +290,8 @@ describe('Test Appco - Fleet integration (PV-backed charts)', { tags: '@appco-pv
   );
 
   it(
-    qase('TBD-469-11', 'Fleet-469: Test AppCo charts can be installed in local cluster - batch-11'),
-    { tags: '@fleet-469-batch11' },
+    qase(479, 'Fleet-479: Test AppCo charts can be installed in local cluster - batch-11'),
+    { tags: '@fleet-479' },
     () => {
       // Batch 11 - charts that either misbehaved when installed alongside others, or are confirmed
       // PV-backed and need the individual create-verify-delete-PVC treatment. Run one at a time so a
