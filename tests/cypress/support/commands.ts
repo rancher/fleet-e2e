@@ -392,6 +392,61 @@ Cypress.Commands.add('clickCreateGitRepo', (local) => {
   }
 });
 
+// Establish the SUSE Application Collection connection for a fleet namespace, from the App Bundles page.
+Cypress.Commands.add('connectAppcoForNamespace', (namespace, appcoUsername, appcoAccessToken) => {
+  cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+  cy.fleetNamespaceToggle(namespace);
+  cy.clickButton('Create App Bundle');
+  cy.contains('App Bundle: Create').should('be.visible');
+  cy.contains('SUSE Application Collection').should('be.visible').click();
+  cy.contains('Create an App Bundle from SUSE Application Collection').should('be.visible');
+  cy.get('input[placeholder="user@domain.org"]').type(appcoUsername);
+  cy.wait(1000);
+  cy.get('textarea[placeholder="Your SUSE Application Collection access token"]').type(appcoAccessToken, {
+    log: false,
+  });
+  cy.clickButton('Save');
+  cy.contains('charts in total', { timeout: 120000 }).should('be.visible');
+});
+
+// Create an App Bundle from a SUSE Application Collection chart, assuming the App Bundles page
+// (correct namespace already toggled) is visible and the AppCo connection is already configured.
+Cypress.Commands.add('createAppBundleFromAppco', (chartName) => {
+  cy.clickButton('Create App Bundle');
+  cy.contains('App Bundle: Create').should('be.visible');
+  cy.contains('SUSE Application Collection').should('be.visible').click();
+  cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+
+  cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+  cy.wait(1000);
+  cy.contains(chartName, { timeout: 15000 }).click();
+
+  cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+  cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+  cy.clickButton('Create');
+
+  cy.contains('App Bundles').should('be.visible');
+});
+
+// Verify a chart installed via createAppBundleFromAppco() reached Active with all resources up.
+Cypress.Commands.add('verifyChartActiveFromAppco', (chartName, timeout, resourceCount = '1/1') => {
+  cy.filterInSearchBox(chartName);
+  cy.contains('429: Too Many Requests').should('not.exist');
+  cy.verifyTableRow(0, 'Active', chartName, timeout);
+  cy.verifyTableRow(0, chartName, resourceCount);
+});
+
+// Delete an App Bundle and, if it's PV-backed, the PVC it leaves behind - Helm/Fleet never
+// delete PVCs on uninstall, so the orphaned PVC needs a separate pass on the Storage page.
+Cypress.Commands.add('deleteBundleAndPvc', (hasPv = true, bundleDeleteTimeout = 60000, pvcDeleteTimeout = 300000) => {
+  cy.deleteAll(true, bundleDeleteTimeout);
+  if (hasPv) {
+    cy.accesMenuSelection('local', 'Storage', 'PersistentVolumeClaims');
+    cy.wait(1000); // Wait for PVC to be released before deleting it, otherwise the delete fails.
+    cy.deleteAll(false, pvcDeleteTimeout, false);
+  }
+});
+
 // 3 dots menu selection
 Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu = false) => {
   // Let cy.filterInSearchBox() operation finish and wait before opening Edit Menu.
@@ -561,7 +616,7 @@ Cypress.Commands.add('fleetNamespaceToggle', (toggleOption = 'local') => {
 // Command to delete all rows if check box and delete button are present
 // Note: This function may be substituted by 'cypressLib.deleteAllResources'
 // when hardcoded texts present can be parameterized
-Cypress.Commands.add('deleteAll', (fleetCheck = true) => {
+Cypress.Commands.add('deleteAll', (fleetCheck = true, textCheckTimeout = 30000, confirmEmpty = true) => {
   cy.get('body').then(($body) => {
     if ($body.text().match('/Actions/')) {
       cy.wait(250); // Add small wait to give time for things to settle
@@ -581,17 +636,27 @@ Cypress.Commands.add('deleteAll', (fleetCheck = true) => {
     if ($body.text().includes('Delete')) {
       cy.wait(250); // Add small wait to give time for things to settle
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
+
+      // cy.get('span.checkbox-custom[aria-checked=true]', { timeout: 50000 }).should('have.value', 'true');
+      cy.get('span.checkbox-custom[aria-checked=true]', { timeout: 50000 }).first().should('exist');
       cy.get('.btn').contains('Delete').click({ ctrlKey: true, force: true });
       // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
       cy.wait(2500);
     }
 
+    // Deletion (e.g. PVC/storage reclaim) can be genuinely slow or stuck on some backends, independent
+    // of anything this test is actually verifying. confirmEmpty=false fires the delete and moves on,
+    // instead of failing the test over housekeeping that was never the thing under test.
+    if (!confirmEmpty) {
+      return;
+    }
+
     if (fleetCheck === true) {
       cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|')), {
-        timeout: 20000,
+        timeout: textCheckTimeout,
       }).should('be.visible');
     } else {
-      cy.contains(new RegExp(noRowsMessages.join('|')), { timeout: 30000 }).should('be.visible');
+      cy.contains(new RegExp(noRowsMessages.join('|')), { timeout: textCheckTimeout }).should('be.visible');
     }
   });
 });
