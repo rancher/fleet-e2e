@@ -163,6 +163,11 @@ describe(
         // In Fleet Workspace, namespace name similarly treated as namespace.
         cy.deleteAllFleetRepos(newWorkspaceName);
 
+        // Moving the cluster while its bundles are still being removed leaves it
+        // stuck in 'Wait Check-In' after the move back.
+        cy.fleetNamespaceToggle(newWorkspaceName);
+        cy.checkBundlesDeleted(repoName, timeout);
+
         // Move cluster back to 'fleet-default' workspace
         cy.fleetNamespaceToggle(newWorkspaceName);
         cy.restoreClusterToDefaultWorkspace(dsFirstClusterName, timeout);
