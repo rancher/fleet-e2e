@@ -1631,7 +1631,7 @@ describe('Validate bundleDeployment labels and status.resources', { tags: '@p1_2
       cy.accesMenuSelection('Cluster Management', 'Clusters');
 
       cy.wrap(dsAllClusterList).each((displayName: any) => {
-        cy.get('input.input-sm.search-box').should('be.visible').clear();
+        cy.get('input.search-box, .search-box input').should('be.visible').clear();
         cy.wait(500);
         cy.filterInSearchBox(displayName);
         cy.wait(500);

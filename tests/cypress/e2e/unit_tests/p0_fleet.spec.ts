@@ -759,14 +759,10 @@ describe('Test GitJob security context', { tags: ['@p0', '@pr-tests'] }, () => {
     cy.verifyTableRow(0, 'Running', 'gitjob');
     cy.contains('gitjob').click();
     cy.clickButton('Config');
-    cy.get('section#container-0')
-      .find('.side-tabs ul.tabs li')
-      .eq(3)
-      .should('have.id', 'securityContext')
-      .contains('Security Context')
-      .should('be.visible')
-      .click();
-    if (/\/2\.14/.test(Cypress.expose('rancher_version')) || /\/2\.15/.test(Cypress.expose('rancher_version'))) {
+    // 2.16 changed ul.tabs to div.tabs > ul.tab-list; this data-testid is stable across 2.12-2.16.
+    cy.get('section#container-0').find('[data-testid="btn-securityContext"]').should('be.visible').click();
+    // 2.14+ renders these as Checkboxes (aria-checked); 2.12/2.13 used radio groups.
+    if (/\/2\.(1[4-9]|[2-9][0-9])/.test(Cypress.expose('rancher_version'))) {
       // Check Run as Non-Root
       cy.get('[data-testid="input-security-runasNonRoot"] [role="checkbox"]').should(
         'have.attr',
