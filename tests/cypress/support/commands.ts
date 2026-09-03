@@ -574,11 +574,12 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
 });
 
 // Command to filter text in searchbox
+// 2.16 moved "search-box" onto a LabeledInput wrapper div; the real input is inside it.
 Cypress.Commands.add('filterInSearchBox', (filterText) => {
-  cy.get('input.input-sm.search-box,.labeled-input.edit.compact-input.search-box').should('be.visible');
+  cy.get('input.search-box, .search-box input').should('be.visible');
   // Added 1/2 seconds of wait, as element is hidden after it gets visible.
   cy.wait(500);
-  cy.get('input.input-sm.search-box,.labeled-input.edit.compact-input.search-box').clear().type(filterText);
+  cy.get('input.search-box, .search-box input').clear().type(filterText);
   cy.wait(250); // Adding 1/4 second to ensure next action is executed more reliably
 });
 
@@ -592,7 +593,8 @@ Cypress.Commands.add('accesMenuSelection', (firstAccessMenu = 'Continuous Delive
   cy.contains(firstAccessMenu).should('be.visible');
   cypressLib.accesMenu(firstAccessMenu);
   if (secondAccessMenu) {
-    cy.contains(secondAccessMenu).should('be.visible');
+    // 2.16's NavActionBar pushes side-nav entries below the fold; be.visible does not auto-scroll.
+    cy.contains(secondAccessMenu).scrollIntoView().should('be.visible');
     cypressLib.accesMenu(secondAccessMenu);
   }
   if (clickOption) {
@@ -1564,7 +1566,7 @@ Cypress.Commands.add('getClusterIds', (clusterList) => {
   cy.accesMenuSelection('Cluster Management', 'Clusters');
 
   cy.wrap(clusterList).each((displayName: any) => {
-    cy.get('input.input-sm.search-box').should('be.visible').clear();
+    cy.get('input.search-box, .search-box input').should('be.visible').clear();
     cy.wait(500);
     cy.filterInSearchBox(displayName);
     cy.wait(500);
