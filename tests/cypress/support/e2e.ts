@@ -73,6 +73,7 @@ declare global {
       deleteBundleAndPvc(hasPv?: boolean, bundleDeleteTimeout?: number, pvcDeleteTimeout?: number): Chainable<Element>;
       deleteAll(fleetCheck?: boolean, textCheckTimeout?: number, confirmEmpty?: boolean): Chainable<Element>;
       deleteAllFleetRepos(namespaceName?: string): Chainable<Element>;
+      checkBundlesDeleted(repoName: string, timeout?: number): Chainable<Element>;
       checkGitRepoStatus(
         repoName: string,
         bundles?: string,
