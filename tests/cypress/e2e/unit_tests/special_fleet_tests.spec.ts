@@ -130,11 +130,13 @@ describe(
         const repoUrl = 'https://github.com/rancher/fleet-examples';
         const newWorkspaceName = 'new-fleet-workspace';
         const fleetDefault = 'fleet-default';
-        let timeout = 30000;
+        // Moving the cluster between workspaces (especially back to 'fleet-default')
+        // takes a significant amount of time, hence the generous timeouts.
+        let timeout = 120000; // 2 minutes
 
         //Version check for 2.12 (head)
         if (supported_versions_212_and_above.some((r) => r.test(rancherVersion))) {
-          timeout = 180000; // 3 minutes for 2.12 and above
+          timeout = 600000; // 10 minutes for 2.12 and above
         }
 
         // Create new workspace.
@@ -152,6 +154,7 @@ describe(
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         cy.fleetNamespaceToggle(newWorkspaceName);
         cy.clickButton('Create');
+        cy.verifyTableRow(0, 'Active', repoName);
 
         // Review below line after all tests passed.
         cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
@@ -159,6 +162,11 @@ describe(
         // Delete GitRepo
         // In Fleet Workspace, namespace name similarly treated as namespace.
         cy.deleteAllFleetRepos(newWorkspaceName);
+
+        // Moving the cluster while its bundles are still being removed leaves it
+        // stuck in 'Wait Check-In' after the move back.
+        cy.fleetNamespaceToggle(newWorkspaceName);
+        cy.checkBundlesDeleted(repoName, timeout);
 
         // Move cluster back to 'fleet-default' workspace
         cy.fleetNamespaceToggle(newWorkspaceName);

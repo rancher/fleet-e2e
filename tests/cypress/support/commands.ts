@@ -677,6 +677,14 @@ Cypress.Commands.add('deleteAllFleetRepos', (namespaceName) => {
   }
 });
 
+// Bundles are garbage collected asynchronously after the GitRepo is deleted,
+// so an empty GitRepo list does not mean the cluster is clean yet.
+Cypress.Commands.add('checkBundlesDeleted', (repoName, timeout = 180000) => {
+  cy.continuousDeliveryBundlesMenu();
+  cy.filterInSearchBox(repoName);
+  cy.get('td > span, td.text-center > span', { timeout: timeout }).invoke('text').should('be.oneOf', noRowsMessages);
+});
+
 // Check Git repo deployment status
 Cypress.Commands.add(
   'checkGitRepoStatus',
