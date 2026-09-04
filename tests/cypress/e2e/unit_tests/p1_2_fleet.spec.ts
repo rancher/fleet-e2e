@@ -57,9 +57,9 @@ export const removeLabelFromAllClusters = `kubectl label -n fleet-default cluste
     'management.cattle.io/cluster-display-name in (${dsAllClusterList.join(',')})' ${key}- ${new_key}- {enter}`;
 export const removeClusterGroupCommand = `kubectl delete clustergroups.fleet.cattle.io ${clusterGroupName} -n fleet-default {enter}`;
 
-// Shortens the agent's Helm-release GC interval (default 15m). Must be the `fleet` key: a
+// Shortens the agent's Helm-release garbage collection interval (default 15m). Must be the `fleet` key: a
 // `fleet-agent` patch is silently ignored because fleet-controller renders the agent's config.
-// A merge patch replaces the whole `fleet` value, and the interval persists for the rest of the suite.
+// A merge patch replaces the whole `fleet` value, so it also drops any other fleet chart values.
 // Keep a newline right after each `{` so Cypress .type() reads it as a literal brace, not a special-key sequence.
 export const patchGarbageCollectionInterval = `\
     kubectl patch configmap rancher-config \
@@ -68,6 +68,18 @@ export const patchGarbageCollectionInterval = `\
     -p '{
       "data": {
         "fleet": "garbageCollectionInterval: 30s"
+      }
+    }'{enter}`;
+
+// Drops the override so the chart default applies again. This is cluster-wide state, so tests that
+// shorten the interval must restore it even when they fail, or every later test inherits a 30s collector.
+export const restoreGarbageCollectionInterval = `\
+    kubectl patch configmap rancher-config \
+    -n cattle-system \
+    --type merge \
+    -p '{
+      "data": {
+        "fleet": null
       }
     }'{enter}`;
 
@@ -2130,10 +2142,33 @@ describe('Test "helm.sh/resource-policy: keep" annotation is added to CRDs only.
 });
 
 if (!/\/2\.11/.test(rancherVersion) && !/\/2\.12/.test(rancherVersion) && !/\/2\.13/.test(rancherVersion)) {
-  describe.only(
+  describe(
     'Test valid Helm release survives garbage collection when the bundle name exceeds the 53 character limit',
     { tags: '@p1_2' },
     () => {
+      // Poll the config the agent actually runs on, instead of sleeping. Re-visits each attempt
+      // because the YAML view renders once per load. Gives up after ~2 min.
+      const waitForShortGarbageCollectionInterval = (applied: boolean, attemptsLeft = 12) => {
+        cy.visit('/c/local/explorer/configmap/cattle-fleet-system/fleet-controller?as=yaml');
+        cy.get('.CodeMirror', { log: false, timeout: 30000 }).then(($el) => {
+          const config = ($el[0] as any).CodeMirror.getValue();
+          if (config.includes('garbageCollectionInterval: 30s') === applied) return;
+          if (attemptsLeft === 0) {
+            throw new Error(
+              `fleet-controller garbage collection interval never became ${applied ? '30s' : 'the default'}`,
+            );
+          }
+          cy.wait(10000);
+          waitForShortGarbageCollectionInterval(applied, attemptsLeft - 1);
+        });
+      };
+
+      // Runs on failure too, so a mid-test abort cannot leave a 30s collector behind for later specs.
+      afterEach(() => {
+        cy.executeKubectlCommand(restoreGarbageCollectionInterval);
+        waitForShortGarbageCollectionInterval(false);
+      });
+
       it(
         qase(480, 'Fleet-480: Test Helm release of a bundle named over 53 characters is not garbage collected'),
         { tags: '@fleet-480' },
@@ -2141,13 +2176,14 @@ if (!/\/2\.11/.test(rancherVersion) && !/\/2\.12/.test(rancherVersion) && !/\/2\
           const repoName = 'test-gc-long-bundle-name';
           const path = 'qa-test-apps/gc-long-bundle-name';
           const configMapName = 'gc-long-bundle-name-config';
+          const namespaceName = 'gc-long-bundle-name';
           // 55 char bundle name, no helm.releaseName, so Fleet derives '<first 47 chars>-<md5(name)[:5]>'.
           const releaseName = 'repro-bundle-name-that-exceeds-the-53-char-helm-98fdb';
           const releaseV1 = `sh.helm.release.v1.${releaseName}.v1`;
           const releaseV2 = `sh.helm.release.v1.${releaseName}.v2`;
 
-          // GC liveness control: repointing this repo genuinely orphans release1, so release1
-          // disappearing proves GC cycled. Name sorts ahead of repoName because editConfig asserts on row 0.
+          // Garbage collection liveness control: repointing this repo orphans release1,
+          // so release1 disappearing proves the collector cycled.
           const controlRepoName = 'test-gc-control-old-release';
           const controlPathV1 = 'qa-test-apps/check-old-release-removal/app-version-1';
           const controlPathV2 = 'qa-test-apps/check-old-release-removal/app-version-2';
@@ -2162,25 +2198,24 @@ if (!/\/2\.11/.test(rancherVersion) && !/\/2\.12/.test(rancherVersion) && !/\/2\
             cy.checkGitRepoStatus(name, '1 / 1', '1 / 1');
           };
 
-          // A GC uninstall deletes the ConfigMap and Fleet recreates it, so only an unchanged uid proves survival.
-          const readConfigMapUid = (assertUid: (uid: string) => void) => {
-            cy.accesMenuSelection('local', 'Storage', 'ConfigMaps');
-            cy.nameSpaceMenuToggle('All Namespaces');
-            cy.filterInSearchBox(configMapName);
-            cy.open3dotsMenu(configMapName, 'Edit YAML');
+          // A garbage collection uninstall recreates the ConfigMap, so an unchanged creationTimestamp proves survival.
+          // Must be the read-only `?as=yaml` view: "Edit YAML" strips creationTimestamp and uid, and the
+          // only uid rendered is ownerReferences' - the owner survives a recreate, so it is a false pass.
+          const configMapYamlUrl = `/c/local/explorer/configmap/${namespaceName}/${configMapName}?as=yaml`;
+          const readConfigMapTimestamp = (assertTimestamp: (timestamp: string) => void) => {
+            cy.visit(configMapYamlUrl);
             // CodeMirror only renders the visible lines, so read the whole document via getValue.
-            cy.get('.CodeMirror', { log: false }).should(($el) => {
+            cy.get('.CodeMirror', { log: false, timeout: 30000 }).should(($el) => {
               const yamlText = ($el[0] as any).CodeMirror.getValue();
-              const uid = yamlText.match(/uid:\s*(\S+)/)?.[1];
-              expect(uid === undefined, 'ConfigMap YAML should expose metadata.uid').to.eq(false);
-              assertUid(uid);
+              const timestamp = yamlText.match(/^\s*creationTimestamp:\s*(\S+)/m)?.[1];
+              expect(timestamp, 'ConfigMap YAML should expose metadata.creationTimestamp').to.not.eq(undefined);
+              assertTimestamp(timestamp);
             });
-            cy.clickButton('Cancel');
           };
 
-          // Set a 30s GC interval, then wait 60s for the Fleet reinstall / agent redeploy.
+          // Set a 30s garbage collection interval and wait for it to reach the config the agent runs on.
           cy.executeKubectlCommand(patchGarbageCollectionInterval);
-          cy.wait(60000);
+          waitForShortGarbageCollectionInterval(true);
 
           cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
           cy.clickButton('Create');
@@ -2191,9 +2226,9 @@ if (!/\/2\.11/.test(rancherVersion) && !/\/2\.12/.test(rancherVersion) && !/\/2\
           cy.filterInSearchBox(releaseV1);
           cy.verifyTableRow(0, 'Active', releaseV1);
 
-          let originalConfigMapUid = '';
-          readConfigMapUid((uid) => {
-            originalConfigMapUid = uid;
+          let originalTimestamp = '';
+          readConfigMapTimestamp((timestamp) => {
+            originalTimestamp = timestamp;
           });
 
           cy.addFleetGitRepo({
@@ -2220,11 +2255,10 @@ if (!/\/2\.11/.test(rancherVersion) && !/\/2\.12/.test(rancherVersion) && !/\/2\
           cy.filterInSearchBox(newRelease);
           cy.verifyTableRow(0, 'Active', newRelease);
 
-          // release1 gone means GC ran at least once while the long-named release was deployed.
+          // release1 gone means garbage collection ran at least once while the long-named release was deployed.
           cy.filterInSearchBox(oldRelease);
           cy.contains(oldRelease, { timeout: 120000 }).should('not.exist');
 
-          // The long-named release must be untouched: still revision 1, no revision 2, same ConfigMap.
           cy.accesMenuSelection('local', 'Storage', 'Secrets');
           cy.nameSpaceMenuToggle('All Namespaces');
           cy.filterInSearchBox(releaseV1);
@@ -2235,9 +2269,9 @@ if (!/\/2\.11/.test(rancherVersion) && !/\/2\.12/.test(rancherVersion) && !/\/2\
 
           checkRepoReady(repoName);
 
-          readConfigMapUid((uid) => {
-            expect(uid, 'ConfigMap must not have been recreated by a garbage collector uninstall').to.eq(
-              originalConfigMapUid,
+          readConfigMapTimestamp((timestamp) => {
+            expect(timestamp, 'ConfigMap must not have been recreated by a garbage collector uninstall').to.eq(
+              originalTimestamp,
             );
           });
         },
