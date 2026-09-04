@@ -337,7 +337,7 @@ Cypress.Commands.add(
       // Here we do not add click Next as is present in the following step
     }
 
-    cy.get('span.controls').contains('Advanced').should('be.visible').click();
+    cy.get('span').contains('Advanced').should('be.visible').click();
 
     if (helmAuth) {
       // TODO: Add logic
