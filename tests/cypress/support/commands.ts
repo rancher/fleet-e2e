@@ -337,7 +337,7 @@ Cypress.Commands.add(
       // Here we do not add click Next as is present in the following step
     }
 
-    cy.get('span.controls').contains('Advanced').should('be.visible').click();
+    cy.get('span').contains('Advanced').should('be.visible').click();
 
     if (helmAuth) {
       // TODO: Add logic
@@ -1467,7 +1467,12 @@ Cypress.Commands.add('checkAccessToCreateGitRepoPage', () => {
     cy.get('[data-testid="subtype-banner-item-fleet.cattle.io.gitrepo"]')
       .should('be.visible')
       .trigger('mouseenter', { force: true });
-    cy.contains('You have no permissions to create Git Repos').should('be.visible');
+
+    // Adapted locator after 2.16.
+    // Explicit call to visibility not working well.
+    cy.contains('You have no permissions to create Git Repos').should('exist');
+    cy.get('*:visible:contains("You have no permissions to create Git Repos")').should('exist');
+
     cy.clickButton('Cancel');
   } else {
     cy.get('.btn.role-primary').contains('Add Repository').should('not.exist');
