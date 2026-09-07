@@ -55,6 +55,8 @@ module.exports = (on: Cypress.PluginEvents, config: Cypress.PluginConfigOptions)
   config.expose.gh_app_id = process.env.GH_APP_ID;
   config.expose.gh_app_installation_id = process.env.GH_APP_INSTALLATION_ID;
   config.expose.gh_app_private_key = process.env.GH_APP_PRIVATE_KEY;
+  config.expose.appco_username = process.env.APPCO_USERNAME;
+  config.expose.appco_access_token = process.env.APPCO_ACCESS_TOKEN;
 
   return config;
 };

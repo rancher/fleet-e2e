@@ -55,7 +55,7 @@ describe('Test Fleet on AWS EC2 imported cluster', { tags: '@cloud_ds' }, () => 
     cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: false });
     cy.clickButton('Create');
     cy.wait(45000); // Adding 45 seconds due to slow comunication and size of ec2 cluster
-    cy.verifyTableRow(0, 'Active', '4/4'); // 4 clusters means gitrepo was deployed to ec2 cluster
+    cy.verifyTableRow(0, 'Active', '4/4', 1200000); // 4 clusters means gitrepo was deployed to ec2 cluster
   });
 
   it(qase(188, 'Delete EC2 cluster'), () => {
@@ -78,29 +78,36 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypres
         cy.clickButton('Edit as YAML');
 
         // Append the agent scheduling customization
-        cy.get('.CodeMirror').then((codeMirrorElement) => {
-          const cm = (codeMirrorElement[0] as any).CodeMirror;
-          const currentYaml = cm.getValue();
-          const snippet = `\
+        cy.get('.CodeMirror')
+          .should(($el) => {
+            expect(($el[0] as any).CodeMirror.getValue()).to.include('kind: Cluster');
+          })
+          .then((codeMirrorElement) => {
+            const cm = (codeMirrorElement[0] as any).CodeMirror;
+            const currentYaml = cm.getValue();
+            // prettier-ignore
+            const snippet = `\
   agentSchedulingCustomization:
     priorityClass:
       value: 888
     podDisruptionBudget:
       minAvailable: "3"`;
-          const newYaml = currentYaml.replace(/(\nspec:)/, `$1\n${snippet}`);
-          cm.setValue(newYaml);
-        });
+            const newYaml = currentYaml.replace(/(\nspec:)/, `$1\n${snippet}`);
+            expect(newYaml, 'snippet was actually inserted').to.not.eq(currentYaml);
+            cm.setValue(newYaml);
+          });
         cy.clickButton('Save');
 
         // Verify the cluster is still Active
-        cy.wait(2000); // Wait to allow time to the status to reach "Wait" before verifying"
-        cy.verifyTableRow(0, 'Active', '1');
+        cy.verifyTableRow(0, 'Active', '1', 600000);
 
         // Verify PriorityClass and PodDisruptionBudget
         cy.accesMenuSelection('local', 'Policy', 'Pod Disruption Budgets');
         cy.nameSpaceMenuToggle('All Namespaces');
         cy.verifyTableRow(0, 'fleet-agent', '3');
-        cy.accesMenuSelection('local', 'More Resources', 'Scheduling');
+        cy.accesMenuSelection('local', 'More Resources');
+        // prettier-ignore
+        cy.get('nav.side-nav').contains(/^Scheduling$/).scrollIntoView().click();
         cy.contains('PriorityClasses').click();
         cy.verifyTableRow(0, 'fleet-agent', '888');
       },
@@ -121,23 +128,22 @@ describe(
         const branch = 'master';
         const path = 'simple';
         const repoUrl = 'https://github.com/rancher/fleet-examples';
-        const flagName = 'provisioningv2-fleet-workspace-back-population';
         const newWorkspaceName = 'new-fleet-workspace';
         const fleetDefault = 'fleet-default';
-        let timeout = 30000;
+        // Moving the cluster between workspaces (especially back to 'fleet-default')
+        // takes a significant amount of time, hence the generous timeouts.
+        let timeout = 120000; // 2 minutes
 
         //Version check for 2.12 (head)
         if (supported_versions_212_and_above.some((r) => r.test(rancherVersion))) {
-          timeout = 70000;
+          timeout = 600000; // 10 minutes for 2.12 and above
         }
-
-        // Enable cluster can move to another Fleet workspace feature flag.
-        cy.enableFeatureFlag(flagName);
 
         // Create new workspace.
         cy.createNewFleetWorkspace(newWorkspaceName);
 
         // Switch to 'fleet-default' workspace
+        cy.continuousDeliveryMenuSelection();
         cy.fleetNamespaceToggle(fleetDefault);
         cy.clickNavMenu(['Clusters']);
 
@@ -148,6 +154,7 @@ describe(
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         cy.fleetNamespaceToggle(newWorkspaceName);
         cy.clickButton('Create');
+        cy.verifyTableRow(0, 'Active', repoName);
 
         // Review below line after all tests passed.
         cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
@@ -155,6 +162,11 @@ describe(
         // Delete GitRepo
         // In Fleet Workspace, namespace name similarly treated as namespace.
         cy.deleteAllFleetRepos(newWorkspaceName);
+
+        // Moving the cluster while its bundles are still being removed leaves it
+        // stuck in 'Wait Check-In' after the move back.
+        cy.fleetNamespaceToggle(newWorkspaceName);
+        cy.checkBundlesDeleted(repoName, timeout);
 
         // Move cluster back to 'fleet-default' workspace
         cy.fleetNamespaceToggle(newWorkspaceName);

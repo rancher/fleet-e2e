@@ -411,6 +411,41 @@ describe('Test OCI support', { tags: ['@p1', '@pr-tests'] }, () => {
       cy.get('section#data').should('contain', 'default-name').and('contain', 'value');
     },
   );
+
+  it(
+    qase(467, 'Fleet-467: Test PRIVATE OCI helm chart without helmRepoURLRegex returns propper error message'),
+    { tags: '@fleet-467' },
+    () => {
+      const repoName = 'local-oci-467';
+      const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public';
+      const branch = 'main';
+      const path = 'helm-oci-auth';
+      const gitOrHelmAuth = 'Helm';
+      const gitAuthType = 'http';
+      const userOrPublicKey = Cypress.expose('gh_private_user');
+      const pwdOrPrivateKey = Cypress.expose('gh_private_pwd');
+      const helmRepoURLRegex = '';
+
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.addFleetGitRepo({
+        repoName,
+        repoUrl,
+        branch,
+        path,
+        gitOrHelmAuth,
+        gitAuthType,
+        userOrPublicKey,
+        pwdOrPrivateKey,
+        helmRepoURLRegex,
+      });
+      cy.clickButton('Create');
+      cy.verifyTableRow(0, 'Git Updating', '0/0');
+      cy.contains(
+        '.text-error',
+        'response status code 401: unauthorized: authentication required: helmRepoURLRegex is empty, so Helm credentials were not forwarded; set spec.helmRepoURLRegex to allow credential forwarding',
+      ).should('be.visible');
+    },
+  );
 });
 
 describe(
@@ -793,3 +828,22 @@ if (
     );
   });
 }
+
+describe('Test GitRepo creation from a Git revision instead of a branch', { tags: '@p1' }, () => {
+  it(
+    qase(122, 'Fleet-122: Test GitRepo can be created from a specific Git revision (tag) instead of a branch'),
+    { tags: '@fleet-122' },
+    () => {
+      const repoName = 'local-cluster-revision-122';
+      const revision = 'v1.0.0';
+
+      // Create a GitRepo pinned to a Git revision (tag) instead of the master branch.
+      cy.addFleetGitRepo({ repoName, repoUrl, revision, path, local: true });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+      // Application should be deployed from the pinned revision.
+      cy.checkApplicationStatus(appName);
+    },
+  );
+});

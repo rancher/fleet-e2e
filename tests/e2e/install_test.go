@@ -153,7 +153,14 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 		})
 
 		By("Installing Rancher Manager", func() {
-			err := rancher.DeployRancherManager(rancherHostname, rancherChannel, rancherVersion, rancherHeadVersion, "none", "none")
+			// Use the system default charts instead of the ones bundled in the Rancher image.
+			// NOTE: overrides ele-testhelpers default behavior, extra flags are added last so
+			//       they take precedence over the existing ones.
+			extraFlags := []string{
+				"--set", "useBundledSystemChart=false",
+			}
+
+			err := rancher.DeployRancherManager(rancherHostname, rancherChannel, rancherVersion, rancherHeadVersion, "none", "none", extraFlags)
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Wait for all pods to be started
@@ -302,14 +309,53 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				GinkgoWriter.Printf("Extracted internal cluster name: %s\n", internalClusterName)
 
 				// Get insecureCommand for importing cluster
-				// INSECURE_COMMAND=$(kubectl get ClusterRegistrationToken.management.cattle.io -n $INTERNAL_CLUSTER_NAME -o jsonpath='{.items[0].status.insecureCommand}')
-				Eventually(func() string {
-					insecureRegistrationCommand, _ = kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
-						"--namespace", internalClusterName,
-						"-o", "jsonpath={.items[0].status.insecureCommand}",
-					)
-					return insecureRegistrationCommand
-				}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(ContainSubstring("curl --insecure"))
+				if useDirectInsecureCmd {
+					// Rancher <= 2.12: status.insecureCommand already embeds the real token, use as-is.
+					Eventually(func() string {
+						insecureRegistrationCommand, _ = kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
+							"--namespace", internalClusterName,
+							"-o", "jsonpath={.items[0].status.insecureCommand}",
+						)
+						return insecureRegistrationCommand
+					}, tools.SetTimeout(2*time.Minute), 10*time.Second).Should(ContainSubstring("curl --insecure"))
+				} else {
+					// Rancher 2.13+: resolve the real token from the secret and replace the {token} placeholder (rancher/rancher#55923).
+					Eventually(func() string {
+						// Get the command template
+						cmdTemplate, _ := kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
+							"--namespace", internalClusterName,
+							"-o", "jsonpath={.items[0].status.insecureCommand}",
+						)
+						if cmdTemplate == "" {
+							return ""
+						}
+
+						// Get the token secret name
+						tokenSecretName, _ := kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
+							"--namespace", internalClusterName,
+							"-o", "jsonpath={.items[0].status.tokenSecretName}",
+						)
+						if tokenSecretName == "" {
+							return cmdTemplate
+						}
+
+						// Get the actual token from secret (kubectl auto-decodes base64)
+						actualToken, _ := kubectl.Run("get", "secret", tokenSecretName,
+							"--namespace", internalClusterName,
+							"-o", "go-template={{.data.token | base64decode}}",
+						)
+						if actualToken == "" {
+							return cmdTemplate
+						}
+
+						// Replace {token} with actual token
+						insecureRegistrationCommand = strings.ReplaceAll(cmdTemplate, "{token}", actualToken)
+						return insecureRegistrationCommand
+					}, tools.SetTimeout(3*time.Minute), 10*time.Second).Should(And(
+						ContainSubstring("curl --insecure"),
+						Not(ContainSubstring("{token}")),
+					))
+				}
 
 				// Fill the struct with the values
 				downstreamClusters = append(downstreamClusters, downstreamCluster{

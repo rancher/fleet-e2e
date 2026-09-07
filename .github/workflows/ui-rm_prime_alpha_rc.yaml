@@ -71,6 +71,8 @@ jobs:
       github_app_id: ${{ secrets.GH_APP_ID }}
       github_app_installation_id: ${{ secrets.GH_APP_INSTALLATION_ID }}
       github_app_private_key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+      appco_username: ${{ secrets.APPCO_USERNAME }}
+      appco_access_token: ${{ secrets.APPCO_ACCESS_TOKEN }}
     with:
       test_description: "CI/Manual - UI - Deployment test with Standard K3s"
       cluster_name: cluster-k3s

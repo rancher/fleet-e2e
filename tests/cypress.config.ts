@@ -1,6 +1,5 @@
 import { defineConfig } from 'cypress';
 import { plugin as cypressGrepPlugin } from '@cypress/grep/plugin';
-import { afterSpecHook } from 'cypress-qase-reporter/hooks';
 import { writeFileSync } from 'fs';
 
 const qaseAPIToken = process.env.QASE_API_TOKEN;
@@ -79,9 +78,6 @@ export default defineConfig({
       cypressGrepPlugin(config);
       require('cypress-qase-reporter/plugin')(on, config);
       require('cypress-qase-reporter/metadata')(on);
-      on('after:spec', async (spec, results) => {
-        await afterSpecHook(spec, config);
-      });
       on('before:spec', () => {
         // Writes QASE_TESTOPS_RUN_ID to a file before running each spec.
         // Used in .github/workflows/master-e2e.yaml for:
