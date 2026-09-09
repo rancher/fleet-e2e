@@ -63,8 +63,17 @@ declare global {
       nameSpaceMenuToggle(namespaceName: string): Chainable<Element>;
       accesMenuSelection(firstAccessMenu: string, secondAccessMenu?: string, clickOption?: string): Chainable<Element>;
       filterInSearchBox(filterText: string): Chainable<Element>;
-      deleteAll(fleetCheck?: boolean): Chainable<Element>;
+      connectAppcoForNamespace(namespace: string, appcoUsername: string, appcoAccessToken: string): Chainable<Element>;
+      createAppBundleFromAppco(chartName: string): Chainable<Element>;
+      verifyChartActiveFromAppco(
+        chartName: string,
+        timeout: number,
+        resourceCount?: string | RegExp,
+      ): Chainable<Element>;
+      deleteBundleAndPvc(hasPv?: boolean, bundleDeleteTimeout?: number, pvcDeleteTimeout?: number): Chainable<Element>;
+      deleteAll(fleetCheck?: boolean, textCheckTimeout?: number, confirmEmpty?: boolean): Chainable<Element>;
       deleteAllFleetRepos(namespaceName?: string): Chainable<Element>;
+      checkBundlesDeleted(repoName: string, timeout?: number): Chainable<Element>;
       checkGitRepoStatus(
         repoName: string,
         bundles?: string,
