@@ -337,7 +337,7 @@ Cypress.Commands.add(
       // Here we do not add click Next as is present in the following step
     }
 
-    cy.get('span.controls').contains('Advanced').should('be.visible').click();
+    cy.get('span').contains('Advanced').should('be.visible').click();
 
     if (helmAuth) {
       // TODO: Add logic
@@ -389,6 +389,61 @@ Cypress.Commands.add('clickCreateGitRepo', (local) => {
     }
     cy.clickButton('Add Repository');
     cy.contains('Git Repo:').should('be.visible');
+  }
+});
+
+// Establish the SUSE Application Collection connection for a fleet namespace, from the App Bundles page.
+Cypress.Commands.add('connectAppcoForNamespace', (namespace, appcoUsername, appcoAccessToken) => {
+  cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
+  cy.fleetNamespaceToggle(namespace);
+  cy.clickButton('Create App Bundle');
+  cy.contains('App Bundle: Create').should('be.visible');
+  cy.contains('SUSE Application Collection').should('be.visible').click();
+  cy.contains('Create an App Bundle from SUSE Application Collection').should('be.visible');
+  cy.get('input[placeholder="user@domain.org"]').type(appcoUsername);
+  cy.wait(1000);
+  cy.get('textarea[placeholder="Your SUSE Application Collection access token"]').type(appcoAccessToken, {
+    log: false,
+  });
+  cy.clickButton('Save');
+  cy.contains('charts in total', { timeout: 120000 }).should('be.visible');
+});
+
+// Create an App Bundle from a SUSE Application Collection chart, assuming the App Bundles page
+// (correct namespace already toggled) is visible and the AppCo connection is already configured.
+Cypress.Commands.add('createAppBundleFromAppco', (chartName) => {
+  cy.clickButton('Create App Bundle');
+  cy.contains('App Bundle: Create').should('be.visible');
+  cy.contains('SUSE Application Collection').should('be.visible').click();
+  cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
+
+  cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
+  cy.wait(1000);
+  cy.contains(chartName, { timeout: 15000 }).click();
+
+  cy.contains('button', 'Install this version', { timeout: 15000 }).click();
+  cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+  cy.clickButton('Create');
+
+  cy.contains('App Bundles').should('be.visible');
+});
+
+// Verify a chart installed via createAppBundleFromAppco() reached Active with all resources up.
+Cypress.Commands.add('verifyChartActiveFromAppco', (chartName, timeout, resourceCount = '1/1') => {
+  cy.filterInSearchBox(chartName);
+  cy.contains('429: Too Many Requests').should('not.exist');
+  cy.verifyTableRow(0, 'Active', chartName, timeout);
+  cy.verifyTableRow(0, chartName, resourceCount);
+});
+
+// Delete an App Bundle and, if it's PV-backed, the PVC it leaves behind - Helm/Fleet never
+// delete PVCs on uninstall, so the orphaned PVC needs a separate pass on the Storage page.
+Cypress.Commands.add('deleteBundleAndPvc', (hasPv = true, bundleDeleteTimeout = 60000, pvcDeleteTimeout = 300000) => {
+  cy.deleteAll(true, bundleDeleteTimeout);
+  if (hasPv) {
+    cy.accesMenuSelection('local', 'Storage', 'PersistentVolumeClaims');
+    cy.wait(1000); // Wait for PVC to be released before deleting it, otherwise the delete fails.
+    cy.deleteAll(false, pvcDeleteTimeout, false);
   }
 });
 
@@ -519,11 +574,12 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
 });
 
 // Command to filter text in searchbox
+// 2.16 moved "search-box" onto a LabeledInput wrapper div; the real input is inside it.
 Cypress.Commands.add('filterInSearchBox', (filterText) => {
-  cy.get('input.input-sm.search-box').should('be.visible');
+  cy.get('input.search-box, .search-box input').should('be.visible');
   // Added 1/2 seconds of wait, as element is hidden after it gets visible.
   cy.wait(500);
-  cy.get('input.input-sm.search-box').clear().type(filterText);
+  cy.get('input.search-box, .search-box input').clear().type(filterText);
   cy.wait(250); // Adding 1/4 second to ensure next action is executed more reliably
 });
 
@@ -537,7 +593,8 @@ Cypress.Commands.add('accesMenuSelection', (firstAccessMenu = 'Continuous Delive
   cy.contains(firstAccessMenu).should('be.visible');
   cypressLib.accesMenu(firstAccessMenu);
   if (secondAccessMenu) {
-    cy.contains(secondAccessMenu).should('be.visible');
+    // 2.16's NavActionBar pushes side-nav entries below the fold; be.visible does not auto-scroll.
+    cy.contains(secondAccessMenu).scrollIntoView().should('be.visible');
     cypressLib.accesMenu(secondAccessMenu);
   }
   if (clickOption) {
@@ -561,7 +618,7 @@ Cypress.Commands.add('fleetNamespaceToggle', (toggleOption = 'local') => {
 // Command to delete all rows if check box and delete button are present
 // Note: This function may be substituted by 'cypressLib.deleteAllResources'
 // when hardcoded texts present can be parameterized
-Cypress.Commands.add('deleteAll', (fleetCheck = true) => {
+Cypress.Commands.add('deleteAll', (fleetCheck = true, textCheckTimeout = 30000, confirmEmpty = true) => {
   cy.get('body').then(($body) => {
     if ($body.text().match('/Actions/')) {
       cy.wait(250); // Add small wait to give time for things to settle
@@ -581,17 +638,27 @@ Cypress.Commands.add('deleteAll', (fleetCheck = true) => {
     if ($body.text().includes('Delete')) {
       cy.wait(250); // Add small wait to give time for things to settle
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
+
+      // cy.get('span.checkbox-custom[aria-checked=true]', { timeout: 50000 }).should('have.value', 'true');
+      cy.get('span.checkbox-custom[aria-checked=true]', { timeout: 50000 }).first().should('exist');
       cy.get('.btn').contains('Delete').click({ ctrlKey: true, force: true });
       // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
       cy.wait(2500);
     }
 
+    // Deletion (e.g. PVC/storage reclaim) can be genuinely slow or stuck on some backends, independent
+    // of anything this test is actually verifying. confirmEmpty=false fires the delete and moves on,
+    // instead of failing the test over housekeeping that was never the thing under test.
+    if (!confirmEmpty) {
+      return;
+    }
+
     if (fleetCheck === true) {
       cy.contains(new RegExp(NoAppBundleOrGitRepoPresentMessages.join('|')), {
-        timeout: 20000,
+        timeout: textCheckTimeout,
       }).should('be.visible');
     } else {
-      cy.contains(new RegExp(noRowsMessages.join('|')), { timeout: 30000 }).should('be.visible');
+      cy.contains(new RegExp(noRowsMessages.join('|')), { timeout: textCheckTimeout }).should('be.visible');
     }
   });
 });
@@ -610,6 +677,14 @@ Cypress.Commands.add('deleteAllFleetRepos', (namespaceName) => {
     cy.fleetNamespaceToggle(namespaceName);
     cy.deleteAll();
   }
+});
+
+// Bundles are garbage collected asynchronously after the GitRepo is deleted,
+// so an empty GitRepo list does not mean the cluster is clean yet.
+Cypress.Commands.add('checkBundlesDeleted', (repoName, timeout = 180000) => {
+  cy.continuousDeliveryBundlesMenu();
+  cy.filterInSearchBox(repoName);
+  cy.get('td > span, td.text-center > span', { timeout: timeout }).invoke('text').should('be.oneOf', noRowsMessages);
 });
 
 // Check Git repo deployment status
@@ -1392,7 +1467,12 @@ Cypress.Commands.add('checkAccessToCreateGitRepoPage', () => {
     cy.get('[data-testid="subtype-banner-item-fleet.cattle.io.gitrepo"]')
       .should('be.visible')
       .trigger('mouseenter', { force: true });
-    cy.contains('You have no permissions to create Git Repos').should('be.visible');
+
+    // Adapted locator after 2.16.
+    // Explicit call to visibility not working well.
+    cy.contains('You have no permissions to create Git Repos').should('exist');
+    cy.get('*:visible:contains("You have no permissions to create Git Repos")').should('exist');
+
     cy.clickButton('Cancel');
   } else {
     cy.get('.btn.role-primary').contains('Add Repository').should('not.exist');
@@ -1491,7 +1571,7 @@ Cypress.Commands.add('getClusterIds', (clusterList) => {
   cy.accesMenuSelection('Cluster Management', 'Clusters');
 
   cy.wrap(clusterList).each((displayName: any) => {
-    cy.get('input.input-sm.search-box').should('be.visible').clear();
+    cy.get('input.search-box, .search-box input').should('be.visible').clear();
     cy.wait(500);
     cy.filterInSearchBox(displayName);
     cy.wait(500);

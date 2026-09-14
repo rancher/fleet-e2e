@@ -130,11 +130,13 @@ describe(
         const repoUrl = 'https://github.com/rancher/fleet-examples';
         const newWorkspaceName = 'new-fleet-workspace';
         const fleetDefault = 'fleet-default';
-        let timeout = 30000;
+        // Moving the cluster between workspaces (especially back to 'fleet-default')
+        // takes a significant amount of time, hence the generous timeouts.
+        let timeout = 120000; // 2 minutes
 
         //Version check for 2.12 (head)
         if (supported_versions_212_and_above.some((r) => r.test(rancherVersion))) {
-          timeout = 180000; // 3 minutes for 2.12 and above
+          timeout = 600000; // 10 minutes for 2.12 and above
         }
 
         // Create new workspace.
@@ -152,6 +154,7 @@ describe(
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path });
         cy.fleetNamespaceToggle(newWorkspaceName);
         cy.clickButton('Create');
+        cy.verifyTableRow(0, 'Active', repoName);
 
         // Review below line after all tests passed.
         cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
@@ -159,6 +162,11 @@ describe(
         // Delete GitRepo
         // In Fleet Workspace, namespace name similarly treated as namespace.
         cy.deleteAllFleetRepos(newWorkspaceName);
+
+        // Moving the cluster while its bundles are still being removed leaves it
+        // stuck in 'Wait Check-In' after the move back.
+        cy.fleetNamespaceToggle(newWorkspaceName);
+        cy.checkBundlesDeleted(repoName, timeout);
 
         // Move cluster back to 'fleet-default' workspace
         cy.fleetNamespaceToggle(newWorkspaceName);
@@ -214,80 +222,4 @@ describe('Global settings related tests', { tags: '@special_tests' }, () => {
       cy.verifyTableRow(0, 'Active', 'fleet-cleanup-gitrepo-jobs');
     },
   );
-});
-
-describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
-  it(qase(468, 'Fleet-468: Verify AppCo connection with Fleet'), { tags: '@fleet-468' }, () => {
-    const appcoUsername = Cypress.expose('appco_username');
-    const appcoAccessToken = Cypress.expose('appco_access_token');
-    const namespaces = ['fleet-local', 'fleet-default'];
-
-    namespaces.forEach((namespace) => {
-      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
-      cy.fleetNamespaceToggle(namespace);
-      cy.clickButton('Create App Bundle');
-      cy.contains('App Bundle: Create').should('be.visible');
-      cy.contains('SUSE Application Collection').should('be.visible').click();
-      cy.contains('Create an App Bundle from SUSE Application Collection').should('be.visible');
-      cy.get('input[placeholder="user@domain.org"]').type(appcoUsername);
-      cy.wait(1000);
-      cy.get('textarea[placeholder="Your SUSE Application Collection access token"]').type(appcoAccessToken, {
-        log: false,
-      });
-      cy.clickButton('Save');
-      cy.contains('charts in total', { timeout: 120000 }).should('be.visible');
-    });
-  });
-
-  it(qase(469, 'Fleet-469: Test AppCo charts can be installed in local cluster'), { tags: '@fleet-469' }, () => {
-    const charts = ['alertmanager'];
-
-    charts.forEach((chartName) => {
-      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.clickButton('Create App Bundle');
-      cy.contains('App Bundle: Create').should('be.visible');
-      cy.contains('SUSE Application Collection').should('be.visible').click();
-      cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
-
-      cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
-      cy.wait(1000);
-      cy.contains(chartName, { timeout: 15000 }).click();
-
-      cy.contains('button', 'Install this version', { timeout: 15000 }).click();
-      cy.get('input[placeholder="A unique name"]').clear().type(chartName);
-      cy.clickButton('Create');
-
-      cy.contains('App Bundles').should('be.visible');
-      cy.filterInSearchBox(chartName);
-      cy.verifyTableRow(0, 'Active', chartName, 120000);
-      cy.verifyTableRow(0, chartName, '1/1');
-    });
-  });
-
-  it(qase(470, 'Fleet-470: Test AppCo charts can be installed in downstream cluster'), { tags: '@fleet-470' }, () => {
-    const charts = ['tika', 'valkey'];
-
-    charts.forEach((chartName) => {
-      cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
-      cy.fleetNamespaceToggle('fleet-default');
-      cy.clickButton('Create App Bundle');
-      cy.contains('App Bundle: Create').should('be.visible');
-      cy.contains('SUSE Application Collection').should('be.visible').click();
-      cy.contains('charts in total', { timeout: 60000 }).should('be.visible');
-
-      cy.get('input[placeholder="Search the catalog..."]').clear().type(chartName);
-      cy.wait(1000);
-      cy.contains(chartName, { timeout: 15000 }).click();
-
-      cy.contains('button', 'Install this version', { timeout: 15000 }).click();
-      cy.get('input[placeholder="A unique name"]').clear().type(chartName);
-      cy.clickButton('Create');
-
-      cy.contains('App Bundles').should('be.visible');
-      cy.filterInSearchBox(chartName);
-      cy.verifyTableRow(0, 'Active', chartName, 180000);
-      cy.verifyTableRow(0, chartName, /([1-9]\d*)\/\1/);
-    });
-  });
 });

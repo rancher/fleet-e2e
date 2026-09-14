@@ -320,7 +320,7 @@ jobs:
           GREPTAGS: ${{ inputs.grep_test_by_tag }}
           UPGRADE: "false"
           # Add cypress/e2e/unit_tests/user.spec.ts again when implementing RBAC tests.
-          SPEC: cypress/e2e/unit_tests/first_login_rancher.spec.ts,cypress/e2e/unit_tests/p0_fleet.spec.ts,cypress/e2e/unit_tests/p1_fleet.spec.ts,cypress/e2e/unit_tests/p1_2_fleet.spec.ts,cypress/e2e/unit_tests/rbac_fleet.spec.ts,cypress/e2e/unit_tests/upgrade_fleet.spec.ts,cypress/e2e/unit_tests/hardened_fleet.spec.ts,cypress/e2e/unit_tests/special_fleet_tests.spec.ts
+          SPEC: cypress/e2e/unit_tests/first_login_rancher.spec.ts,cypress/e2e/unit_tests/p0_fleet.spec.ts,cypress/e2e/unit_tests/p1_fleet.spec.ts,cypress/e2e/unit_tests/p1_2_fleet.spec.ts,cypress/e2e/unit_tests/rbac_fleet.spec.ts,cypress/e2e/unit_tests/upgrade_fleet.spec.ts,cypress/e2e/unit_tests/hardened_fleet.spec.ts,cypress/e2e/unit_tests/special_fleet_tests.spec.ts,cypress/e2e/unit_tests/appco_fleet_tests.spec.ts
         run: |
           if [[ "${{ inputs.qase_report }}" != "true" ]]; then
             unset QASE_API_TOKEN
