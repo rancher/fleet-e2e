@@ -775,8 +775,13 @@ if (
 
       // Verifying leaf GitRepo is in error state because of dependency on root GitRepo and then pausing root GitRepo to check leaf GitRepo is still in error state. After that unpausing root GitRepo and checking leaf GitRepo becomes active.
       cy.clickButton('Create');
-      cy.verifyTableRow(0, 'Err Applied', 'leaf');
-      cy.verifyTableRow(0, 'Err Applied', '0/1');
+      if (Cypress.expose('rancher_version').includes('2.14')) {
+        cy.verifyTableRow(0, 'Err Applied', 'leaf');
+        cy.verifyTableRow(0, 'Err Applied', '0/1');
+      } else {
+        cy.verifyTableRow(0, 'Waitingfordependency', 'leaf');
+        cy.verifyTableRow(0, 'Waitingfordependency', '0/1');
+      }
 
       cy.open3dotsMenu('root', 'Pause');
       cy.wait(750);
@@ -828,3 +833,22 @@ if (
     );
   });
 }
+
+describe('Test GitRepo creation from a Git revision instead of a branch', { tags: '@p1' }, () => {
+  it(
+    qase(122, 'Fleet-122: Test GitRepo can be created from a specific Git revision (tag) instead of a branch'),
+    { tags: '@fleet-122' },
+    () => {
+      const repoName = 'local-cluster-revision-122';
+      const revision = 'v1.0.0';
+
+      // Create a GitRepo pinned to a Git revision (tag) instead of the master branch.
+      cy.addFleetGitRepo({ repoName, repoUrl, revision, path, local: true });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+      // Application should be deployed from the pinned revision.
+      cy.checkApplicationStatus(appName);
+    },
+  );
+});

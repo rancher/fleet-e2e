@@ -153,7 +153,14 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 		})
 
 		By("Installing Rancher Manager", func() {
-			err := rancher.DeployRancherManager(rancherHostname, rancherChannel, rancherVersion, rancherHeadVersion, "none", "none")
+			// Use the system default charts instead of the ones bundled in the Rancher image.
+			// NOTE: overrides ele-testhelpers default behavior, extra flags are added last so
+			//       they take precedence over the existing ones.
+			extraFlags := []string{
+				"--set", "useBundledSystemChart=false",
+			}
+
+			err := rancher.DeployRancherManager(rancherHostname, rancherChannel, rancherVersion, rancherHeadVersion, "none", "none", extraFlags)
 			Expect(err).To(Not(HaveOccurred()))
 
 			// Wait for all pods to be started

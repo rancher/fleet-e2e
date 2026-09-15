@@ -41,6 +41,7 @@ declare global {
         repoName: string,
         repoUrl?: string,
         branch?: string,
+        revision?: string,
         path?: string,
         path2?: string,
         fleetNamespace?: string,
@@ -62,8 +63,17 @@ declare global {
       nameSpaceMenuToggle(namespaceName: string): Chainable<Element>;
       accesMenuSelection(firstAccessMenu: string, secondAccessMenu?: string, clickOption?: string): Chainable<Element>;
       filterInSearchBox(filterText: string): Chainable<Element>;
-      deleteAll(fleetCheck?: boolean): Chainable<Element>;
+      connectAppcoForNamespace(namespace: string, appcoUsername: string, appcoAccessToken: string): Chainable<Element>;
+      createAppBundleFromAppco(chartName: string): Chainable<Element>;
+      verifyChartActiveFromAppco(
+        chartName: string,
+        timeout: number,
+        resourceCount?: string | RegExp,
+      ): Chainable<Element>;
+      deleteBundleAndPvc(hasPv?: boolean, bundleDeleteTimeout?: number, pvcDeleteTimeout?: number): Chainable<Element>;
+      deleteAll(fleetCheck?: boolean, textCheckTimeout?: number, confirmEmpty?: boolean): Chainable<Element>;
       deleteAllFleetRepos(namespaceName?: string): Chainable<Element>;
+      checkBundlesDeleted(repoName: string, timeout?: number): Chainable<Element>;
       checkGitRepoStatus(
         repoName: string,
         bundles?: string,
@@ -90,7 +100,7 @@ declare global {
       deleteUser(userName: string): Chainable<Element>;
       deleteAllUsers(): Chainable<Element>;
       deleteRole(roleName: string, roleTypeTemplate: string): Chainable<Element>;
-      importYaml(clusterName: string, yamlFilePath: string): Chainable<Element>;
+      importYaml({ clusterName, yamlFilePath }: { clusterName: string; yamlFilePath: string }): Chainable<Element>;
       allowRancherPreReleaseVersions(): Chainable<Element>;
       upgradeFleet(): Chainable<Element>;
       assignClusterLabel(clusterName: string, key: string, value: string): Chainable<Element>;
@@ -184,6 +194,14 @@ declare global {
       executeKubectlCommand(labelCommand: string, clusterName?: string): Chainable<Element>;
       continuousDeliveryGitRepoRestrictionsMenu(): Chainable<Element>;
       getClusterIds(clusterList: string[]): Chainable<Record<string, string>>;
+      checkAnnotationInYaml(resourceName: string, annotation: string, shouldBePresent?: boolean): Chainable<Element>;
+      checkResourcePolicyAnnotation(
+        crdName: string,
+        serviceName: string,
+        configMapName: string,
+        annotationOnCrd: boolean,
+        clusterName?: string,
+      ): Chainable<Element>;
     }
   }
 }

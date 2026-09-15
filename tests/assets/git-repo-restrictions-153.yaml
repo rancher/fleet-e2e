@@ -1,0 +1,14 @@
+apiVersion: fleet.cattle.io/v1alpha1
+kind: GitRepo
+metadata:
+  name: local-gitreporestrictions-fleet-153
+  namespace: fleet-default
+spec:
+  repo: https://github.com/rancher/fleet-test-data/
+  branch: master
+  paths:
+    - qa-test-apps/nginx-app
+  targets:
+    - clusterSelector:
+        matchLabels:
+          management.cattle.io/cluster-display-name: imported-0

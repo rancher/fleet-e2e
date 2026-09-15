@@ -8,8 +8,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint cypress --ext .ts",
-    "lint:fix": "eslint cypress --ext .ts --fix",
+    "lint": "eslint cypress",
+    "lint:fix": "eslint cypress --fix",
     "prettier": "prettier --check '**/*.{ts,js,json,yml,yaml,md}'",
     "prettier:fix": "prettier --write '**/*.{ts,js,json,yml,yaml,md}'"
   },
@@ -26,29 +26,29 @@
   "homepage": "https://github.com/rancher/fleet-e2e",
   "overrides": {
     "diff": "9.0.0",
-    "serialize-javascript": "7.0.7"
+    "serialize-javascript": "7.1.1"
   },
   "dependencies": {
-    "@rancher-ecp-qa/cypress-library": "^2.2.0",
+    "@rancher-ecp-qa/cypress-library": "^2.3.0",
     "cy-verify-downloads": "^0.3.0",
     "cypress": "^15.17.0",
     "cypress-dark": "^1.8.3",
     "cypress-file-upload": "^5.0.8",
-    "cypress-mochawesome-reporter": "^4.0.2",
+    "cypress-mochawesome-reporter": "^5.0.0",
     "cypress-multi-reporters": "^2.0.5",
     "cypress-plugin-tab": "^2.0.0",
-    "cypress-qase-reporter": "^3.6.1",
+    "cypress-qase-reporter": "^3.7.0",
     "dotenv": "^17.4.2",
     "typescript": "^7.0.0"
   },
   "devDependencies": {
-    "@cypress/grep": "^6.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.59.4",
-    "@typescript-eslint/parser": "^8.59.4",
-    "eslint": "^8.57.1",
+    "@cypress/grep": "^7.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.70.0",
+    "@typescript-eslint/parser": "^8.70.0",
+    "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-cypress": "^3.6.0",
+    "eslint-plugin-cypress": "^7.0.2",
     "eslint-plugin-prettier": "^5.5.6",
-    "prettier": "^3.8.3"
+    "prettier": "^3.9.6"
   }
 }
