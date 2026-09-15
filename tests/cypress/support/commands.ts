@@ -938,7 +938,7 @@ Cypress.Commands.add('upgradeFleet', () => {
   cy.nameSpaceMenuToggle('cattle-fleet-system');
   cy.verifyTableRow(0, 'Deployed', 'fleet');
   cy.filterInSearchBox('fleet');
-  cy.open3dotsMenu('fleet', 'Edit/Upgrade');
+  cy.open3dotsMenu('fleet', 'Edit / Change Version');
   cy.contains('Loading...', { timeout: 20000 }).should('not.exist');
   cy.get('#vs1__combobox').click();
   cy.wait(250);
