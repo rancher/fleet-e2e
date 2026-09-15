@@ -775,8 +775,13 @@ if (
 
       // Verifying leaf GitRepo is in error state because of dependency on root GitRepo and then pausing root GitRepo to check leaf GitRepo is still in error state. After that unpausing root GitRepo and checking leaf GitRepo becomes active.
       cy.clickButton('Create');
-      cy.verifyTableRow(0, 'Err Applied', 'leaf');
-      cy.verifyTableRow(0, 'Err Applied', '0/1');
+      if (Cypress.expose('rancher_version').includes('2.14')) {
+        cy.verifyTableRow(0, 'Err Applied', 'leaf');
+        cy.verifyTableRow(0, 'Err Applied', '0/1');
+      } else {
+        cy.verifyTableRow(0, 'Waitingfordependency', 'leaf');
+        cy.verifyTableRow(0, 'Waitingfordependency', '0/1');
+      }
 
       cy.open3dotsMenu('root', 'Pause');
       cy.wait(750);
