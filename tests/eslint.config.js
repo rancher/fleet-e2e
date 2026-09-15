@@ -1,6 +1,6 @@
 const tsPlugin = require('@typescript-eslint/eslint-plugin');
 const tsParser = require('@typescript-eslint/parser');
-const cypressPlugin = require('eslint-plugin-cypress/flat');
+const cypressPlugin = require('eslint-plugin-cypress');
 const prettierRecommended = require('eslint-plugin-prettier/recommended');
 
 module.exports = [
