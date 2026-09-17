@@ -31,7 +31,7 @@
   "dependencies": {
     "@rancher-ecp-qa/cypress-library": "^2.3.0",
     "cy-verify-downloads": "^0.3.0",
-    "cypress": "^15.17.0",
+    "cypress": "^15.21.1",
     "cypress-dark": "^1.8.3",
     "cypress-file-upload": "^5.0.8",
     "cypress-mochawesome-reporter": "^5.0.0",
@@ -39,7 +39,7 @@
     "cypress-plugin-tab": "^2.0.0",
     "cypress-qase-reporter": "^3.7.0",
     "dotenv": "^17.4.2",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   },
   "devDependencies": {
     "@cypress/grep": "^7.0.0",
