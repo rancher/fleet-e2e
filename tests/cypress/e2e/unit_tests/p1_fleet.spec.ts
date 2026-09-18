@@ -826,8 +826,10 @@ if (
         cy.wait(2000); // Adding wait due to initial change to Git Updating, then Active.
         cy.verifyTableRow(0, 'Git Updating', 'leaf-error-state');
         cy.verifyTableRow(0, 'leaf-error-state', '0/0');
+        // 2.16 prefixes this message with the bundle path and lowercases "failed" accordingly;
+        // match case-insensitively so this still works pre-2.16 too.
         cy.contains(
-          'Failed to process bundle: validating fleet.yaml: dependsOn[0].acceptedStates[0]: invalid state "BadState", valid values are: [Ready NotReady Pending OutOfSync Modified WaitApplied ErrApplied]',
+          /failed to process bundle: validating fleet\.yaml: dependsOn\[0\]\.acceptedStates\[0\]: invalid state "BadState", valid values are: \[Ready NotReady Pending OutOfSync Modified WaitApplied ErrApplied\]/i,
         ).should('be.visible');
       },
     );

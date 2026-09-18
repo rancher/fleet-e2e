@@ -13,6 +13,7 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
+import { isRancherVersionAtLeast } from 'cypress/support/commands';
 
 export const appName = 'nginx-keep';
 export const clusterName = 'imported-0';
@@ -765,8 +766,13 @@ describe('Test GitJob security context', { tags: ['@p0', '@pr-tests'] }, () => {
     cy.verifyTableRow(0, 'Running', 'gitjob');
     cy.contains('gitjob').click();
     cy.clickButton('Config');
-    // 2.16 changed ul.tabs to div.tabs > ul.tab-list; this data-testid is stable across 2.12-2.16.
-    cy.get('section#container-0').find('[data-testid="btn-securityContext"]').should('be.visible').click();
+    // 2.16 reorganized Security Context from a button that reveals fields inside
+    // section#container-0 into a directly navigable side-tab.
+    if (isRancherVersionAtLeast(16)) {
+      cy.contains('Security Context').should('be.visible').click();
+    } else {
+      cy.get('section#container-0').find('[data-testid="btn-securityContext"]').should('be.visible').click();
+    }
     // 2.14+ renders these as Checkboxes (aria-checked); 2.12/2.13 used radio groups.
     if (/\/2\.(1[4-9]|[2-9][0-9])/.test(Cypress.expose('rancher_version'))) {
       // Check Run as Non-Root
