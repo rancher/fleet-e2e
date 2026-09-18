@@ -1581,11 +1581,7 @@ Cypress.Commands.add('executeKubectlCommand', (labelCommand, clusterName = 'loca
 
   // Close local terminal
   // 2.16 replaced the terminal tab's close icon (`i.closer.icon`) with a dedicated button.
-  if (isRancherVersionAtLeast(16)) {
-    cy.get('button[data-testid="wm-tab-close-button"]').click();
-  } else {
-    cy.get('i.closer.icon').click();
-  }
+  cy.get('i.closer.icon, button[data-testid="wm-tab-close-button"]').click();
 });
 
 // Collect cluster IDs for all clusters

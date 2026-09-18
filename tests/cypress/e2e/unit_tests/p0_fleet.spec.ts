@@ -202,7 +202,8 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     cy.wait(30000);
 
     // Close local terminal
-    cy.get('i.closer.icon').click();
+    // 2.16 replaced the terminal tab's close icon (`i.closer.icon`) with a dedicated button.
+    cy.get('i.closer.icon, button[data-testid="wm-tab-close-button"]').click();
 
     // Create secret via UI
     cy.accesMenuSelection('local', 'Storage', 'Secrets');
@@ -404,7 +405,10 @@ describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
     cy.clickButton('Remove');
 
     // Attach file from 'fixtures' directory since it is native for Cypress
-    cy.get("section[id='data'] input[type='file']").attachFile('known_hosts');
+    // 2.16 dropped section[id='data'] in favor of a data-testid on the tab-panel.
+    cy.get(
+      "section[id='data'] input[type='file'], section[data-testid='tab-panel-data'] input[type='file']",
+    ).attachFile('known_hosts');
     cy.contains('bitbucket').should('be.visible');
     cy.wait(500); // Needs time for previous command to finnish
     cy.clickButton('Save');
