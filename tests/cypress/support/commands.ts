@@ -1125,8 +1125,8 @@ Cypress.Commands.add('verifyJobDeleted', (repoName, verifyJobDeletedEvent = true
   // To be executed there or after cy.checkGitRepoStatus() function;
   if (verifyJobDeletedEvent) {
     cy.get('ul[role="tablist"]').contains('Recent Events').click();
-    cy.get('section#events table tr.main-row')
-      // .eq(0)
+    // 2.16 dropped the stable section#events id in favor of a data-testid.
+    cy.get('section#events table, section[data-testid="tab-panel-events"] table')
       .contains('job deletion triggered because job succeeded', { timeout: 20000 })
       .should('be.visible');
   }

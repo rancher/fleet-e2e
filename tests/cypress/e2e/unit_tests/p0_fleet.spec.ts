@@ -737,7 +737,9 @@ describe('Test Fleet job cleanup', { tags: ['@p0', '@pr-tests'] }, () => {
 
       cy.contains(repoName).click();
       cy.get('ul[role="tablist"]').contains('Recent Events').click();
-      cy.get('section#events table tr.main-row')
+      // 2.16 dropped the stable section#events id in favor of a data-testid; scope to tbody instead of
+      // relying on a row class to exclude the header row.
+      cy.get('section#events table tbody tr, section[data-testid="tab-panel-events"] table tbody tr')
         .should('have.length', 2)
         .then(() => {
           cy.contains('GotNewCommit', { timeout: 20000 }).should('be.visible');
