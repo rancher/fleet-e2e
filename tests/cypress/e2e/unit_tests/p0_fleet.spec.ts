@@ -366,7 +366,10 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
 
       // Re-add the key to avoid other girepos to be stalled
       cy.clickButton('Add');
-      cy.get("section[id='data'] input[placeholder='e.g. foo']").type('known_hosts');
+      // 2.16 dropped section[id='data'] in favor of a data-testid on the tab-panel.
+      cy.get(
+        "section[id='data'] input[placeholder='e.g. foo'], section[data-testid='tab-panel-data'] input[placeholder='e.g. foo']",
+      ).type('known_hosts');
       cy.wait(500); // Needs time for previous command to finish
       cy.clickButton('Save');
       cy.wait(500); // Needs time for previous command to finish

@@ -329,7 +329,7 @@ describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: ['@p1', '@p
         cy.filterInSearchBox('local-chart-configmap');
         cy.wait(2000);
         cy.get('.col-link-detail').contains('local-chart-configmap').should('be.visible').click({ force: true });
-        cy.get('section#data').should('contain', 'sample-cm').and('contain', 'sample-data-inside');
+        cy.get('section#data, section[data-testid="tab-panel-data"]').should('contain', 'sample-cm').and('contain', 'sample-data-inside');
         cy.deleteAllFleetRepos();
         // Negative test using non-matching regex 1234.*
         helmRepoURLRegex = '1234.*';
@@ -371,7 +371,7 @@ describe('Test OCI support', { tags: ['@p1', '@pr-tests'] }, () => {
     cy.wait(500); // Adding wait and table verification to mitigate ocassional blank page.
     cy.verifyTableRow(0, 'fleet-test-configmap');
     cy.get('.col-link-detail').contains('fleet-test-configmap').should('be.visible').click({ force: true });
-    cy.get('section#data').should('contain', 'default-name').and('contain', 'value');
+    cy.get('section#data, section[data-testid="tab-panel-data"]').should('contain', 'default-name').and('contain', 'value');
   });
 
   it(
@@ -408,7 +408,7 @@ describe('Test OCI support', { tags: ['@p1', '@pr-tests'] }, () => {
       cy.wait(500); // Adding wait and table verification to mitigate ocassional blank page.
       cy.verifyTableRow(0, 'fleet-test-configmap');
       cy.get('.col-link-detail').contains('fleet-test-configmap').should('be.visible').click({ force: true });
-      cy.get('section#data').should('contain', 'default-name').and('contain', 'value');
+      cy.get('section#data, section[data-testid="tab-panel-data"]').should('contain', 'default-name').and('contain', 'value');
     },
   );
 
