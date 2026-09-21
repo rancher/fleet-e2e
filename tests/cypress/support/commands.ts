@@ -698,6 +698,15 @@ Cypress.Commands.add('deleteAllFleetRepos', (namespaceName) => {
   }
 });
 
+// A leftover allowedTargetNamespace GitRepoRestriction rejects any GitRepo created without
+// an explicit target namespace. Call this where that's a risk, before creating new GitRepos.
+Cypress.Commands.add('deleteAllGitRepoRestrictions', () => {
+  cy.continuousDeliveryMenuSelection();
+  cy.continuousDeliveryGitRepoRestrictionsMenu();
+  cy.fleetNamespaceToggle('fleet-local');
+  cy.deleteAll(false);
+});
+
 // Bundles are garbage collected asynchronously after the GitRepo is deleted,
 // so an empty GitRepo list does not mean the cluster is clean yet.
 Cypress.Commands.add('checkBundlesDeleted', (repoName, timeout = 180000) => {

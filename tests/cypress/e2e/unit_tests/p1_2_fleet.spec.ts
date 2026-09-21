@@ -1232,11 +1232,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       cy.filterInSearchBox(appName);
       cy.get('.col-link-detail').contains(appName).should('be.visible');
 
-      // Deleting GitRepoRestrictions from the fleet-local namespace
-      cy.continuousDeliveryMenuSelection();
-      cy.continuousDeliveryGitRepoRestrictionsMenu();
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.deleteAll(false);
+      cy.deleteAllGitRepoRestrictions();
     },
   );
 
@@ -1278,11 +1274,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       cy.filterInSearchBox(appName);
       cy.get('.col-link-detail').contains(appName).should('be.visible');
 
-      // Deleting GitRepoRestrictions from the fleet-local namespace
-      cy.continuousDeliveryMenuSelection();
-      cy.continuousDeliveryGitRepoRestrictionsMenu();
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.deleteAll(false);
+      cy.deleteAllGitRepoRestrictions();
     },
   );
 
@@ -1309,6 +1301,10 @@ describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.'
     ),
     { tags: '@fleet-88' },
     () => {
+      // The GitRepoRestrictions tests above (e.g. Fleet-41) can leave a restriction behind if
+      // they fail mid-way, which would otherwise block every GitRepo created below this point.
+      cy.deleteAllGitRepoRestrictions();
+
       const repoName = 'test-donot-deploy-true';
       const path = 'qa-test-apps/do-not-deploy/true';
       let gitRepoWord = 'git repo';
