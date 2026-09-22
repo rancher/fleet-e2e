@@ -74,7 +74,7 @@ export default defineConfig({
           return launchOptions;
         }));
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      require('cypress/plugins/index.ts')(on, config);
+      require('./cypress/plugins/index.ts')(on, config);
       cypressGrepPlugin(config);
       require('cypress-qase-reporter/plugin')(on, config);
       require('cypress-qase-reporter/metadata')(on);
