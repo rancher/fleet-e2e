@@ -339,6 +339,9 @@ describe(
     before('Deleting leftover Gitrepos preparing needed ones for next tests', () => {
       cy.login();
       cy.deleteAllFleetRepos();
+      // A leftover GitRepoRestriction from a failed test elsewhere would otherwise
+      // reject the GitRepos this hook is about to create.
+      cy.deleteAllGitRepoRestrictions();
 
       // Create git repos
       cy.continuousDeliveryMenuSelection();
@@ -610,6 +613,9 @@ describe(
     before('Deleting leftover Gitrepos preparing needed ones for next tests', () => {
       cy.login();
       cy.deleteAllFleetRepos();
+      // A leftover GitRepoRestriction from a failed test elsewhere would otherwise
+      // reject the GitRepos this hook is about to create.
+      cy.deleteAllGitRepoRestrictions();
 
       // Create git repos
       cy.continuousDeliveryMenuSelection();

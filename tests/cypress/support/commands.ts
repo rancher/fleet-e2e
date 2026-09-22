@@ -28,6 +28,12 @@ export const supported_versions_212_and_above = [
   /^(prime|prime-optimus|prime-optimus-alpha|prime-alpha|prime-rc|alpha)\/2\.(1[2-9]|[2-9]\d+)(\..*)?$/,
   /^head\/2\.(1[2-9])$/,
 ];
+// True if rancherVersion's 2.x minor is >= the given minor, e.g. isRancherVersionAtLeast(16) matches 2.16, 2.17, ...
+export const isRancherVersionAtLeast = (minor: number): boolean => {
+  const match = rancherVersion.match(/\/2\.(\d+)/);
+
+  return !!match && parseInt(match[1], 10) >= minor;
+};
 // Generic commands
 
 // Fleet commands
@@ -583,6 +589,9 @@ Cypress.Commands.add('filterInSearchBox', (filterText) => {
   cy.wait(250); // Adding 1/4 second to ensure next action is executed more reliably
 });
 
+// Static top-level Rancher product menus (as opposed to cluster names) passed as firstAccessMenu.
+const globalNavMenus = ['Continuous Delivery', 'Cluster Management', 'Users & Authentication', 'Global Settings'];
+
 // Go to specific Sub Menu from Access Menu
 Cypress.Commands.add('accesMenuSelection', (firstAccessMenu = 'Continuous Delivery', secondAccessMenu, clickOption) => {
   // added wait of 500ms to make time for CSS transitions to resolve (addresses tests flakiness)
@@ -590,8 +599,18 @@ Cypress.Commands.add('accesMenuSelection', (firstAccessMenu = 'Continuous Delive
   cypressLib.burgerMenuToggle({ animationDistanceThreshold: 10 });
   cy.wait(750);
 
-  cy.contains(firstAccessMenu).should('be.visible');
-  cypressLib.accesMenu(firstAccessMenu);
+  // 2.16 moved cluster selection behind a "cluster switcher" popover; cluster names
+  // are no longer directly visible/clickable in the open burger menu. Static menus
+  // (e.g. 'Continuous Delivery') are unaffected and stay on the old path.
+  const isClusterName = firstAccessMenu !== 'local' && !globalNavMenus.includes(firstAccessMenu);
+
+  if (isRancherVersionAtLeast(16) && isClusterName) {
+    cy.get('button[data-testid="cluster-switcher-trigger"]').click();
+    cy.contains('[role="option"]', firstAccessMenu).should('be.visible').click();
+  } else {
+    cy.contains(firstAccessMenu).should('be.visible');
+    cypressLib.accesMenu(firstAccessMenu);
+  }
   if (secondAccessMenu) {
     // 2.16's NavActionBar pushes side-nav entries below the fold; be.visible does not auto-scroll.
     cy.contains(secondAccessMenu).scrollIntoView().should('be.visible');
@@ -677,6 +696,15 @@ Cypress.Commands.add('deleteAllFleetRepos', (namespaceName) => {
     cy.fleetNamespaceToggle(namespaceName);
     cy.deleteAll();
   }
+});
+
+// A leftover allowedTargetNamespace GitRepoRestriction rejects any GitRepo created without
+// an explicit target namespace. Call this where that's a risk, before creating new GitRepos.
+Cypress.Commands.add('deleteAllGitRepoRestrictions', () => {
+  cy.continuousDeliveryMenuSelection();
+  cy.continuousDeliveryGitRepoRestrictionsMenu();
+  cy.fleetNamespaceToggle('fleet-local');
+  cy.deleteAll(false);
 });
 
 // Bundles are garbage collected asynchronously after the GitRepo is deleted,
@@ -899,7 +927,8 @@ Cypress.Commands.add('deleteRole', (roleName, roleTypeTemplate) => {
   cy.contains('.title', 'Role Templates').should('be.visible');
 
   // Filter role by it's name and roleTypeTemplate.
-  cy.get(`section[id="${roleTypeTemplate}"]`).within(() => {
+  // 2.16 dropped section[id=...] tabs in favor of a data-testid on the tab-panel.
+  cy.get(`section[id="${roleTypeTemplate}"], section[data-testid="tab-panel-${roleTypeTemplate}"]`).within(() => {
     cy.get("input[placeholder='Filter']").should('exist').clear({ force: true }).type(roleName);
     // Check all filtered rows
     cy.get(' th:nth-child(1)').should('be.visible').click();
@@ -1106,8 +1135,8 @@ Cypress.Commands.add('verifyJobDeleted', (repoName, verifyJobDeletedEvent = true
   // To be executed there or after cy.checkGitRepoStatus() function;
   if (verifyJobDeletedEvent) {
     cy.get('ul[role="tablist"]').contains('Recent Events').click();
-    cy.get('section#events table tr.main-row')
-      // .eq(0)
+    // 2.16 dropped the stable section#events id in favor of a data-testid.
+    cy.get('section#events table, section[data-testid="tab-panel-events"] table')
       .contains('job deletion triggered because job succeeded', { timeout: 20000 })
       .should('be.visible');
   }
@@ -1561,7 +1590,8 @@ Cypress.Commands.add('executeKubectlCommand', (labelCommand, clusterName = 'loca
   cy.wait(500);
 
   // Close local terminal
-  cy.get('i.closer.icon').click();
+  // 2.16 replaced the terminal tab's close icon (`i.closer.icon`) with a dedicated button.
+  cy.get('i.closer.icon, button[data-testid="wm-tab-close-button"]').click();
 });
 
 // Collect cluster IDs for all clusters
