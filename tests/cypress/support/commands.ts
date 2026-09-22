@@ -386,9 +386,16 @@ Cypress.Commands.add('clickCreateGitRepo', (local) => {
     }
     cy.clickButton('Create App Bundle');
     cy.contains('App Bundle: Create').should('be.visible');
-    cy.contains('Git Repos').should('be.visible').click();
+    // 2.16 added a sidebar nav link with matching text ("Git Repos" + a resource count), which
+    // lives outside the routed page content. Scope to #main-content to exclude the sidebar nav
+    // entirely rather than relying on the exact wording/markup of the type-selector card.
+    cy.get('#main-content').contains('Git Repos').should('be.visible').click();
     cy.wait(1000);
-    cy.contains('App Bundle: Create').should('be.visible');
+    // 2.16 renders "App Bundle:" and "Create" as separate styled spans with no literal space
+    // between them, so cy.contains('App Bundle: Create') no longer matches. Check for the
+    // metadata step's Name field instead, which is what this is actually guarding against
+    // (that the click above landed on the wizard and didn't navigate away).
+    cy.byLabel('Name').should('be.visible');
   } else {
     if (local) {
       cy.fleetNamespaceToggle('fleet-local');
