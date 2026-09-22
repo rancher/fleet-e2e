@@ -329,7 +329,9 @@ describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: ['@p1', '@p
         cy.filterInSearchBox('local-chart-configmap');
         cy.wait(2000);
         cy.get('.col-link-detail').contains('local-chart-configmap').should('be.visible').click({ force: true });
-        cy.get('section#data').should('contain', 'sample-cm').and('contain', 'sample-data-inside');
+        cy.get('section#data, section[data-testid="tab-panel-data"]')
+          .should('contain', 'sample-cm')
+          .and('contain', 'sample-data-inside');
         cy.deleteAllFleetRepos();
         // Negative test using non-matching regex 1234.*
         helmRepoURLRegex = '1234.*';
@@ -371,7 +373,9 @@ describe('Test OCI support', { tags: ['@p1', '@pr-tests'] }, () => {
     cy.wait(500); // Adding wait and table verification to mitigate ocassional blank page.
     cy.verifyTableRow(0, 'fleet-test-configmap');
     cy.get('.col-link-detail').contains('fleet-test-configmap').should('be.visible').click({ force: true });
-    cy.get('section#data').should('contain', 'default-name').and('contain', 'value');
+    cy.get('section#data, section[data-testid="tab-panel-data"]')
+      .should('contain', 'default-name')
+      .and('contain', 'value');
   });
 
   it(
@@ -408,7 +412,9 @@ describe('Test OCI support', { tags: ['@p1', '@pr-tests'] }, () => {
       cy.wait(500); // Adding wait and table verification to mitigate ocassional blank page.
       cy.verifyTableRow(0, 'fleet-test-configmap');
       cy.get('.col-link-detail').contains('fleet-test-configmap').should('be.visible').click({ force: true });
-      cy.get('section#data').should('contain', 'default-name').and('contain', 'value');
+      cy.get('section#data, section[data-testid="tab-panel-data"]')
+        .should('contain', 'default-name')
+        .and('contain', 'value');
     },
   );
 
@@ -826,8 +832,10 @@ if (
         cy.wait(2000); // Adding wait due to initial change to Git Updating, then Active.
         cy.verifyTableRow(0, 'Git Updating', 'leaf-error-state');
         cy.verifyTableRow(0, 'leaf-error-state', '0/0');
+        // 2.16 prefixes this message with the bundle path and lowercases "failed" accordingly;
+        // match case-insensitively so this still works pre-2.16 too.
         cy.contains(
-          'Failed to process bundle: validating fleet.yaml: dependsOn[0].acceptedStates[0]: invalid state "BadState", valid values are: [Ready NotReady Pending OutOfSync Modified WaitApplied ErrApplied]',
+          /failed to process bundle: validating fleet\.yaml: dependsOn\[0\]\.acceptedStates\[0\]: invalid state "BadState", valid values are: \[Ready NotReady Pending OutOfSync Modified WaitApplied ErrApplied\]/i,
         ).should('be.visible');
       },
     );

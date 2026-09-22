@@ -1232,11 +1232,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       cy.filterInSearchBox(appName);
       cy.get('.col-link-detail').contains(appName).should('be.visible');
 
-      // Deleting GitRepoRestrictions from the fleet-local namespace
-      cy.continuousDeliveryMenuSelection();
-      cy.continuousDeliveryGitRepoRestrictionsMenu();
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.deleteAll(false);
+      cy.deleteAllGitRepoRestrictions();
     },
   );
 
@@ -1278,11 +1274,7 @@ describe('Test GitRepoRestrictions scenarios for GitRepo application deployment.
       cy.filterInSearchBox(appName);
       cy.get('.col-link-detail').contains(appName).should('be.visible');
 
-      // Deleting GitRepoRestrictions from the fleet-local namespace
-      cy.continuousDeliveryMenuSelection();
-      cy.continuousDeliveryGitRepoRestrictionsMenu();
-      cy.fleetNamespaceToggle('fleet-local');
-      cy.deleteAll(false);
+      cy.deleteAllGitRepoRestrictions();
     },
   );
 
@@ -1309,6 +1301,10 @@ describe('Test Fleet `doNotDeploy: true` skips deploying resources to clusters.'
     ),
     { tags: '@fleet-88' },
     () => {
+      // The GitRepoRestrictions tests above (e.g. Fleet-41) can leave a restriction behind if
+      // they fail mid-way, which would otherwise block every GitRepo created below this point.
+      cy.deleteAllGitRepoRestrictions();
+
       const repoName = 'test-donot-deploy-true';
       const path = 'qa-test-apps/do-not-deploy/true';
       let gitRepoWord = 'git repo';
@@ -1382,16 +1378,37 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypres
       cy.contains('div.vs__option-kind', 'fleet-local ').should('exist').click();
       cy.typeValue('Name', 'github-app-secret');
 
-      cy.get("section[id='data'] input[placeholder='e.g. foo']").type('github_app_id');
-      cy.get("section[id='data'] textarea[placeholder='e.g. bar']").type(github_app_id);
+      // 2.16 dropped section[id='data'] in favor of a data-testid on the tab-panel.
+      cy.get(
+        "section[id='data'] input[placeholder='e.g. foo'], section[data-testid='tab-panel-data'] input[placeholder='e.g. foo']",
+      ).type('github_app_id');
+      cy.get(
+        "section[id='data'] textarea[placeholder='e.g. bar'], section[data-testid='tab-panel-data'] textarea[placeholder='e.g. bar']",
+      ).type(github_app_id);
       cy.clickButton('Add');
 
-      cy.get("section[id='data'] input[placeholder='e.g. foo']").eq(1).type('github_app_installation_id');
-      cy.get("section[id='data'] textarea[placeholder='e.g. bar']").eq(1).type(github_app_installation_id);
+      cy.get(
+        "section[id='data'] input[placeholder='e.g. foo'], section[data-testid='tab-panel-data'] input[placeholder='e.g. foo']",
+      )
+        .eq(1)
+        .type('github_app_installation_id');
+      cy.get(
+        "section[id='data'] textarea[placeholder='e.g. bar'], section[data-testid='tab-panel-data'] textarea[placeholder='e.g. bar']",
+      )
+        .eq(1)
+        .type(github_app_installation_id);
       cy.clickButton('Add');
 
-      cy.get("section[id='data'] input[placeholder='e.g. foo']").eq(2).type('github_app_private_key');
-      cy.get("section[id='data'] textarea[placeholder='e.g. bar']").eq(2).type(github_app_private_key, false);
+      cy.get(
+        "section[id='data'] input[placeholder='e.g. foo'], section[data-testid='tab-panel-data'] input[placeholder='e.g. foo']",
+      )
+        .eq(2)
+        .type('github_app_private_key');
+      cy.get(
+        "section[id='data'] textarea[placeholder='e.g. bar'], section[data-testid='tab-panel-data'] textarea[placeholder='e.g. bar']",
+      )
+        .eq(2)
+        .type(github_app_private_key, false);
       cy.wait(2000);
       cy.clickButton('Create');
 
