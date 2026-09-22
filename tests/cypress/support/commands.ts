@@ -928,9 +928,7 @@ Cypress.Commands.add('deleteRole', (roleName, roleTypeTemplate) => {
 
   // Filter role by it's name and roleTypeTemplate.
   // 2.16 dropped section[id=...] tabs in favor of a data-testid on the tab-panel.
-  cy.get(
-    `section[id="${roleTypeTemplate}"], section[data-testid="tab-panel-${roleTypeTemplate}"]`,
-  ).within(() => {
+  cy.get(`section[id="${roleTypeTemplate}"], section[data-testid="tab-panel-${roleTypeTemplate}"]`).within(() => {
     cy.get("input[placeholder='Filter']").should('exist').clear({ force: true }).type(roleName);
     // Check all filtered rows
     cy.get(' th:nth-child(1)').should('be.visible').click();
