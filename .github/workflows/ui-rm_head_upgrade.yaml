@@ -1,6 +1,6 @@
 # This workflow calls the master E2E workflow with custom variables
 name: UI-RM_head_upgrade
-run-name: ${{ github.event_name == 'workflow_dispatch' && format('`{0}` on `{1}` - `{2}` destroy={3}{4}', inputs.rancher_version, inputs.upstream_cluster_version, inputs.grep_test_by_tag, inputs.destroy_runner, contains(inputs.runner_template, 'dedicated') && ' (runner=dedicated)' || '') || github.workflow }}
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('`{0}` ➜ `{1}` on `{2}` - `{3}` destroy={4}{5}', inputs.rancher_version, inputs.rancher_upgrade, inputs.upstream_cluster_version, inputs.grep_test_by_tag, inputs.destroy_runner, contains(inputs.runner_template, 'dedicated') && ' (runner=dedicated)' || '') || github.workflow }}
 
 on:
   workflow_dispatch:
@@ -29,24 +29,19 @@ on:
         description: Destroy the auto-generated self-hosted runner
         default: true
         type: boolean
-      upgrade:
-        description: Proceed with Rancher Upgrade (True/False)
-        default: false
-        required: false
-        type: boolean
       rancher_version:
         description: Rancher version channel/version/head_version latest/latest, latest/2.y.x[-rc1], prime/2.y.x, prime/devel/2.y, alpha/2.y.0-alphaZ
-        default: latest/devel/2.10
+        default: head/2.15
         type: string
         required: true
       rancher_upgrade:
         description: Rancher Manager channel/version to upgrade to
-        default: latest/devel/head
+        default: head/2.16
         required: true
         type: string
       upstream_cluster_version:
         description: K3s upstream cluster version where to install Rancher
-        default: v1.28.8+k3s1
+        default: "v1.36.1+k3s1"
         type: string
         required: true
       k8s_version_upgrade_ds_cluster:
@@ -56,12 +51,12 @@ on:
         type: boolean
       k8s_version_to_upgrade_ds_cluster_to:
         description: Provide K8s version to upgrade K8s on downstream clusters, when above k8s upgrade option is checked.
-        default: 'v1.31.8+k3s1'
+        default: 'v1.36.1+k3s1'
         required: false
         type: string
       grep_test_by_tag:
         description: Grep tags. For multiple selection separate with spaces. Keep always @login.
-          Use @k8supgrade to test K8s version upgrade on downstream clusters.
+          Add @k8supgrade to also upgrade K8s version on downstream clusters (requires k8s_version_to_upgrade_ds_cluster_to).
         required: false
         type: string
         default: '@login @upgrade'
@@ -84,6 +79,13 @@ jobs:
       rsa_private_key_qa: ${{ secrets.RSA_PRIVATE_KEY_QA }}
       rsa_public_key_qa: ${{ secrets.RSA_PUBLIC_KEY_QA }}
       qase_api_token: ${{ secrets.QASE_API_TOKEN }}
+      aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      github_app_id: ${{ secrets.GH_APP_ID }}
+      github_app_installation_id: ${{ secrets.GH_APP_INSTALLATION_ID }}
+      github_app_private_key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+      appco_username: ${{ secrets.APPCO_USERNAME }}
+      appco_access_token: ${{ secrets.APPCO_ACCESS_TOKEN }}
     with:
       test_description: "CI/Manual - UI - Deployment test with Standard K3s"
       cluster_name: cluster-k3s
@@ -91,7 +93,6 @@ jobs:
       upstream_cluster_version: ${{ inputs.upstream_cluster_version }}
       rancher_version: ${{ inputs.rancher_version }}
       rancher_upgrade: ${{ inputs.rancher_upgrade }}
-      upgrade: ${{ inputs.upgrade }}
       qase_report: ${{ inputs.qase_report == true || (github.event_name == 'schedule' && true) }}
       qase_run_id: ${{ inputs.qase_run_id || '' }}
       qase_complete_run: ${{ inputs.qase_complete_run != false }}
