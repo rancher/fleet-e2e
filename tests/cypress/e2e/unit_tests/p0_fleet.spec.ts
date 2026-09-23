@@ -13,6 +13,7 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
+import { isRancherVersionAtLeast } from 'cypress/support/commands';
 
 export const appName = 'nginx-keep';
 export const clusterName = 'imported-0';
@@ -202,7 +203,8 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     cy.wait(30000);
 
     // Close local terminal
-    cy.get('i.closer.icon').click();
+    // 2.16 replaced the terminal tab's close icon (`i.closer.icon`) with a dedicated button.
+    cy.get('i.closer.icon, button[data-testid="wm-tab-close-button"]').click();
 
     // Create secret via UI
     cy.accesMenuSelection('local', 'Storage', 'Secrets');
@@ -364,7 +366,10 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
 
       // Re-add the key to avoid other girepos to be stalled
       cy.clickButton('Add');
-      cy.get("section[id='data'] input[placeholder='e.g. foo']").type('known_hosts');
+      // 2.16 dropped section[id='data'] in favor of a data-testid on the tab-panel.
+      cy.get(
+        "section[id='data'] input[placeholder='e.g. foo'], section[data-testid='tab-panel-data'] input[placeholder='e.g. foo']",
+      ).type('known_hosts');
       cy.wait(500); // Needs time for previous command to finish
       cy.clickButton('Save');
       cy.wait(500); // Needs time for previous command to finish
@@ -404,7 +409,10 @@ describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
     cy.clickButton('Remove');
 
     // Attach file from 'fixtures' directory since it is native for Cypress
-    cy.get("section[id='data'] input[type='file']").attachFile('known_hosts');
+    // 2.16 dropped section[id='data'] in favor of a data-testid on the tab-panel.
+    cy.get(
+      "section[id='data'] input[type='file'], section[data-testid='tab-panel-data'] input[type='file']",
+    ).attachFile('known_hosts');
     cy.contains('bitbucket').should('be.visible');
     cy.wait(500); // Needs time for previous command to finnish
     cy.clickButton('Save');
@@ -733,7 +741,9 @@ describe('Test Fleet job cleanup', { tags: ['@p0', '@pr-tests'] }, () => {
 
       cy.contains(repoName).click();
       cy.get('ul[role="tablist"]').contains('Recent Events').click();
-      cy.get('section#events table tr.main-row')
+      // 2.16 dropped the stable section#events id in favor of a data-testid; scope to tbody instead of
+      // relying on a row class to exclude the header row.
+      cy.get('section#events table tbody tr, section[data-testid="tab-panel-events"] table tbody tr')
         .should('have.length', 2)
         .then(() => {
           cy.contains('GotNewCommit', { timeout: 20000 }).should('be.visible');
@@ -759,8 +769,13 @@ describe('Test GitJob security context', { tags: ['@p0', '@pr-tests'] }, () => {
     cy.verifyTableRow(0, 'Running', 'gitjob');
     cy.contains('gitjob').click();
     cy.clickButton('Config');
-    // 2.16 changed ul.tabs to div.tabs > ul.tab-list; this data-testid is stable across 2.12-2.16.
-    cy.get('section#container-0').find('[data-testid="btn-securityContext"]').should('be.visible').click();
+    // 2.16 reorganized Security Context from a button that reveals fields inside
+    // section#container-0 into a directly navigable side-tab.
+    if (isRancherVersionAtLeast(16)) {
+      cy.contains('Security Context').should('be.visible').click();
+    } else {
+      cy.get('section#container-0').find('[data-testid="btn-securityContext"]').should('be.visible').click();
+    }
     // 2.14+ renders these as Checkboxes (aria-checked); 2.12/2.13 used radio groups.
     if (/\/2\.(1[4-9]|[2-9][0-9])/.test(Cypress.expose('rancher_version'))) {
       // Check Run as Non-Root

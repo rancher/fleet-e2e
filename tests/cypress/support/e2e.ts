@@ -73,6 +73,7 @@ declare global {
       deleteBundleAndPvc(hasPv?: boolean, bundleDeleteTimeout?: number, pvcDeleteTimeout?: number): Chainable<Element>;
       deleteAll(fleetCheck?: boolean, textCheckTimeout?: number, confirmEmpty?: boolean): Chainable<Element>;
       deleteAllFleetRepos(namespaceName?: string): Chainable<Element>;
+      deleteAllGitRepoRestrictions(): Chainable<Element>;
       checkBundlesDeleted(repoName: string, timeout?: number): Chainable<Element>;
       checkGitRepoStatus(
         repoName: string,
@@ -179,7 +180,7 @@ declare global {
       createCloudCluster(cloudInstanceType: string, clusterName: string, subnetId: string): Chainable<Element>;
       deleteDownstreamCluster(clusterName: string, deleteOption?: boolean): Chainable<Element>;
       addHelmOp(
-        fleetNamespace: string?,
+        fleetNamespace?: string,
         repoName: string,
         repoUrl: string,
         chart: string,
