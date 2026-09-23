@@ -606,7 +606,9 @@ Cypress.Commands.add('accesMenuSelection', (firstAccessMenu = 'Continuous Delive
 
   if (isRancherVersionAtLeast(16) && isClusterName) {
     cy.get('button[data-testid="cluster-switcher-trigger"]').click();
-    cy.contains('[role="option"]', firstAccessMenu).should('be.visible').click();
+    // Scoped to the popover's listbox: unscoped cy.contains() can match a same-text
+    // element elsewhere on the page (e.g. a cluster name in the clusters table).
+    cy.get('#cluster-switcher-listbox').contains(firstAccessMenu).should('be.visible').click();
   } else {
     cy.contains(firstAccessMenu).should('be.visible');
     cypressLib.accesMenu(firstAccessMenu);
