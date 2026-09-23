@@ -144,14 +144,14 @@ describe('Test "fleet-agent" image version on each downstream cluster', { tags: 
       cy.log('Cluster Upgraded: ' + upgrade);
       cy.log('===========================');
 
-      //'fleet_app_version' is before upgrade version.
-      // For example 'fleet_app_version' is fleet-105.0.3+up0.11.3, after splitting
-      // we get 'fleet_agent_version' is '0.11.3'.
       if (upgrade) {
-        const fleetAgentVersionBeforeUpgrade = Cypress.expose('fleet_app_version').split('+up')[1];
-        cy.log('Fleet Agent image version BEFORE upgrade:' + fleetAgentVersionBeforeUpgrade);
+        const fleetAppVersion = Cypress.expose('fleet_app_version');
+        // Chart name format varies: fleet-105.0.3+up0.11.3 (old) or fleet-105.0.4_up0.12.0 (new)
+        const match = fleetAppVersion.match(/[+_]up(.+)$/);
+        expect(match, `fleet_app_version "${fleetAppVersion}" must contain +up or _up`).to.not.be.null;
+        const fleetAgentVersionBeforeUpgrade = match![1];
+        cy.log('Fleet Agent image version BEFORE upgrade: ' + fleetAgentVersionBeforeUpgrade);
 
-        // Check fleet-agent version of the downstream clusters.
         dsAllClusterList.forEach((dsCluster) => {
           cy.accesMenuSelection(dsCluster, 'Workloads', 'Pods');
           cy.nameSpaceMenuToggle('All Namespaces');
@@ -161,19 +161,14 @@ describe('Test "fleet-agent" image version on each downstream cluster', { tags: 
           cy.wait(500);
           cy.clickButton('Config');
 
-          // We get 'fleetAgentImageAfterUpgrade' is 'rancher/fleet-agent:v0.12.0-alpha.4',
-          // after splitting we get 'fleetAgentVersionAfterUpgrade' is '0.12.0-alpha.4'
-          // We compare it with 'fleetAgentVersionBeforeUpgrade' which should "NOT" equal.
-          cy.get('input[placeholder="e.g. nginx:latest"]')
+          cy.get('input[placeholder*="nginx"]')
             .invoke('val')
             .then((fleetAgentImageAfterUpgrade) => {
-              if (typeof fleetAgentImageAfterUpgrade === 'string') {
-                const fleetAgentVersionAfterUpgrade = fleetAgentImageAfterUpgrade.split(':v')[1];
-                cy.log('Fleet Agent image version AFTER upgrade:' + fleetAgentVersionAfterUpgrade);
-                cy.wrap(fleetAgentVersionAfterUpgrade).should('not.eq', fleetAgentVersionBeforeUpgrade);
-              } else {
-                cy.log('"fleetAgentImage" is "undefined" and can be processed further');
-              }
+              expect(fleetAgentImageAfterUpgrade, 'fleet-agent image should be a non-empty string').to.be.a('string')
+                .and.not.be.empty;
+              const fleetAgentVersionAfterUpgrade = (fleetAgentImageAfterUpgrade as string).split(':v')[1];
+              cy.log('Fleet Agent image version AFTER upgrade: ' + fleetAgentVersionAfterUpgrade);
+              cy.wrap(fleetAgentVersionAfterUpgrade).should('not.eq', fleetAgentVersionBeforeUpgrade);
             });
         });
       } else {
