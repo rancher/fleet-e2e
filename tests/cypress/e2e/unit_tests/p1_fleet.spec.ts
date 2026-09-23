@@ -922,6 +922,7 @@ describe('Test correctDrift does not create excessive secrets after multiple mod
       cy.accesMenuSelection('local', 'Storage', 'Secrets');
       cy.nameSpaceMenuToggle(appNamespace);
       cy.filterInSearchBox('sh.helm.release');
+      cy.wait(1000);
 
       // Count the secrets and verify count is not more than 2
       cy.get('table > tbody > tr.main-row').then(($rows) => {
