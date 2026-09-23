@@ -453,7 +453,7 @@ jobs:
           fi
       - name: Extract component versions/informations after Upgrade
         id: upgraded_component
-        if: ${{ !cancelled() && inputs.rancher_upgrade != '' }}
+        if: ${{ !cancelled() && inputs.rancher_upgrade != '' && steps.rancher_upgrade.outcome == 'success' }}
         run: |
           # Extract Rancher Manager version
           RM_UPGRADED_VERSION=$(kubectl get pod \
