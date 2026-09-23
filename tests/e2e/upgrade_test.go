@@ -144,5 +144,35 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 			fmt.Println("Current Fleet version after upgrade:", fleetVersionAfterUpgrade) // Debugging output
 			g.Expect(fleetVersionAfterUpgrade).To(Not(Equal(fleetVersionBeforeUpgrade)))
 	}, tools.SetTimeout(10*time.Minute), 20*time.Second).Should(Succeed())
+
+		// Wait for all downstream clusters to reconnect and report Ready.
+		// The Ginkgo upgrade test only verifies local Fleet pods; downstream agents
+		// reconnect asynchronously and must be Ready before Cypress Phase 2 runs.
+		By("Waiting for downstream clusters to be Ready after upgrade", func() {
+			count := 1
+			Eventually(func() error {
+				// List all non-local imported cluster IDs
+				clusterIDs, err := kubectl.RunWithoutErr(
+					"get", "clusters.management.cattle.io",
+					"--field-selector", "metadata.name!=local",
+					"-o", "jsonpath={.items[*].metadata.name}",
+				)
+				if err != nil {
+					return err
+				}
+				for _, clusterID := range strings.Fields(clusterIDs) {
+					status, err := kubectl.RunWithoutErr(
+						"get", "clusters.management.cattle.io", clusterID,
+						"-o", "jsonpath={.status.conditions[?(@.type==\"Ready\")].status}",
+					)
+					GinkgoWriter.Printf("Downstream cluster %s Ready status (loop %d): %s\n", clusterID, count, status)
+					if err != nil || !strings.Contains(status, "True") {
+						return fmt.Errorf("cluster %s not Ready yet (status=%s)", clusterID, status)
+					}
+				}
+				count++
+				return nil
+			}, tools.SetTimeout(5*time.Minute), 15*time.Second).Should(Succeed())
+		})
 	})
 })
