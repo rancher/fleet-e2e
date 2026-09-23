@@ -606,7 +606,7 @@ Cypress.Commands.add('accesMenuSelection', (firstAccessMenu = 'Continuous Delive
 
   if (isRancherVersionAtLeast(16) && isClusterName) {
     cy.get('button[data-testid="cluster-switcher-trigger"]').click();
-    cy.contains('[role="option"]', firstAccessMenu).should('be.visible').click();
+    cy.contains(firstAccessMenu).should('be.visible').click();
   } else {
     cy.contains(firstAccessMenu).should('be.visible');
     cypressLib.accesMenu(firstAccessMenu);
