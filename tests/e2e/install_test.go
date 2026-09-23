@@ -156,25 +156,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			// Use the system default charts instead of the ones bundled in the Rancher image.
 			// NOTE: overrides ele-testhelpers default behavior, extra flags are added last so
 			//       they take precedence over the existing ones.
-			extraFlags := []string{
-				"--set", "useBundledSystemChart=false",
-			}
-
-			// As of 09/2026, all head/devel Rancher images are on stgregistry.suse.com.
-			// Agent images remain on Docker Hub (rancher/rancher-agent).
-			// For head/2.XX format: rancherChannel=head, rancherVersion=2.XX, rancherHeadVersion="".
-			if rancherChannel == "head" {
-				headVer := rancherHeadVersion
-				if headVer == "" {
-					headVer = rancherVersion
-				}
-				imageTag := "v" + headVer + "-head"
-				extraFlags = append(extraFlags,
-					"--set", "rancherImage=stgregistry.suse.com/rancher/rancher",
-					"--set", "rancherImageTag="+imageTag,
-				)
-			}
-
+			extraFlags := rancherExtraFlags(rancherChannel, rancherVersion, rancherHeadVersion)
 			err := rancher.DeployRancherManager(rancherHostname, rancherChannel, rancherVersion, rancherHeadVersion, "none", "none", extraFlags)
 			Expect(err).To(Not(HaveOccurred()))
 

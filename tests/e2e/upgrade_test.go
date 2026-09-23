@@ -51,17 +51,19 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 
 		// Get Fleet Version before-upgrade
 		getFleetImageVersion := []string{"get", "pod",
-		"--namespace", "cattle-fleet-system",
-		"-l", "app=fleet-controller",
-		"-o", "jsonpath={.items[*].status.containerStatuses[*].image}",
+			"--namespace", "cattle-fleet-system",
+			"-l", "app=fleet-controller",
+			"-o", "jsonpath={.items[*].status.containerStatuses[*].image}",
 		}
 
 		// Execute the shell command to get version before upgrade
 		fleetVersionBeforeUpgrade, err := kubectl.RunWithoutErr(getFleetImageVersion...)
+		Expect(err).To(Not(HaveOccurred()))
 
 		// Upgrade Rancher Manager
 		// NOTE: Don't check the status, we can have false-positive here...
 		//       Better to check the rollout after the upgrade, it will fail if the upgrade failed
+		upgradeExtraFlags := rancherExtraFlags(rancherUpgradeChannel, rancherUpgradeVersion, rancherUpgradeHeadVersion)
 		_ = rancher.DeployRancherManager(
 			rancherHostname,
 			rancherUpgradeChannel,
@@ -69,6 +71,7 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 			rancherUpgradeHeadVersion,
 			"None",
 			"None",
+			upgradeExtraFlags,
 		)
 
 		// Wait for Rancher Manager to be restarted

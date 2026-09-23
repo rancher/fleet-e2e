@@ -64,6 +64,23 @@ var (
  * @param s options to pass to RunHelmBinaryWithCustomErr command
  * @returns Nothing, the function will fail through Ginkgo in case of issue
  */
+// rancherExtraFlags builds the helm extra flags for DeployRancherManager.
+// head channel images live on stgregistry.suse.com and need explicit image overrides.
+func rancherExtraFlags(channel, version, headVersion string) []string {
+	flags := []string{"--set", "useBundledSystemChart=false"}
+	if channel == "head" {
+		headVer := headVersion
+		if headVer == "" {
+			headVer = version
+		}
+		flags = append(flags,
+			"--set", "rancherImage=stgregistry.suse.com/rancher/rancher",
+			"--set", "rancherImageTag=v"+headVer+"-head",
+		)
+	}
+	return flags
+}
+
 func RunHelmCmdWithRetry(s ...string) {
 	Eventually(func() error {
 		return kubectl.RunHelmBinaryWithCustomErr(s...)
