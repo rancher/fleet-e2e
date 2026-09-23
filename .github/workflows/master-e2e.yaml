@@ -105,10 +105,6 @@ on:
         description: Rancher Manager channel/version/head_version to use for installation
         default: stable/latest/none
         type: string
-      upgrade:
-        description: Proceed with Rancher Upgrade (True/False)
-        default: true
-        type: boolean
       rancher_upgrade:
         description: Rancher Manager channel/version to upgrade to
         type: string
@@ -213,7 +209,6 @@ jobs:
       RANCHER_VERSION: ${{ inputs.rancher_version }}
       # For Rancher Manager Upgrade
       RANCHER_UPGRADE: ${{ inputs.rancher_upgrade }}
-      UPGRADE: ${{ inputs.upgrade }}
       TIMEOUT_SCALE: 3
       # K8s Version Upgrade
       K8S_VERSION_UPGRADE_DS_CLUSTER: ${{ inputs.k8s_version_upgrade_ds_cluster }}
@@ -222,7 +217,7 @@ jobs:
       QASE_API_TOKEN: ${{ secrets.qase_api_token }}
       QASE_PROJECT_CODE: FLEET
       QASE_MODE: ${{ inputs.qase_report == true && 'testops' || 'off' }}
-      QASE_TESTOPS_RUN_TITLE: ${{ format('[{0}] Rancher-{1} - {2} destroy={3}', github.run_number, inputs.rancher_version, inputs.grep_test_by_tag, inputs.destroy_runner) }}
+      QASE_TESTOPS_RUN_TITLE: ${{ format('[{0}] Rancher-{1}{2} - {3} destroy={4}', github.run_number, inputs.rancher_version, inputs.rancher_upgrade != '' && format(' ➜ {0}', inputs.rancher_upgrade) || '', inputs.grep_test_by_tag, inputs.destroy_runner) }}
 
       QASE_TESTOPS_RUN_DESCRIPTION: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       QASE_TESTOPS_RUN_ID: ${{ inputs.qase_run_id }}
@@ -317,6 +312,9 @@ jobs:
           APPCO_ACCESS_TOKEN: ${{ secrets.appco_access_token }}
           QASE_TESTOPS_RUN_ID: ${{ inputs.qase_run_id }}
           QASE_MODE: ${{ inputs.qase_report == true && 'testops' || 'off' }}
+          # When an upgrade follows, keep the QASE run open so Phase 2 can append results.
+          # Without this, cypress-qase-reporter closes the run here and Phase 2 reports to a completed run.
+          QASE_TESTOPS_COMPLETE_RUN: ${{ inputs.rancher_upgrade != '' && 'false' || inputs.qase_complete_run }}
           GREPTAGS: ${{ inputs.grep_test_by_tag }}
           UPGRADE: 'false'
           # Add cypress/e2e/unit_tests/user.spec.ts again when implementing RBAC tests.
@@ -352,7 +350,7 @@ jobs:
           fi
       - name: Upgrade Rancher Manager
         id: rancher_upgrade
-        if: ${{ inputs.rancher_upgrade != '' }}
+        if: ${{ !cancelled() && inputs.rancher_upgrade != '' }}
         env:
           PUBLIC_DNS: ${{ needs.create-runner.outputs.public_dns }}
           PUBLIC_DOMAIN: bc.googleusercontent.com
@@ -377,7 +375,7 @@ jobs:
           fi
       - name: Extract component versions/informations after Upgrade
         id: upgraded_component
-        if: ${{ inputs.rancher_upgrade != '' }}
+        if: ${{ !cancelled() && inputs.rancher_upgrade != '' }}
         run: |
           # Extract Rancher Manager version
           RM_UPGRADED_VERSION=$(kubectl get pod \
@@ -395,7 +393,7 @@ jobs:
           echo "fleet_images_after_upgrade=${FLEET_UPGRADED_IMAGES}" >> ${GITHUB_OUTPUT}
       - name: Cypress tests - On Upgraded Rancher
         id: cypress_result_after_rancher_upgrade
-        if: ${{ inputs.rancher_upgrade != '' }}
+        if: ${{ !cancelled() && inputs.rancher_upgrade != '' }}
         env:
           BROWSER: chrome
           CYPRESS_DOCKER: 'cypress/included:15.21.1'
@@ -418,13 +416,14 @@ jobs:
           GH_APP_INSTALLATION_ID: ${{ secrets.github_app_installation_id }}
           GH_APP_PRIVATE_KEY: ${{ secrets.github_app_private_key }}
           GREPTAGS: ${{ inputs.grep_test_by_tag }}
-          UPGRADE: ${{ inputs.upgrade }}
+          UPGRADE: "true"
           FLEET_APP_VERSION: ${{ steps.component.outputs.fleet_app_version }}
           RANCHER_VERSION: ${{ inputs.rancher_upgrade }}
           K8S_VERSION_UPGRADE_DS_CLUSTER: ${{ inputs.k8s_version_upgrade_ds_cluster }}
           K8S_VERSION_UPGRADE_DS_CLUSTER_TO: ${{ inputs.k8s_version_to_upgrade_ds_cluster_to }}
           QASE_TESTOPS_RUN_ID: ${{ steps.qase_run_id.outputs.qase_run_id }}
           QASE_MODE: ${{ inputs.qase_report == true && 'testops' || 'off' }}
+          QASE_TESTOPS_COMPLETE_RUN: ${{ inputs.qase_complete_run }}
           SPEC: cypress/e2e/unit_tests/first_login_rancher.spec.ts,cypress/e2e/unit_tests/upgrade_fleet.spec.ts
         run: |
           if [[ "${{ inputs.qase_report }}" != "true" ]]; then
@@ -432,7 +431,7 @@ jobs:
           fi
           cd tests && make start-cypress-tests
       - name: Upload Cypress screenshots (after-upgrade)
-        if: ${{ failure() && inputs.rancher_upgrade != '' }}
+        if: ${{ !cancelled() && failure() && inputs.rancher_upgrade != '' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: cypress-screenshots-after-upgrade-${{ inputs.cluster_name }}
@@ -440,7 +439,7 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
       - name: Upload Cypress videos (after-upgrade)
-        if: ${{ inputs.rancher_upgrade != '' }}
+        if: ${{ !cancelled() && inputs.rancher_upgrade != '' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: cypress-videos-after-upgrade-${{ inputs.cluster_name }}

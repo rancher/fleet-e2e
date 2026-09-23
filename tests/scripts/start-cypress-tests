@@ -44,6 +44,7 @@ docker run --init -v $PWD:/workdir -w /workdir ${GH_MOUNT} ${KUBECTL_MOUNT} ${KU
     -e QASE_TESTOPS_RUN_TITLE="$QASE_TESTOPS_RUN_TITLE"     \
     -e QASE_TESTOPS_RUN_DESCRIPTION="$QASE_TESTOPS_RUN_DESCRIPTION" \
     -e QASE_TESTOPS_RUN_ID=$QASE_TESTOPS_RUN_ID             \
+    -e QASE_TESTOPS_COMPLETE_RUN=$QASE_TESTOPS_COMPLETE_RUN \
     -e RANCHER_VERSION=$RANCHER_VERSION                     \
     -e RANCHER_PASSWORD=$RANCHER_PASSWORD                   \
     -e RANCHER_URL=$RANCHER_URL                             \
