@@ -902,7 +902,7 @@ describe('Test correctDrift does not create excessive secrets after multiple mod
 
         // Click increase button without verifying the intermediate state
         // Use force:true because correctDrift may cause page re-renders during click
-        cy.get('div.scaler > button.increase, div.plus-minus.text-right > .btn > .icon-plus')
+        cy.get('div.scaler > button.increase, div.plus-minus > .btn > .icon-plus')
           .should('be.visible')
           .click({ force: true });
 
