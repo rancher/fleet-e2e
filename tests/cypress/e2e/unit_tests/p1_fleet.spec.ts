@@ -883,31 +883,9 @@ describe('Test correctDrift does not create excessive secrets after multiple mod
       cy.checkApplicationStatus(appName);
 
       // Modify deployment three times without verification (correctDrift heals too fast)
-      cy.accesMenuSelection('local', 'Workloads', 'Deployments');
-
       for (let i = 1; i <= 3; i++) {
         cy.log(`Modification ${i} of 3`);
-        cy.wait(2000);
-        cy.get('[data-testid="button-group-child-0"]').then(($button) => {
-          if ($button.hasClass('bg-disabled')) {
-            $button.trigger('click');
-          }
-        });
-
-        cy.filterInSearchBox(appName);
-        cy.contains(appName).click();
-
-        // Wait for the scaler to appear (StatusCard is async; correctDrift value may vary)
-        cy.get('div.scaler > .value, div.plus-minus > .value').should('be.visible');
-
-        // Click increase button without verifying the intermediate state
-        // Use force:true because correctDrift may cause page re-renders during click
-        cy.get('div.scaler > button.increase, div.plus-minus > .btn > .icon-plus')
-          .should('be.visible')
-          .click({ force: true });
-
-        // Navigate back to Deployments list
-        cy.clickNavMenu(['Deployments']);
+        cy.modifyDeployedApplication(appName, 'local', false);
 
         // Wait for correctDrift to restore
         cy.wait(15000);
