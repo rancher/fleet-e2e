@@ -897,8 +897,8 @@ describe('Test correctDrift does not create excessive secrets after multiple mod
         cy.filterInSearchBox(appName);
         cy.contains(appName).click();
 
-        // Wait for deployment detail page to fully load
-        cy.wait(1000);
+        // Wait for the scaler to appear (StatusCard is async; correctDrift value may vary)
+        cy.get('div.scaler > .value, div.plus-minus > .value').should('be.visible');
 
         // Click increase button without verifying the intermediate state
         // Use force:true because correctDrift may cause page re-renders during click
