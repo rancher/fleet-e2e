@@ -268,9 +268,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="${{ inputs.rancher_image_tag }}"
+          IFS=/ read -r _ VER HEAD_VER <<< "${{ inputs.rancher_version }}"
+          VER="${HEAD_VER:-${VER}}"
           if [[ -z "${TAG}" && "${RANCHER_IMAGE_REGISTRY}" == "docker.io" ]]; then
-            IFS=/ read -r _ VER HEAD_VER <<< "${{ inputs.rancher_version }}"
-            VER="${HEAD_VER:-${VER}}"
             # 2.XX builds from release/v2.XX, the version still in development builds from main
             BRANCH="release/v${VER}"
             gh api "repos/rancher/rancher/branches/${BRANCH}" --silent 2> /dev/null || BRANCH=main
@@ -288,7 +288,8 @@ jobs:
               false
             fi
           fi
-          echo "Rancher image: ${RANCHER_IMAGE_REGISTRY}/rancher/rancher:${TAG:-<floating head tag>}"
+          # Empty TAG lets the install test default to the floating v2.XX-head tag
+          echo "Rancher image: ${RANCHER_IMAGE_REGISTRY}/rancher/rancher:${TAG:-v${VER}-head}"
           echo "RANCHER_IMAGE_TAG=${TAG}" >> ${GITHUB_ENV}
       - name: Install prerequisite components
         env:
