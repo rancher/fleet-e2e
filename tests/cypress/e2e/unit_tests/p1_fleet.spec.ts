@@ -785,8 +785,9 @@ if (
         cy.verifyTableRow(0, 'Err Applied', 'leaf');
         cy.verifyTableRow(0, 'Err Applied', '0/1');
       } else {
-        cy.verifyTableRow(0, 'Waitingfordependency', 'leaf');
-        cy.verifyTableRow(0, 'Waitingfordependency', '0/1');
+        // 2.16 displays the state as "Waiting for Dependency", older versions as "Waitingfordependency"
+        cy.verifyTableRow(0, /Waiting ?for ?dependency/i, 'leaf');
+        cy.verifyTableRow(0, /Waiting ?for ?dependency/i, '0/1');
       }
 
       cy.open3dotsMenu('root', 'Pause');

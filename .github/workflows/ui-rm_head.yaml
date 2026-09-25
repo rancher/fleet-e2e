@@ -34,6 +34,18 @@ on:
         default: head/2.16
         type: string
         required: true
+      rancher_image_registry:
+        description: Registry for the head Rancher image (docker.io = latest branch build, 2.15+ only; stgregistry = v2.XX-head)
+        default: docker.io
+        type: choice
+        options:
+          - docker.io
+          - stgregistry.suse.com
+      rancher_image_tag:
+        description: Exact Rancher image tag to pin (optional, e.g. v2.16-<sha>-head)
+        required: false
+        type: string
+        default: ""
       upstream_cluster_version:
         description: K3s upstream cluster version where to install Rancher
         default: "v1.36.1+k3s1"
@@ -77,6 +89,8 @@ jobs:
       destroy_runner: ${{ github.event_name == 'schedule' && true || inputs.destroy_runner }}
       upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.36.1+k3s1' }}
       rancher_version: ${{ inputs.rancher_version || 'head/2.16' }}
+      rancher_image_registry: ${{ inputs.rancher_image_registry || 'docker.io' }}
+      rancher_image_tag: ${{ inputs.rancher_image_tag || '' }}
       qase_report: ${{ inputs.qase_report == true || (github.event_name == 'schedule' && true) }}
       qase_run_id: ${{ inputs.qase_run_id || '' }}
       qase_complete_run: ${{ inputs.qase_complete_run != false }}
