@@ -105,6 +105,14 @@ on:
         description: Rancher Manager channel/version/head_version to use for installation
         default: stable/latest/none
         type: string
+      rancher_image_registry:
+        description: Registry to pull the head Rancher image from (stgregistry.suse.com or docker.io)
+        default: stgregistry.suse.com
+        type: string
+      rancher_image_tag:
+        description: Exact head Rancher image tag (empty = v2.XX-head on stgregistry, latest rancher/rancher branch build on docker.io)
+        default: ""
+        type: string
       upgrade:
         description: Proceed with Rancher Upgrade (True/False)
         default: true
@@ -211,6 +219,7 @@ jobs:
       K3S_KUBECONFIG_MODE: 0644
       # For Rancher Manager
       RANCHER_VERSION: ${{ inputs.rancher_version }}
+      RANCHER_IMAGE_REGISTRY: ${{ inputs.rancher_image_registry }}
       # For Rancher Manager Upgrade
       RANCHER_UPGRADE: ${{ inputs.rancher_upgrade }}
       UPGRADE: ${{ inputs.upgrade }}
@@ -253,6 +262,34 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: current
+      - name: Resolve Rancher head image tag
+        if: ${{ startsWith(inputs.rancher_version, 'head/') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ inputs.rancher_image_tag }}"
+          if [[ -z "${TAG}" && "${RANCHER_IMAGE_REGISTRY}" == "docker.io" ]]; then
+            IFS=/ read -r _ VER HEAD_VER <<< "${{ inputs.rancher_version }}"
+            VER="${HEAD_VER:-${VER}}"
+            # 2.XX builds from release/v2.XX, the version still in development builds from main
+            BRANCH="release/v${VER}"
+            gh api "repos/rancher/rancher/branches/${BRANCH}" --silent 2> /dev/null || BRANCH=main
+            # docker.io has no floating v2.XX-head tag, and Docker Hub's last_updated moves when an
+            # old tag is re-pushed, so take the newest successful image build on the branch instead
+            for SHA in $(gh run list --repo rancher/rancher --workflow push.yml --branch "${BRANCH}" \
+                           --status success --limit 10 --json headSha --jq '.[].headSha'); do
+              if curl -fsS --retry 3 -o /dev/null "https://hub.docker.com/v2/repositories/rancher/rancher/tags/v${VER}-${SHA}-head" 2> /dev/null; then
+                TAG="v${VER}-${SHA}-head"
+                break
+              fi
+            done
+            if [[ -z "${TAG}" ]]; then
+              echo "No docker.io image for the last builds of rancher/rancher ${BRANCH}, v${VER} is likely stgregistry-only" >&2
+              false
+            fi
+          fi
+          echo "Rancher image: ${RANCHER_IMAGE_REGISTRY}/rancher/rancher:${TAG:-<floating head tag>}"
+          echo "RANCHER_IMAGE_TAG=${TAG}" >> ${GITHUB_ENV}
       - name: Install prerequisite components
         env:
           PUBLIC_DNS: ${{ needs.create-runner.outputs.public_dns }}
