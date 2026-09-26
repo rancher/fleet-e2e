@@ -90,7 +90,7 @@ declare global {
         resourceToCheck?: string,
       ): Chainable<Element>;
       deleteApplicationDeployment(clusterName?: string): Chainable<Element>;
-      modifyDeployedApplication(appName: string, clusterName?: string): Chainable<Element>;
+      modifyDeployedApplication(appName: string, clusterName?: string, verifyCount?: boolean): Chainable<Element>;
       createRoleTemplate(
         roleType: string,
         roleName: string,

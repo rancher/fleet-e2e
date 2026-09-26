@@ -794,7 +794,8 @@ Cypress.Commands.add('deleteApplicationDeployment', (clusterName = 'local') => {
 });
 
 // Modify given application
-Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName = 'local') => {
+// verifyCount=false skips the 1 -> 2 replica checks (correctDrift may heal before they run)
+Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName = 'local', verifyCount = true) => {
   // Wait added to mitigate problems unfolding burger menu 2.11 onwards
   // TODO: remove or rework when possible
   cy.wait(2000);
@@ -809,20 +810,25 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName = 'local
       }
     });
     cy.filterInSearchBox(appName);
-    cy.contains(appName).click();
+    // Click the Name link; a bare contains() can match other cells (e.g. same-named namespace) and only select the row
+    cy.get('td.col-link-detail a').contains(appName).click();
 
-    if (
+    const [valueSelector, increaseSelector] =
       /\/2\.11/.test(Cypress.expose('rancher_version')) ||
       /\/2\.12/.test(Cypress.expose('rancher_version')) ||
       /\/2\.13/.test(Cypress.expose('rancher_version'))
-    ) {
-      cy.get('div.plus-minus.text-right > .value').should('be.visible').contains('1');
-      cy.get('div.plus-minus.text-right > .btn > .icon-plus').should('be.visible').click();
-      cy.get('div.plus-minus.text-right > .value').should('be.visible').contains('2');
+        ? ['div.plus-minus.text-right > .value', 'div.plus-minus.text-right > .btn > .icon-plus']
+        : ['div.scaler > .value', 'div.scaler > button.increase'];
+
+    // Deployment detail page can take >10s to render, so use a longer timeout
+    cy.get(valueSelector, { timeout: 30000 }).should('be.visible');
+    if (verifyCount) {
+      cy.get(valueSelector).contains('1');
+      cy.get(increaseSelector).should('be.visible').click();
+      cy.get(valueSelector).contains('2').should('be.visible');
     } else {
-      cy.get('div.scaler > .value').contains('1').should('be.visible');
-      cy.get('div.scaler > button.increase').should('be.visible').click();
-      cy.get('div.scaler > .value').contains('2').should('be.visible');
+      // Use force:true because correctDrift may cause page re-renders during click
+      cy.get(increaseSelector).should('be.visible').click({ force: true });
     }
 
     cy.clickNavMenu(['Deployments']);
