@@ -48,7 +48,7 @@ on:
         default: ""
       upstream_cluster_version:
         description: K3s upstream cluster version where to install Rancher
-        default: "v1.36.1+k3s1"
+        default: "v1.37.1+k3s1"
         type: string
         required: true
       grep_test_by_tag:
@@ -87,7 +87,7 @@ jobs:
       cluster_name: cluster-k3s
       # WARNING, VALUES BELOW ARE HARDCODED FOR RUNS SCHEDULED BY CRON
       destroy_runner: ${{ github.event_name == 'schedule' && true || inputs.destroy_runner }}
-      upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.36.1+k3s1' }}
+      upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.37.1+k3s1' }}
       rancher_version: ${{ inputs.rancher_version || 'head/2.16' }}
       rancher_image_registry: ${{ inputs.rancher_image_registry || 'docker.io' }}
       rancher_image_tag: ${{ inputs.rancher_image_tag || '' }}

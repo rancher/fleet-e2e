@@ -32,7 +32,7 @@ Automation Repository for Fleet i.e. Rancher Continuous Delivery.
 
 | Rancher Version | Default Kubernetes Version |
 | --------------- | -------------------------- |
-| v2.16-head      | v1.36.1+k3s1               |
+| v2.16-head      | v1.37.1+k3s1               |
 | v2.15-head      | v1.36.1+k3s1               |
 | v2.14-head      | v1.35.2+k3s1               |
 | v2.13-head      | v1.34.3+k3s1               |
