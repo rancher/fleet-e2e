@@ -436,7 +436,7 @@ describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
     // Delete repo and confirm secret is deleted
     cy.deleteAllFleetRepos();
     cy.accesMenuSelection('local', 'Storage', 'Secrets');
-    cy.contains('-cabundle').should('not.exist');
+    cy.contains('tr.main-row', '-cabundle').should('not.exist');
   });
 
   it(
@@ -762,7 +762,8 @@ describe('Test GitJob security context', { tags: ['@p0', '@pr-tests'] }, () => {
     cy.accesMenuSelection('local', 'Workloads', 'Pods');
     cy.filterInSearchBox('gitjob');
     cy.verifyTableRow(0, 'Running', 'gitjob');
-    cy.contains('gitjob').click();
+    // Click the Name link; 2.16's query box also contains the filter text.
+    cy.get('td.col-link-detail a').contains('gitjob').click();
     cy.clickButton('Config');
     // 2.16 reorganized Security Context from a button that reveals fields inside
     // section#container-0 into a directly navigable side-tab.
@@ -840,7 +841,8 @@ describe('Test GitJob tolerations', { tags: '@p0' }, () => {
         .contains(/View YAML|Edit YAML/)
         .click({ force: true });
     } else {
-      cy.contains(repoName).click();
+      // Click the Name link; 2.16's query box also contains the filter text.
+      cy.get('td.col-link-detail a').contains(repoName).click();
       cy.clickButton('Show Configuration');
       cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
     }

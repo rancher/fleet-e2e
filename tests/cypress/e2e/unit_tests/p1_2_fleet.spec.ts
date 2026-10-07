@@ -833,7 +833,8 @@ describe('Test namespace deletion when bundle is deleted', { tags: ['@p1_2', '@p
     // Check namespace is deleted
     cy.accesMenuSelection('local', 'Projects/Namespaces');
     cy.filterInSearchBox(namespaceName);
-    cy.contains(namespaceName, { timeout: 40000 }).should('not.exist');
+    // Scoped to rows: 2.16's query box shows the filter text itself.
+    cy.contains('tr.main-row', namespaceName, { timeout: 40000 }).should('not.exist');
   });
 
   it(
@@ -872,7 +873,8 @@ describe('Test namespace deletion when bundle is deleted', { tags: ['@p1_2', '@p
       // Check namespace is deleted
       cy.accesMenuSelection('local', 'Projects/Namespaces');
       cy.filterInSearchBox(namespaceName);
-      cy.contains(namespaceName, { timeout: 50000 }).should('not.exist');
+      // Scoped to rows: 2.16's query box shows the filter text itself.
+      cy.contains('tr.main-row', namespaceName, { timeout: 50000 }).should('not.exist');
     },
   );
 });
@@ -1447,7 +1449,8 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
         cy.continuousDeliveryBundlesMenu();
         cy.filterInSearchBox(repoName);
 
-        cy.contains(repoName).click();
+        // Click the Name link; 2.16's query box also contains the filter text.
+        cy.get('td.col-link-detail a').contains(repoName).click();
 
         cy.clickButton('Show Configuration');
         cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
@@ -1648,7 +1651,7 @@ describe('Validate bundleDeployment labels and status.resources', { tags: '@p1_2
       cy.accesMenuSelection('Cluster Management', 'Clusters');
 
       cy.wrap(dsAllClusterList).each((displayName: any) => {
-        cy.get('input.search-box, .search-box input').should('be.visible').clear();
+        cy.get('input.search-box, .search-box input, [data-testid="table-views-query"]').should('be.visible').clear();
         cy.wait(500);
         cy.filterInSearchBox(displayName);
         cy.wait(500);
@@ -2052,7 +2055,8 @@ describe(
         cy.accesMenuSelection('local', 'Storage', 'Secrets');
         cy.nameSpaceMenuToggle('All Namespaces');
         cy.filterInSearchBox(release1Secret);
-        cy.contains(release1Secret, { timeout: 120000 }).should('not.exist');
+        // Scoped to rows: 2.16's query box shows the filter text itself.
+        cy.contains('tr.main-row', release1Secret, { timeout: 120000 }).should('not.exist');
       },
     );
   },

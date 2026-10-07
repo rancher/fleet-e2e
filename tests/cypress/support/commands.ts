@@ -390,7 +390,8 @@ Cypress.Commands.add('clickCreateGitRepo', (local) => {
     }
     cy.clickButton('Create App Bundle');
     cy.contains('App Bundle: Create').should('be.visible');
-    cy.contains('Git Repos').should('be.visible').click();
+    // Scoped to <main>: the side nav can also show a "Git Repos" entry.
+    cy.get('main').contains('Git Repos').should('be.visible').click();
     cy.wait(1000);
     cy.contains('App Bundle: Create').should('be.visible');
   } else {
@@ -642,20 +643,27 @@ Cypress.Commands.add('fleetNamespaceToggle', (toggleOption = 'local') => {
   cy.contains(toggleOption).should('be.visible').click({ force: true });
 });
 
-// Delete the currently selected rows, skipping the confirm dialog (ctrlKey).
-// 2.16 table-views layout: "N Selected" dropdown -> "Delete Selected". Older: masthead Delete button.
-Cypress.Commands.add('deleteSelectedRows', () => {
+// Run a bulk action (e.g. 'unpause') on the currently selected rows.
+// 2.16 table-views layout: "N Selected" dropdown -> action. Older: masthead action button.
+// Delete is 'promptRemove' on the masthead but 'delete' in the dropdown.
+Cypress.Commands.add('selectedRowsAction', (action, clickOptions = {}) => {
   const selectionMenu = '[data-testid$="-selection-actions"]';
-  cy.get(`${selectionMenu}, [data-testid$="-promptRemove"]`, { timeout: 10000 })
+  cy.get(`${selectionMenu}, [data-testid$="-${action}"]`, { timeout: 10000 })
     .first()
     .then(($el) => {
       if ($el.is(selectionMenu)) {
+        const menuAction = action === 'promptRemove' ? 'delete' : action;
         cy.wrap($el).click();
-        cy.get('[data-testid$="-selection-action-delete"]').should('be.visible').click({ ctrlKey: true });
+        cy.get(`[data-testid$="-selection-action-${menuAction}"]`).should('be.visible').click(clickOptions);
       } else {
-        cy.wrap($el).click({ ctrlKey: true, force: true });
+        cy.wrap($el).click(clickOptions);
       }
     });
+});
+
+// Delete the currently selected rows, skipping the confirm dialog (ctrlKey).
+Cypress.Commands.add('deleteSelectedRows', () => {
+  cy.selectedRowsAction('promptRemove', { ctrlKey: true, force: true });
 });
 
 // Command to delete all rows if check box and delete button are present
@@ -835,11 +843,15 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName = 'local
   cy.clickNavMenu(['Workloads', 'Deployments']);
   // Modify deployment of given application
   if (supported_versions_212_and_above.some((r) => r.test(rancherVersion))) {
-    cy.get('[data-testid="button-group-child-0"]').then(($button) => {
-      if ($button.hasClass('bg-disabled')) {
-        $button.trigger('click');
-      }
-    });
+    // Switch the list to flat (not grouped by namespace). 2.16's table-views layout has no such
+    // toggle and is already flat, so wait for either the toggle or its query box.
+    cy.get('[data-testid="button-group-child-0"], [data-testid="table-views-query"]')
+      .first()
+      .then(($el) => {
+        if ($el.is('[data-testid="button-group-child-0"]') && $el.hasClass('bg-disabled')) {
+          $el.trigger('click');
+        }
+      });
     cy.filterInSearchBox(appName);
     // Click the Name link; a bare contains() can match other cells (e.g. same-named namespace) and only select the row
     cy.get('td.col-link-detail a').contains(appName).click();
@@ -968,11 +980,30 @@ Cypress.Commands.add('deleteRole', (roleName, roleTypeTemplate) => {
   // Filter role by it's name and roleTypeTemplate.
   // 2.16 dropped section[id=...] tabs in favor of a data-testid on the tab-panel.
   cy.get(`section[id="${roleTypeTemplate}"], section[data-testid="tab-panel-${roleTypeTemplate}"]`).within(() => {
-    cy.get("input[placeholder='Filter']").should('exist').clear({ force: true }).type(roleName);
-    // Check all filtered rows
-    cy.get(' th:nth-child(1)').should('be.visible').click();
-    // Delete role
-    cy.deleteSelectedRows();
+    cy.get(`input[placeholder='Filter'], [data-testid="table-views-query"]`).then(($filter) => {
+      // 2.16's table-views query box reads a leading "-" (as in "-role") as NOT; quoting keeps it literal.
+      const filterText = $filter.is('input') ? roleName : `"${roleName}"`;
+      cy.wrap($filter).clear({ force: true }).type(filterText).blur();
+    });
+
+    // Wait for the filter to apply, otherwise "select all" would also pick built-in roles.
+    cy.root().should(($section) => {
+      const rows = $section.find('tbody tr.main-row').toArray();
+      expect(
+        rows.every((row) => row.innerText.includes(roleName)),
+        'rows filtered',
+      ).to.equal(true);
+    });
+
+    cy.root().then(($section) => {
+      // No matching roles: nothing to select, and 2.16 shows no delete menu without a selection.
+      if (hasSelectedRowToDelete($section)) {
+        // Check all filtered rows
+        cy.get(' th:nth-child(1)').should('be.visible').click();
+        // Delete role
+        cy.deleteSelectedRows();
+      }
+    });
   });
 
   // Verify that there are no rows
@@ -1635,7 +1666,7 @@ Cypress.Commands.add('getClusterIds', (clusterList) => {
   cy.accesMenuSelection('Cluster Management', 'Clusters');
 
   cy.wrap(clusterList).each((displayName: any) => {
-    cy.get('input.search-box, .search-box input').should('be.visible').clear();
+    cy.get('input.search-box, .search-box input, [data-testid="table-views-query"]').should('be.visible').clear();
     cy.wait(500);
     cy.filterInSearchBox(displayName);
     cy.wait(500);

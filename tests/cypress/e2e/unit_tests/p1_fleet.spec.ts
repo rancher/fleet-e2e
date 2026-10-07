@@ -714,7 +714,7 @@ describe('Tests with disablePolling', { tags: '@p1' }, () => {
       // Unpausing using checkbox to avoid problems with dropdown in 3dots menu when state is paused.
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
       cy.wait(2000);
-      cy.clickButton('Unpause');
+      cy.selectedRowsAction('unpause');
       cy.wait(5000); // Wait also time for unpause to take effect.
       cy.verifyTableRow(0, 'Active');
       cy.checkGitRepoStatus('test-disable-polling', '1 / 1', '1 / 1');
