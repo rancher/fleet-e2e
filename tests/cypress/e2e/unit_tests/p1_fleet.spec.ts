@@ -13,6 +13,7 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
+import { hasSelectedRowToDelete } from 'cypress/support/commands';
 
 export const appName = 'nginx-keep';
 export const branch = 'master';
@@ -551,13 +552,8 @@ describe(
                 cy.deleteConfigMap(resourceName, dsCluster);
               } else {
                 cy.get('body').then(($body) => {
-                  const button = $body.find('[data-testid="sortable-table-promptRemove"]');
-                  if (button.length > 0) {
-                    cy.wrap(button)
-                      .should('be.visible')
-                      .then(() => {
-                        cy.deleteAll(false);
-                      });
+                  if (hasSelectedRowToDelete($body)) {
+                    cy.deleteAll(false);
                   } else {
                     cy.log('No Service(s) available for Delete.');
                   }

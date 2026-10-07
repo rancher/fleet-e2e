@@ -34,6 +34,10 @@ export const isRancherVersionAtLeast = (minor: number): boolean => {
 
   return !!match && parseInt(match[1], 10) >= minor;
 };
+// Rows present in a SortableTable, any version. Stands in for "a Delete button is shown",
+// which 2.16's table-views layout (feature ui-configurable-tables) no longer renders up-front.
+export const hasSelectedRowToDelete = ($body: JQuery<HTMLElement>): boolean =>
+  $body.find('td.row-check .selection-checkbox').length > 0;
 // Generic commands
 
 // Fleet commands
@@ -636,6 +640,22 @@ Cypress.Commands.add('fleetNamespaceToggle', (toggleOption = 'local') => {
   cy.contains(toggleOption).should('be.visible').click({ force: true });
 });
 
+// Delete the currently selected rows, skipping the confirm dialog (ctrlKey).
+// 2.16 table-views layout: "N Selected" dropdown -> "Delete Selected". Older: masthead Delete button.
+Cypress.Commands.add('deleteSelectedRows', () => {
+  const selectionMenu = '[data-testid$="-selection-actions"]';
+  cy.get(`${selectionMenu}, [data-testid$="-promptRemove"]`, { timeout: 10000 })
+    .first()
+    .then(($el) => {
+      if ($el.is(selectionMenu)) {
+        cy.wrap($el).click();
+        cy.get('[data-testid$="-selection-action-delete"]').should('be.visible').click({ ctrlKey: true });
+      } else {
+        cy.wrap($el).click({ ctrlKey: true, force: true });
+      }
+    });
+});
+
 // Command to delete all rows if check box and delete button are present
 // Note: This function may be substituted by 'cypressLib.deleteAllResources'
 // when hardcoded texts present can be parameterized
@@ -656,13 +676,13 @@ Cypress.Commands.add('deleteAll', (fleetCheck = true, textCheckTimeout = 30000, 
       cy.wait(2500);
     }
 
-    if ($body.text().includes('Delete')) {
+    if (hasSelectedRowToDelete($body) || $body.text().includes('Delete')) {
       cy.wait(250); // Add small wait to give time for things to settle
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
 
       // cy.get('span.checkbox-custom[aria-checked=true]', { timeout: 50000 }).should('have.value', 'true');
       cy.get('span.checkbox-custom[aria-checked=true]', { timeout: 50000 }).first().should('exist');
-      cy.get('.btn').contains('Delete').click({ ctrlKey: true, force: true });
+      cy.deleteSelectedRows();
       // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
       cy.wait(2500);
     }
@@ -918,11 +938,11 @@ Cypress.Commands.add('deleteAllUsers', (userName) => {
   // Delete all users (Admin one will stay as cannot be deleted)
   cy.accesMenuSelection('Users & Authentication');
   cy.contains('.title', 'Users').should('be.visible');
-  cy.get('div.fixed-header-actions > div > button').then(($button) => {
-    if ($button.text().match('Delete')) {
+  cy.get('body').then(($body) => {
+    if (hasSelectedRowToDelete($body)) {
       cy.wait(250); // Add small wait to give time for things to settle
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
-      cy.get('.btn').contains('Delete').click({ ctrlKey: true });
+      cy.deleteSelectedRows();
     } else {
       cy.log('No users to delete');
     }
@@ -941,7 +961,7 @@ Cypress.Commands.add('deleteRole', (roleName, roleTypeTemplate) => {
     // Check all filtered rows
     cy.get(' th:nth-child(1)').should('be.visible').click();
     // Delete role
-    cy.get('.btn').contains('Delete').click({ ctrlKey: true });
+    cy.deleteSelectedRows();
   });
 
   // Verify that there are no rows
@@ -1420,13 +1440,8 @@ Cypress.Commands.add('deleteConfigMap', (configMapName, clusterName = 'local') =
   cy.filterInSearchBox(configMapName);
   cy.wait(1000);
   cy.get('body').then(($body) => {
-    const button = $body.find('[data-testid="sortable-table-promptRemove"]');
-    if (button.length > 0) {
-      cy.wrap(button)
-        .should('be.visible')
-        .then(() => {
-          cy.deleteAll(false);
-        });
+    if (hasSelectedRowToDelete($body)) {
+      cy.deleteAll(false);
     } else {
       cy.log('No ConfigMap available for Delete.');
     }

@@ -13,7 +13,7 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
-import { isRancherVersionAtLeast } from 'cypress/support/commands';
+import { hasSelectedRowToDelete, isRancherVersionAtLeast } from 'cypress/support/commands';
 
 export const appName = 'nginx-keep';
 export const clusterName = 'imported-0';
@@ -344,13 +344,8 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
 
       // Delete Secrets key if present
       cy.get('body').then(($body) => {
-        const button = $body.find('[data-testid="sortable-table-promptRemove"]');
-        if (button.length > 0) {
-          cy.wrap(button)
-            .should('be.visible')
-            .then(() => {
-              cy.deleteAll(false);
-            });
+        if (hasSelectedRowToDelete($body)) {
+          cy.deleteAll(false);
         } else {
           cy.log('No Secrets are available for Delete.');
         }

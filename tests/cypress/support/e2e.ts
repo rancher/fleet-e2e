@@ -72,6 +72,7 @@ declare global {
       ): Chainable<Element>;
       deleteBundleAndPvc(hasPv?: boolean, bundleDeleteTimeout?: number, pvcDeleteTimeout?: number): Chainable<Element>;
       deleteAll(fleetCheck?: boolean, textCheckTimeout?: number, confirmEmpty?: boolean): Chainable<Element>;
+      deleteSelectedRows(): Chainable<Element>;
       deleteAllFleetRepos(namespaceName?: string): Chainable<Element>;
       deleteAllGitRepoRestrictions(): Chainable<Element>;
       checkBundlesDeleted(repoName: string, timeout?: number): Chainable<Element>;
