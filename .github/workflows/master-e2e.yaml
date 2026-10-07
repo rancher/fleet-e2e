@@ -270,22 +270,62 @@ jobs:
           TAG="${{ inputs.rancher_image_tag }}"
           IFS=/ read -r _ VER HEAD_VER <<< "${{ inputs.rancher_version }}"
           VER="${HEAD_VER:-${VER}}"
-          if [[ -z "${TAG}" && "${RANCHER_IMAGE_REGISTRY}" == "docker.io" ]]; then
+          if [[ "${RANCHER_IMAGE_REGISTRY}" == "docker.io" ]]; then
             # 2.XX builds from release/v2.XX, the version still in development builds from main
             BRANCH="release/v${VER}"
             gh api "repos/rancher/rancher/branches/${BRANCH}" --silent 2> /dev/null || BRANCH=main
             # docker.io has no floating v2.XX-head tag, and Docker Hub's last_updated moves when an
-            # old tag is re-pushed, so take the newest successful image build on the branch instead
-            for SHA in $(gh run list --repo rancher/rancher --workflow push.yml --branch "${BRANCH}" \
-                           --status success --limit 10 --json headSha --jq '.[].headSha'); do
+            # old tag is re-pushed, so take the newest commit on the branch that has an image instead.
+            # Commits, not push.yml runs: the Actions runs API can return results weeks out of date
+            NEWEST=""
+            for SHA in $(gh api "repos/rancher/rancher/commits?sha=${BRANCH}&per_page=30" --jq '.[].sha' 2> /dev/null); do
               if curl -fsS --retry 3 -o /dev/null "https://hub.docker.com/v2/repositories/rancher/rancher/tags/v${VER}-${SHA}-head" 2> /dev/null; then
-                TAG="v${VER}-${SHA}-head"
+                NEWEST="v${VER}-${SHA}-head"
                 break
               fi
             done
+            # A stale auto-resolved build fails the step; a pinned rancher_image_tag is often deliberate, so only warn
             if [[ -z "${TAG}" ]]; then
-              echo "No docker.io image for the last builds of rancher/rancher ${BRANCH}, v${VER} is likely stgregistry-only" >&2
-              false
+              if [[ -z "${NEWEST}" ]]; then
+                echo "No docker.io image for the last builds of rancher/rancher ${BRANCH}, v${VER} is likely stgregistry-only" >&2
+                false
+              fi
+              TAG="${NEWEST}"
+              LEVEL=error
+            else
+              LEVEL=warning
+              echo "Pinned Rancher image tag: ${TAG}, newest available: ${NEWEST:-none}"
+              if [[ -n "${NEWEST}" && "${TAG}" != "${NEWEST}" ]]; then
+                echo "::warning::Pinned Rancher build ${TAG} is not the newest available build (${NEWEST})"
+              fi
+            fi
+            fleet_check() {
+              echo "::${LEVEL}::$1"
+              if [[ "${LEVEL}" == "error" ]]; then
+                exit 1
+              fi
+            }
+            # Compare the build's bundled Fleet with the newest Fleet release on the same stream
+            SHA=$(sed -n 's/^v[0-9.]*-\([0-9a-f]\{40\}\)-head$/\1/p' <<< "${TAG}")
+            FLEET_VER=""
+            if [[ -n "${SHA}" ]]; then
+              FLEET_VER=$(gh api "repos/rancher/rancher/contents/build.yaml?ref=${SHA}" \
+                            -H 'Accept: application/vnd.github.raw' 2> /dev/null | sed -n 's/^fleetVersion: .*+up//p')
+            fi
+            if [[ -z "${FLEET_VER}" ]]; then
+              fleet_check "Could not read the bundled Fleet version for ${TAG}"
+            else
+              FLEET_STREAM=$(cut -d. -f1,2 <<< "${FLEET_VER}")
+              FLEET_LATEST=$(gh api "repos/rancher/fleet/releases?per_page=50" \
+                               --jq "[.[] | select(.draft | not) | .tag_name | select(startswith(\"v${FLEET_STREAM}.\"))][0] // empty" \
+                               2> /dev/null || true)
+              FLEET_LATEST="${FLEET_LATEST#v}"
+              echo "Fleet in build: ${FLEET_VER}, newest ${FLEET_STREAM} release: ${FLEET_LATEST:-none}"
+              if [[ -z "${FLEET_LATEST}" ]]; then
+                echo "::warning::No rancher/fleet release on the ${FLEET_STREAM} stream found, skipping the Fleet version check"
+              elif [[ "${FLEET_VER}" != "${FLEET_LATEST}" ]]; then
+                fleet_check "Rancher build ${TAG} bundles Fleet ${FLEET_VER}, but ${FLEET_LATEST} is the newest ${FLEET_STREAM} release"
+              fi
             fi
           fi
           # Empty TAG lets the install test default to the floating v2.XX-head tag
