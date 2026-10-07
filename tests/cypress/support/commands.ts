@@ -585,11 +585,13 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
 
 // Command to filter text in searchbox
 // 2.16 moved "search-box" onto a LabeledInput wrapper div; the real input is inside it.
+// With 2.16's table-views layout (feature ui-configurable-tables) it is a contenteditable query box instead.
 Cypress.Commands.add('filterInSearchBox', (filterText) => {
-  cy.get('input.search-box, .search-box input').should('be.visible');
+  cy.get('input.search-box, .search-box input, [data-testid="table-views-query"]').should('be.visible');
   // Added 1/2 seconds of wait, as element is hidden after it gets visible.
   cy.wait(500);
-  cy.get('input.search-box, .search-box input').clear().type(filterText);
+  // blur() closes the query box's suggestion list, which otherwise covers the first rows.
+  cy.get('input.search-box, .search-box input, [data-testid="table-views-query"]').clear().type(filterText).blur();
   cy.wait(250); // Adding 1/4 second to ensure next action is executed more reliably
 });
 
@@ -660,6 +662,15 @@ Cypress.Commands.add('deleteSelectedRows', () => {
 // Note: This function may be substituted by 'cypressLib.deleteAllResources'
 // when hardcoded texts present can be parameterized
 Cypress.Commands.add('deleteAll', (fleetCheck = true, textCheckTimeout = 30000, confirmEmpty = true) => {
+  // 2.16's table-views layout has no Delete button to see before rows render, so wait for
+  // the table itself to load (rows, or an empty-state message) before deciding what to delete.
+  cy.get('body', { timeout: textCheckTimeout }).should(($body) => {
+    const isEmpty = new RegExp([...NoAppBundleOrGitRepoPresentMessages, ...noRowsMessages].join('|')).test(
+      $body.text(),
+    );
+    expect(hasSelectedRowToDelete($body) || isEmpty, 'table loaded').to.equal(true);
+  });
+
   cy.get('body').then(($body) => {
     if ($body.text().match('/Actions/')) {
       cy.wait(250); // Add small wait to give time for things to settle
