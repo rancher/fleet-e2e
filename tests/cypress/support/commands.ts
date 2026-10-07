@@ -666,6 +666,22 @@ Cypress.Commands.add('deleteSelectedRows', () => {
   cy.selectedRowsAction('promptRemove', { ctrlKey: true, force: true });
 });
 
+// Check the user is offered Delete for the listed rows (RBAC "delete" verb), without deleting anything.
+// 2.16's table-views layout only shows it in the "N Selected" menu, so select the rows and look there.
+Cypress.Commands.add('checkDeleteActionAvailable', () => {
+  cy.get('body').then(($body) => {
+    if ($body.find('[data-testid="table-views-query"]').length > 0) {
+      cy.get('[width="30"] > .checkbox-outer-container.check').click();
+      cy.get('[data-testid$="-selection-actions"]').click();
+      cy.get('[data-testid$="-selection-action-delete"]').should('be.visible').and('not.have.attr', 'disabled');
+      // Close the menu again; nothing is deleted.
+      cy.get('[data-testid$="-selection-actions"]').click();
+    } else {
+      cy.contains('Delete').should('be.visible');
+    }
+  });
+});
+
 // Command to delete all rows if check box and delete button are present
 // Note: This function may be substituted by 'cypressLib.deleteAllResources'
 // when hardcoded texts present can be parameterized
