@@ -505,7 +505,11 @@ describe(
             if (resourceType === 'ConfigMaps') {
               cy.clickButton('Add');
               cy.get('[data-testid="input-kv-item-key-1"]').eq(0).focus().type('test_key');
-              cy.get('div.code-mirror.as-text-area').eq(1).click().type('test_data_value');
+              // 2.16's CodeMirror 6 value fields are `rc-code-mirror--input` editors (typeable via `.cm-content`)
+              cy.get('div.code-mirror.as-text-area, div.rc-code-mirror--input .cm-content')
+                .eq(1)
+                .click()
+                .type('test_data_value');
               cy.clickButton('Add');
             } else if (resourceType === 'Services') {
               cy.get('input[type=number]').clear().type('6341');

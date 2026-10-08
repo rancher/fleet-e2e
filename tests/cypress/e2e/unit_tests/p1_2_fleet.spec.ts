@@ -1776,8 +1776,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
         openGitRepoYaml(repoName);
 
         // Get YAML text and validate each cluster
-        cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
-          const yamlText = $el.text();
+        cy.getYamlEditorValue().then((yamlText) => {
           const clusterIDs = Object.keys(clusterMap);
 
           // Loop through each cluster ID and validate complete structure
@@ -1836,9 +1835,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       // Verify initial state
       openGitRepoYaml(repoName);
 
-      cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
-        const yamlText = $el.text();
-
+      cy.getYamlEditorValue().then((yamlText) => {
         // Verify initial counts - only check important fields
         expect(yamlText).to.include('ready: 1', 'Should initially have ready: 1');
         expect(yamlText).to.include('desiredReady: 1', 'Should have desiredReady: 1');
@@ -1863,9 +1860,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       openGitRepoYaml(repoName, true);
 
       // Verify modified state
-      cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
-        const yamlText = $el.text();
-
+      cy.getYamlEditorValue().then((yamlText) => {
         // Verify the key change: modified: 1 (other fields decrease as expected)
         expect(yamlText).to.include('modified: 1', 'Should have modified: 1 after modification');
         expect(yamlText).to.include('desiredReady: 1', 'Should still have desiredReady: 1');
@@ -1895,9 +1890,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       // Verify initial state
       openGitRepoYaml(repoName);
 
-      cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
-        const yamlText = $el.text();
-
+      cy.getYamlEditorValue().then((yamlText) => {
         expect(yamlText).to.include('ready: 1', 'Should initially have ready: 1');
         expect(yamlText).to.include('desiredReady: 1', 'Should have desiredReady: 1');
 
@@ -1921,9 +1914,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       openGitRepoYaml(repoName, true);
 
       // Verify missing state
-      cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
-        const yamlText = $el.text();
-
+      cy.getYamlEditorValue().then((yamlText) => {
         // Verify the key change: missing: 1
         expect(yamlText).to.include('missing: 1', 'Should have missing: 1 after deletion');
         expect(yamlText).to.include('desiredReady: 1', 'Should still have desiredReady: 1');
@@ -1955,9 +1946,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       // Open YAML view while pod is still starting (before readiness probe succeeds)
       openGitRepoYaml(repoName);
 
-      cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
-        const yamlText = $el.text();
-
+      cy.getYamlEditorValue().then((yamlText) => {
         // Verify notReady state appears during startup
         expect(yamlText).to.include('notReady: 1', 'Should have notReady: 1 during pod startup');
         expect(yamlText).to.include('desiredReady: 1', 'Should have desiredReady: 1');
@@ -1981,9 +1970,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       // Verify it eventually transitions to ready state in perClusterResourceCounts
       openGitRepoYaml(repoName);
 
-      cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
-        const yamlText = $el.text();
-
+      cy.getYamlEditorValue().then((yamlText) => {
         // After startup completes, notReady should be 0 and ready should be 1
         expect(yamlText).to.include('ready: 1', 'Should have ready: 1 after startup completes');
         expect(yamlText).to.include('desiredReady: 1', 'Should still have desiredReady: 1');
