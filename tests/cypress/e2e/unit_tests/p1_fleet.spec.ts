@@ -505,7 +505,11 @@ describe(
             if (resourceType === 'ConfigMaps') {
               cy.clickButton('Add');
               cy.get('[data-testid="input-kv-item-key-1"]').eq(0).focus().type('test_key');
-              cy.get('div.code-mirror.as-text-area').eq(1).click().type('test_data_value');
+              // 2.16's CodeMirror 6 value fields are `rc-code-mirror--input` editors (typeable via `.cm-content`)
+              cy.get('div.code-mirror.as-text-area, div.rc-code-mirror--input .cm-content')
+                .eq(1)
+                .click()
+                .type('test_data_value');
               cy.clickButton('Add');
             } else if (resourceType === 'Services') {
               cy.get('input[type=number]').clear().type('6341');
@@ -551,7 +555,9 @@ describe(
                 cy.deleteConfigMap(resourceName, dsCluster);
               } else {
                 cy.get('body').then(($body) => {
-                  const button = $body.find('[data-testid="sortable-table-promptRemove"]');
+                  const button = $body.find(
+                    '[data-testid="sortable-table-promptRemove"], td.row-check .selection-checkbox',
+                  );
                   if (button.length > 0) {
                     cy.wrap(button)
                       .should('be.visible')
@@ -718,7 +724,7 @@ describe('Tests with disablePolling', { tags: '@p1' }, () => {
       // Unpausing using checkbox to avoid problems with dropdown in 3dots menu when state is paused.
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
       cy.wait(2000);
-      cy.clickButton('Unpause');
+      cy.unpauseSelectedRows();
       cy.wait(5000); // Wait also time for unpause to take effect.
       cy.verifyTableRow(0, 'Active');
       cy.checkGitRepoStatus('test-disable-polling', '1 / 1', '1 / 1');

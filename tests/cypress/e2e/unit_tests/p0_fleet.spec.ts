@@ -344,7 +344,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
 
       // Delete Secrets key if present
       cy.get('body').then(($body) => {
-        const button = $body.find('[data-testid="sortable-table-promptRemove"]');
+        const button = $body.find('[data-testid="sortable-table-promptRemove"], td.row-check .selection-checkbox');
         if (button.length > 0) {
           cy.wrap(button)
             .should('be.visible')
@@ -441,7 +441,7 @@ describe('Test gitrepos with cabundle', { tags: '@p0' }, () => {
     // Delete repo and confirm secret is deleted
     cy.deleteAllFleetRepos();
     cy.accesMenuSelection('local', 'Storage', 'Secrets');
-    cy.contains('-cabundle').should('not.exist');
+    cy.contains('tr.main-row', '-cabundle').should('not.exist');
   });
 
   it(
@@ -767,7 +767,8 @@ describe('Test GitJob security context', { tags: ['@p0', '@pr-tests'] }, () => {
     cy.accesMenuSelection('local', 'Workloads', 'Pods');
     cy.filterInSearchBox('gitjob');
     cy.verifyTableRow(0, 'Running', 'gitjob');
-    cy.contains('gitjob').click();
+    // Click the Name link; 2.16's query box also contains the filter text.
+    cy.get('td.col-link-detail a').contains('gitjob').click();
     cy.clickButton('Config');
     // 2.16 reorganized Security Context from a button that reveals fields inside
     // section#container-0 into a directly navigable side-tab.
@@ -845,15 +846,15 @@ describe('Test GitJob tolerations', { tags: '@p0' }, () => {
         .contains(/View YAML|Edit YAML/)
         .click({ force: true });
     } else {
-      cy.contains(repoName).click();
+      // Click the Name link; 2.16's query box also contains the filter text.
+      cy.get('td.col-link-detail a').contains(repoName).click();
       cy.clickButton('Show Configuration');
       cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
     }
 
-    // Existence: read the full document (getValue) since CodeMirror only renders
+    // Existence: read the full document (getYamlEditorValue) since CodeMirror only renders
     // the visible lines. Assert on booleans so the whole YAML is not logged.
-    cy.get('.CodeMirror', { log: false }).then(($el) => {
-      const yamlText = ($el[0] as any).CodeMirror.getValue();
+    cy.getYamlEditorValue().then((yamlText) => {
       expect(
         yamlText.includes(cloudProviderToleration),
         `GitJob's Job should tolerate the "${cloudProviderToleration}" taint`,
@@ -861,7 +862,8 @@ describe('Test GitJob tolerations', { tags: '@p0' }, () => {
       expect(yamlText.includes('NoSchedule'), 'Toleration should use the "NoSchedule" effect').to.eq(true);
     });
     // Visibility: scroll the toleration line into view and confirm it renders.
-    cy.get('.CodeMirror').contains(cloudProviderToleration).scrollIntoView().should('be.visible');
+    cy.scrollYamlEditorTo(cloudProviderToleration);
+    cy.get('.CodeMirror, .cm-editor').contains(cloudProviderToleration).scrollIntoView().should('be.visible');
   });
 });
 

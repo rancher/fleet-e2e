@@ -263,7 +263,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       cy.continuousDeliveryWorkspacesMenu();
       cy.verifyTableRow(0, 'Active', 'fleet-default');
       cy.verifyTableRow(1, 'Active', 'fleet-local');
-      cy.contains('Delete').should('be.visible');
+      cy.checkDeleteActionAvailable();
 
       // Ensuring the user is NOT able to "edit" workspaces.
       cy.continuousDeliveryWorkspacesMenu();
@@ -1046,7 +1046,7 @@ describe(
         cy.continuousDeliveryWorkspacesMenu();
         cy.verifyTableRow(0, 'Active', 'fleet-default');
         cy.verifyTableRow(1, 'Active', 'fleet-local');
-        cy.contains('Delete').should('be.visible');
+        cy.checkDeleteActionAvailable();
 
         // Ensuring the user is NOT able to "edit" workspaces.
         cy.continuousDeliveryWorkspacesMenu();

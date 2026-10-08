@@ -88,12 +88,7 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
 
   // Insert file content into the CodeMirror editor
   // We could use File Upload but this has benefit we may modify the content on the fly (not implemented yet)
-  cy.readFile(yamlFilePath).then((content) => {
-    cy.get('.CodeMirror').then((codeMirrorElement) => {
-      const cm = (codeMirrorElement[0] as any).CodeMirror;
-      cm.setValue(content);
-    });
-  });
+  cy.addYamlFile(yamlFilePath);
   cy.clickButton('Import');
   cy.get('div.card-container')
     .contains(/Applied \d+ Resources?/)
@@ -386,7 +381,8 @@ Cypress.Commands.add('clickCreateGitRepo', (local) => {
     }
     cy.clickButton('Create App Bundle');
     cy.contains('App Bundle: Create').should('be.visible');
-    cy.contains('Git Repos').should('be.visible').click();
+    // Scoped to <main>: the side nav can also show a "Git Repos" entry.
+    cy.get('main').contains('Git Repos').should('be.visible').click();
     cy.wait(1000);
     cy.contains('App Bundle: Create').should('be.visible');
   } else {
@@ -581,11 +577,13 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
 
 // Command to filter text in searchbox
 // 2.16 moved "search-box" onto a LabeledInput wrapper div; the real input is inside it.
+// With 2.16's table-views layout (feature ui-configurable-tables) it is a contenteditable query box instead.
 Cypress.Commands.add('filterInSearchBox', (filterText) => {
-  cy.get('input.search-box, .search-box input').should('be.visible');
+  cy.get('input.search-box, .search-box input, [data-testid="table-views-query"]').should('be.visible');
   // Added 1/2 seconds of wait, as element is hidden after it gets visible.
   cy.wait(500);
-  cy.get('input.search-box, .search-box input').clear().type(filterText);
+  // blur() closes the query box's suggestion list, which otherwise covers the first rows.
+  cy.get('input.search-box, .search-box input, [data-testid="table-views-query"]').clear().type(filterText).blur();
   cy.wait(250); // Adding 1/4 second to ensure next action is executed more reliably
 });
 
@@ -636,10 +634,61 @@ Cypress.Commands.add('fleetNamespaceToggle', (toggleOption = 'local') => {
   cy.contains(toggleOption).should('be.visible').click({ force: true });
 });
 
+// Delete the selected rows, skipping the confirm dialog (ctrlKey).
+// 2.16's table-views layout moved the Delete button into the "N Selected" menu.
+Cypress.Commands.add('deleteSelectedRows', () => {
+  cy.get('body').then(($body) => {
+    if ($body.find('[data-testid="table-views-query"]').length > 0) {
+      cy.get('[data-testid$="-selection-actions"]').click();
+      cy.get('[data-testid$="-selection-action-delete"]').click({ ctrlKey: true, force: true });
+    } else {
+      cy.get('.btn').contains('Delete').click({ ctrlKey: true, force: true });
+    }
+  });
+});
+
+// Unpause the selected rows. 2.16's table-views layout moved the Unpause button into the "N Selected" menu.
+Cypress.Commands.add('unpauseSelectedRows', () => {
+  cy.get('body').then(($body) => {
+    if ($body.find('[data-testid="table-views-query"]').length > 0) {
+      cy.get('[data-testid$="-selection-actions"]').click();
+      cy.get('[data-testid$="-selection-action-unpause"]').click();
+    } else {
+      cy.clickButton('Unpause');
+    }
+  });
+});
+
+// Check the user is offered Delete for the listed rows (RBAC "delete" verb), without deleting anything.
+// 2.16's table-views layout only shows it in the "N Selected" menu, so select the rows and look there.
+Cypress.Commands.add('checkDeleteActionAvailable', () => {
+  cy.get('body').then(($body) => {
+    if ($body.find('[data-testid="table-views-query"]').length > 0) {
+      cy.get('[width="30"] > .checkbox-outer-container.check').click();
+      cy.get('[data-testid$="-selection-actions"]').click();
+      cy.get('[data-testid$="-selection-action-delete"]').should('be.visible').and('not.have.attr', 'disabled');
+      // Close the menu again; nothing is deleted.
+      cy.get('[data-testid$="-selection-actions"]').click();
+    } else {
+      cy.contains('Delete').should('be.visible');
+    }
+  });
+});
+
 // Command to delete all rows if check box and delete button are present
 // Note: This function may be substituted by 'cypressLib.deleteAllResources'
 // when hardcoded texts present can be parameterized
 Cypress.Commands.add('deleteAll', (fleetCheck = true, textCheckTimeout = 30000, confirmEmpty = true) => {
+  // 2.16's table-views layout has no Delete button to see before rows render, so wait for
+  // the table itself to load (rows, or an empty-state message) before deciding what to delete.
+  cy.get('body', { timeout: textCheckTimeout }).should(($body) => {
+    expect(
+      $body.find('td.row-check .selection-checkbox').length > 0 ||
+        new RegExp([...NoAppBundleOrGitRepoPresentMessages, ...noRowsMessages].join('|')).test($body.text()),
+      'table loaded',
+    ).to.eq(true);
+  });
+
   cy.get('body').then(($body) => {
     if ($body.text().match('/Actions/')) {
       cy.wait(250); // Add small wait to give time for things to settle
@@ -656,13 +705,13 @@ Cypress.Commands.add('deleteAll', (fleetCheck = true, textCheckTimeout = 30000, 
       cy.wait(2500);
     }
 
-    if ($body.text().includes('Delete')) {
+    if ($body.text().includes('Delete') || $body.find('td.row-check .selection-checkbox').length > 0) {
       cy.wait(250); // Add small wait to give time for things to settle
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
 
       // cy.get('span.checkbox-custom[aria-checked=true]', { timeout: 50000 }).should('have.value', 'true');
       cy.get('span.checkbox-custom[aria-checked=true]', { timeout: 50000 }).first().should('exist');
-      cy.get('.btn').contains('Delete').click({ ctrlKey: true, force: true });
+      cy.deleteSelectedRows();
       // Forcefully adding some wait to TRY to ensure that bundle deletion happens after gitrepo deletion.
       cy.wait(2500);
     }
@@ -804,7 +853,10 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName = 'local
   cy.clickNavMenu(['Workloads', 'Deployments']);
   // Modify deployment of given application
   if (supported_versions_212_and_above.some((r) => r.test(rancherVersion))) {
-    cy.get('[data-testid="button-group-child-0"]').then(($button) => {
+    // 2.16's table-views layout has no group-by toggle (its list is already flat), so wait for either one
+    cy.get('[data-testid="button-group-child-0"], [data-testid="table-views-query"]').should('exist');
+    cy.get('body').then(($body) => {
+      const $button = $body.find('[data-testid="button-group-child-0"]');
       if ($button.hasClass('bg-disabled')) {
         $button.trigger('click');
       }
@@ -918,11 +970,11 @@ Cypress.Commands.add('deleteAllUsers', (userName) => {
   // Delete all users (Admin one will stay as cannot be deleted)
   cy.accesMenuSelection('Users & Authentication');
   cy.contains('.title', 'Users').should('be.visible');
-  cy.get('div.fixed-header-actions > div > button').then(($button) => {
-    if ($button.text().match('Delete')) {
+  cy.get('body').then(($body) => {
+    if ($body.find('td.row-check .selection-checkbox').length > 0) {
       cy.wait(250); // Add small wait to give time for things to settle
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
-      cy.get('.btn').contains('Delete').click({ ctrlKey: true });
+      cy.deleteSelectedRows();
     } else {
       cy.log('No users to delete');
     }
@@ -936,12 +988,35 @@ Cypress.Commands.add('deleteRole', (roleName, roleTypeTemplate) => {
 
   // Filter role by it's name and roleTypeTemplate.
   // 2.16 dropped section[id=...] tabs in favor of a data-testid on the tab-panel.
-  cy.get(`section[id="${roleTypeTemplate}"], section[data-testid="tab-panel-${roleTypeTemplate}"]`).within(() => {
-    cy.get("input[placeholder='Filter']").should('exist').clear({ force: true }).type(roleName);
-    // Check all filtered rows
-    cy.get(' th:nth-child(1)').should('be.visible').click();
-    // Delete role
-    cy.get('.btn').contains('Delete').click({ ctrlKey: true });
+  // Wait for the filter box first, so the layout check below sees the rendered table.
+  cy.get(`input[placeholder='Filter'], [data-testid="table-views-query"]`).should('exist');
+  cy.get('body').then(($body) => {
+    // 2.16's table-views query box reads a leading "-" (as in "-role") as NOT; quoting keeps it literal
+    const filterText = $body.find('[data-testid="table-views-query"]').length > 0 ? `"${roleName}"` : roleName;
+    cy.get(`section[id="${roleTypeTemplate}"], section[data-testid="tab-panel-${roleTypeTemplate}"]`).within(() => {
+      cy.get(`input[placeholder='Filter'], [data-testid="table-views-query"]`)
+        .clear({ force: true })
+        .type(filterText)
+        .blur();
+      // Let the filter apply before "select all", otherwise it would also pick built-in roles
+      cy.get('tbody').should(($tbody) => {
+        $tbody.find('tr.main-row').each((i, row) => {
+          expect(row.innerText).to.include(roleName);
+        });
+      });
+    });
+    // Outside within(): deleteSelectedRows checks the whole page for the 2.16 layout
+    cy.get(`section[id="${roleTypeTemplate}"], section[data-testid="tab-panel-${roleTypeTemplate}"]`).then(
+      ($section) => {
+        // No matching roles: nothing to select, and 2.16 shows no delete menu without a selection
+        if ($section.find('td.row-check .selection-checkbox').length > 0) {
+          // Check all filtered rows
+          cy.wrap($section).find(' th:nth-child(1)').should('be.visible').click();
+          // Delete role
+          cy.deleteSelectedRows();
+        }
+      },
+    );
   });
 
   // Verify that there are no rows
@@ -1130,10 +1205,49 @@ Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
 // Insert file content into the CodeMirror editor
 Cypress.Commands.add('addYamlFile', (yamlFilePath) => {
   cy.readFile(yamlFilePath).then((content) => {
-    cy.get('.CodeMirror').then((codeMirrorElement) => {
-      const cm = codeMirrorElement[0].CodeMirror;
-      cm.setValue(content);
-    });
+    cy.setYamlEditorValue(content);
+  });
+});
+
+// Replace the YAML editor's content.
+// CodeMirror 6 (`.cm-editor`, 2.16 from 2026-10-08) has no instance on the element like CodeMirror 5 had,
+// so its view is found the way EditorView.findFromDOM does it.
+Cypress.Commands.add('setYamlEditorValue', (value) => {
+  cy.get('.CodeMirror, .cm-editor').then((codeMirrorElement) => {
+    const el: any = codeMirrorElement[0];
+    if (el.CodeMirror) {
+      el.CodeMirror.setValue(value);
+    } else {
+      const content = el.querySelector('.cm-content');
+      const view = content.cmTile?.root?.view || content.cmView?.rootView?.view;
+      view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: value } });
+    }
+  });
+});
+
+// Get the YAML editor's full text (the editor itself only renders the visible lines).
+Cypress.Commands.add('getYamlEditorValue', () => {
+  cy.get('.CodeMirror, .cm-editor', { log: false }).then((codeMirrorElement) => {
+    const el: any = codeMirrorElement[0];
+    if (el.CodeMirror) {
+      return el.CodeMirror.getValue();
+    }
+    const content = el.querySelector('.cm-content');
+    return (content.cmTile?.root?.view || content.cmView?.rootView?.view).state.doc.toString();
+  });
+});
+
+// Scroll the YAML editor to the given text: CodeMirror 6 only renders lines near its viewport.
+Cypress.Commands.add('scrollYamlEditorTo', (text) => {
+  cy.get('.CodeMirror, .cm-editor').then((codeMirrorElement) => {
+    const el: any = codeMirrorElement[0];
+    if (!el.CodeMirror) {
+      const content = el.querySelector('.cm-content');
+      const view = content.cmTile?.root?.view || content.cmView?.rootView?.view;
+      const pos = view.state.doc.toString().indexOf(text);
+      // EditorView.scrollIntoView is static; the view's constructor is the dashboard's EditorView class
+      view.dispatch({ effects: view.constructor.scrollIntoView(Math.max(pos, 0), { y: 'center' }) });
+    }
   });
 });
 
@@ -1420,7 +1534,7 @@ Cypress.Commands.add('deleteConfigMap', (configMapName, clusterName = 'local') =
   cy.filterInSearchBox(configMapName);
   cy.wait(1000);
   cy.get('body').then(($body) => {
-    const button = $body.find('[data-testid="sortable-table-promptRemove"]');
+    const button = $body.find('[data-testid="sortable-table-promptRemove"], td.row-check .selection-checkbox');
     if (button.length > 0) {
       cy.wrap(button)
         .should('be.visible')
@@ -1609,7 +1723,7 @@ Cypress.Commands.add('getClusterIds', (clusterList) => {
   cy.accesMenuSelection('Cluster Management', 'Clusters');
 
   cy.wrap(clusterList).each((displayName: any) => {
-    cy.get('input.search-box, .search-box input').should('be.visible').clear();
+    cy.get('input.search-box, .search-box input, [data-testid="table-views-query"]').should('be.visible').clear();
     cy.wait(500);
     cy.filterInSearchBox(displayName);
     cy.wait(500);
@@ -1634,7 +1748,7 @@ Cypress.Commands.add('getClusterIds', (clusterList) => {
 });
 
 // Assert whether a resource's YAML carries the given annotation.
-// Reads the full document via getValue, since CodeMirror only renders visible lines.
+// Reads the full document via getYamlEditorValue, since CodeMirror only renders visible lines.
 Cypress.Commands.add('checkAnnotationInYaml', (resourceName, annotation, shouldBePresent = true) => {
   // Big lists (CustomResourceDefinitions especially) take longer than the default
   // command timeout to render, and the search box only appears with the table.
@@ -1642,8 +1756,8 @@ Cypress.Commands.add('checkAnnotationInYaml', (resourceName, annotation, shouldB
   cy.filterInSearchBox(resourceName);
   cy.verifyTableRow(0, resourceName);
   cy.open3dotsMenu(resourceName, 'Edit YAML');
-  cy.get('.CodeMirror', { log: false }).should(($el) => {
-    const yamlText = ($el[0] as any).CodeMirror.getValue();
+  cy.get('.CodeMirror, .cm-editor').should('contain', 'apiVersion');
+  cy.getYamlEditorValue().then((yamlText) => {
     expect(
       yamlText.includes(annotation),
       `${resourceName} should ${shouldBePresent ? '' : 'not '}have "${annotation}"`,
