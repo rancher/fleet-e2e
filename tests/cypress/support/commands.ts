@@ -38,6 +38,25 @@ export const isRancherVersionAtLeast = (minor: number): boolean => {
 // which 2.16's table-views layout (feature ui-configurable-tables) no longer renders up-front.
 export const hasSelectedRowToDelete = ($body: JQuery<HTMLElement>): boolean =>
   $body.find('td.row-check .selection-checkbox').length > 0;
+// The YAML editor's full text. CodeMirror 5 (`.CodeMirror`, 2.16 builds before 2026-10-08 and older) exposes its
+// instance on the element; CodeMirror 6 (`.cm-editor`) doesn't, so find its view the way EditorView.findFromDOM does.
+const codeMirror6View = (el: any) => {
+  const content = el.querySelector('.cm-content') || el;
+  return content.cmTile?.root?.view || content.cmView?.rootView?.view;
+};
+export const yamlEditorValue = ($el: JQuery<HTMLElement>): string => {
+  const el: any = $el[0];
+  return el.CodeMirror ? el.CodeMirror.getValue() : codeMirror6View(el).state.doc.toString();
+};
+export const setYamlEditorValue = ($el: JQuery<HTMLElement>, value: string): void => {
+  const el: any = $el[0];
+  if (el.CodeMirror) {
+    el.CodeMirror.setValue(value);
+  } else {
+    const view = codeMirror6View(el);
+    view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: value } });
+  }
+};
 // Generic commands
 
 // Fleet commands
@@ -93,9 +112,8 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
   // Insert file content into the CodeMirror editor
   // We could use File Upload but this has benefit we may modify the content on the fly (not implemented yet)
   cy.readFile(yamlFilePath).then((content) => {
-    cy.get('.CodeMirror').then((codeMirrorElement) => {
-      const cm = (codeMirrorElement[0] as any).CodeMirror;
-      cm.setValue(content);
+    cy.get('.CodeMirror, .cm-editor').then((codeMirrorElement) => {
+      setYamlEditorValue(codeMirrorElement, content);
     });
   });
   cy.clickButton('Import');
@@ -1208,9 +1226,8 @@ Cypress.Commands.add('removeClusterLabels', (clusterName, key, value) => {
 // Insert file content into the CodeMirror editor
 Cypress.Commands.add('addYamlFile', (yamlFilePath) => {
   cy.readFile(yamlFilePath).then((content) => {
-    cy.get('.CodeMirror').then((codeMirrorElement) => {
-      const cm = codeMirrorElement[0].CodeMirror;
-      cm.setValue(content);
+    cy.get('.CodeMirror, .cm-editor').then((codeMirrorElement) => {
+      setYamlEditorValue(codeMirrorElement, content);
     });
   });
 });
@@ -1707,7 +1724,7 @@ Cypress.Commands.add('getClusterIds', (clusterList) => {
 });
 
 // Assert whether a resource's YAML carries the given annotation.
-// Reads the full document via getValue, since CodeMirror only renders visible lines.
+// Reads the full document via yamlEditorValue, since CodeMirror only renders visible lines.
 Cypress.Commands.add('checkAnnotationInYaml', (resourceName, annotation, shouldBePresent = true) => {
   // Big lists (CustomResourceDefinitions especially) take longer than the default
   // command timeout to render, and the search box only appears with the table.
@@ -1715,8 +1732,8 @@ Cypress.Commands.add('checkAnnotationInYaml', (resourceName, annotation, shouldB
   cy.filterInSearchBox(resourceName);
   cy.verifyTableRow(0, resourceName);
   cy.open3dotsMenu(resourceName, 'Edit YAML');
-  cy.get('.CodeMirror', { log: false }).should(($el) => {
-    const yamlText = ($el[0] as any).CodeMirror.getValue();
+  cy.get('.CodeMirror, .cm-editor', { log: false }).should(($el) => {
+    const yamlText = yamlEditorValue($el);
     expect(
       yamlText.includes(annotation),
       `${resourceName} should ${shouldBePresent ? '' : 'not '}have "${annotation}"`,

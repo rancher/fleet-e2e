@@ -12,6 +12,7 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
+import { setYamlEditorValue, yamlEditorValue } from 'cypress/support/commands';
 
 export const appName = 'nginx-keep';
 export const clusterName = 'imported-0';
@@ -78,13 +79,12 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypres
         cy.clickButton('Edit as YAML');
 
         // Append the agent scheduling customization
-        cy.get('.CodeMirror')
+        cy.get('.CodeMirror, .cm-editor')
           .should(($el) => {
-            expect(($el[0] as any).CodeMirror.getValue()).to.include('kind: Cluster');
+            expect(yamlEditorValue($el)).to.include('kind: Cluster');
           })
           .then((codeMirrorElement) => {
-            const cm = (codeMirrorElement[0] as any).CodeMirror;
-            const currentYaml = cm.getValue();
+            const currentYaml = yamlEditorValue(codeMirrorElement);
             // prettier-ignore
             const snippet = `\
   agentSchedulingCustomization:
@@ -94,7 +94,7 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version')) && !/\/2\.12/.test(Cypres
       minAvailable: "3"`;
             const newYaml = currentYaml.replace(/(\nspec:)/, `$1\n${snippet}`);
             expect(newYaml, 'snippet was actually inserted').to.not.eq(currentYaml);
-            cm.setValue(newYaml);
+            setYamlEditorValue(codeMirrorElement, newYaml);
           });
         cy.clickButton('Save');
 

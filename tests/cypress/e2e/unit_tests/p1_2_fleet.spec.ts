@@ -13,6 +13,7 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
+import { yamlEditorValue } from 'cypress/support/commands';
 
 export const appName = 'nginx-keep';
 export const branch = 'master';
@@ -1776,7 +1777,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
         openGitRepoYaml(repoName);
 
         // Get YAML text and validate each cluster
-        cy.get('.CodeMirror', { log: false }).then(($el) => {
+        cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
           const yamlText = $el.text();
           const clusterIDs = Object.keys(clusterMap);
 
@@ -1836,7 +1837,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       // Verify initial state
       openGitRepoYaml(repoName);
 
-      cy.get('.CodeMirror', { log: false }).then(($el) => {
+      cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
         const yamlText = $el.text();
 
         // Verify initial counts - only check important fields
@@ -1863,7 +1864,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       openGitRepoYaml(repoName, true);
 
       // Verify modified state
-      cy.get('.CodeMirror', { log: false }).then(($el) => {
+      cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
         const yamlText = $el.text();
 
         // Verify the key change: modified: 1 (other fields decrease as expected)
@@ -1895,7 +1896,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       // Verify initial state
       openGitRepoYaml(repoName);
 
-      cy.get('.CodeMirror', { log: false }).then(($el) => {
+      cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
         const yamlText = $el.text();
 
         expect(yamlText).to.include('ready: 1', 'Should initially have ready: 1');
@@ -1921,7 +1922,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       openGitRepoYaml(repoName, true);
 
       // Verify missing state
-      cy.get('.CodeMirror', { log: false }).then(($el) => {
+      cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
         const yamlText = $el.text();
 
         // Verify the key change: missing: 1
@@ -1955,7 +1956,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       // Open YAML view while pod is still starting (before readiness probe succeeds)
       openGitRepoYaml(repoName);
 
-      cy.get('.CodeMirror', { log: false }).then(($el) => {
+      cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
         const yamlText = $el.text();
 
         // Verify notReady state appears during startup
@@ -1981,7 +1982,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       // Verify it eventually transitions to ready state in perClusterResourceCounts
       openGitRepoYaml(repoName);
 
-      cy.get('.CodeMirror', { log: false }).then(($el) => {
+      cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
         const yamlText = $el.text();
 
         // After startup completes, notReady should be 0 and ready should be 1
@@ -2085,9 +2086,9 @@ describe(
         cy.verifyTableRow(0, 'Active', namespaceName);
 
         cy.open3dotsMenu(namespaceName, 'Edit YAML');
-        // Read the full YAML via getValue (CodeMirror only renders visible lines).
-        cy.get('.CodeMirror', { log: false }).then(($el) => {
-          const yamlText = ($el[0] as any).CodeMirror.getValue();
+        // Read the full YAML via yamlEditorValue (CodeMirror only renders visible lines).
+        cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
+          const yamlText = yamlEditorValue($el);
           expect(yamlText.includes('env: test'), 'Namespace should carry the configured namespaceLabels').to.eq(true);
           expect(yamlText.includes('pod: deny'), 'Namespace should carry the configured namespaceAnnotations').to.eq(
             true,
