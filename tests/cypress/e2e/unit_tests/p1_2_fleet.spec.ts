@@ -13,7 +13,6 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
-import { yamlEditorValue } from 'cypress/support/commands';
 
 export const appName = 'nginx-keep';
 export const branch = 'master';
@@ -2086,9 +2085,8 @@ describe(
         cy.verifyTableRow(0, 'Active', namespaceName);
 
         cy.open3dotsMenu(namespaceName, 'Edit YAML');
-        // Read the full YAML via yamlEditorValue (CodeMirror only renders visible lines).
-        cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
-          const yamlText = yamlEditorValue($el);
+        // Read the full YAML via getYamlEditorValue (CodeMirror only renders visible lines).
+        cy.getYamlEditorValue().then((yamlText) => {
           expect(yamlText.includes('env: test'), 'Namespace should carry the configured namespaceLabels').to.eq(true);
           expect(yamlText.includes('pod: deny'), 'Namespace should carry the configured namespaceAnnotations').to.eq(
             true,

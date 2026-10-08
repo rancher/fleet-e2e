@@ -13,7 +13,7 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
-import { hasSelectedRowToDelete, isRancherVersionAtLeast, yamlEditorValue } from 'cypress/support/commands';
+import { isRancherVersionAtLeast } from 'cypress/support/commands';
 
 export const appName = 'nginx-keep';
 export const clusterName = 'imported-0';
@@ -344,8 +344,13 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
 
       // Delete Secrets key if present
       cy.get('body').then(($body) => {
-        if (hasSelectedRowToDelete($body)) {
-          cy.deleteAll(false);
+        const button = $body.find('[data-testid="sortable-table-promptRemove"], td.row-check .selection-checkbox');
+        if (button.length > 0) {
+          cy.wrap(button)
+            .should('be.visible')
+            .then(() => {
+              cy.deleteAll(false);
+            });
         } else {
           cy.log('No Secrets are available for Delete.');
         }
@@ -847,10 +852,9 @@ describe('Test GitJob tolerations', { tags: '@p0' }, () => {
       cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
     }
 
-    // Existence: read the full document (yamlEditorValue) since CodeMirror only renders
+    // Existence: read the full document (getYamlEditorValue) since CodeMirror only renders
     // the visible lines. Assert on booleans so the whole YAML is not logged.
-    cy.get('.CodeMirror, .cm-editor', { log: false }).then(($el) => {
-      const yamlText = yamlEditorValue($el);
+    cy.getYamlEditorValue().then((yamlText) => {
       expect(
         yamlText.includes(cloudProviderToleration),
         `GitJob's Job should tolerate the "${cloudProviderToleration}" taint`,
@@ -858,6 +862,7 @@ describe('Test GitJob tolerations', { tags: '@p0' }, () => {
       expect(yamlText.includes('NoSchedule'), 'Toleration should use the "NoSchedule" effect').to.eq(true);
     });
     // Visibility: scroll the toleration line into view and confirm it renders.
+    cy.scrollYamlEditorTo(cloudProviderToleration);
     cy.get('.CodeMirror, .cm-editor').contains(cloudProviderToleration).scrollIntoView().should('be.visible');
   });
 });
