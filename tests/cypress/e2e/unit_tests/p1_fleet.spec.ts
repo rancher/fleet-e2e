@@ -458,7 +458,9 @@ describe('Test OCI support', { tags: ['@p1', '@pr-tests'] }, () => {
 // Fleet resolves OCI tag versions like "<x.y.z>_up<a.b.c>" only from v0.16.3 / v0.17.0 on,
 // which ship with Rancher 2.15 and later. Keep this out of the older runners.
 if (isRancherVersionAtLeast(15)) {
-  describe('Test OCI HelmOps using the +up/_up tag convention', { tags: '@p1' }, () => {
+  // The describe carries a literal tag: grepFilterSpecs pre-filters spec files by
+  // statically parsing tags, and the per-case tags below are built at run time.
+  describe('Test OCI HelmOps using the +up/_up tag convention', { tags: ['@p1', '@fleet-oci-up-tags'] }, () => {
     const acceptedTests = [
       {
         qase_id: 489,
