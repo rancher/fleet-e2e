@@ -455,11 +455,7 @@ describe('Test OCI support', { tags: ['@p1', '@pr-tests'] }, () => {
   );
 });
 
-// Fleet resolves OCI tag versions like "<x.y.z>_up<a.b.c>" only from v0.16.3 / v0.17.0 on,
-// which ship with Rancher 2.15 and later. Keep this out of the older runners.
 if (isRancherVersionAtLeast(15)) {
-  // The describe carries a literal tag: grepFilterSpecs pre-filters spec files by
-  // statically parsing tags, and the per-case tags below are built at run time.
   describe('Test OCI HelmOps using the +up/_up tag convention', { tags: ['@p1', '@fleet-oci-up-tags'] }, () => {
     const acceptedTests = [
       {
@@ -533,7 +529,7 @@ if (isRancherVersionAtLeast(15)) {
         // but not the actual installation of the chart.
         cy.verifyTableRow(0, expect);
 
-        // The resolution error is rendered below the row rather than in it.
+        // The error message is not inside the table row, so it needs its own check.
         if (message) {
           cy.contains(message).should('be.visible');
         }
