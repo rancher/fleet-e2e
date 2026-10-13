@@ -8,7 +8,7 @@ spec:
   helm:
     releaseName: helmop-oci-up-tags-constraint
     repo: oci://registry.suse.com/rancher/charts/rancher-ai-agent
-    version: ">= 109.0.0"
+    version: '>= 109.0.0'
     takeOwnership: true
   targets:
     - clusterName: local
