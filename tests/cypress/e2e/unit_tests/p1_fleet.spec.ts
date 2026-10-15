@@ -13,6 +13,7 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
+import { isRancherVersionAtLeast } from 'cypress/support/commands';
 
 export const appName = 'nginx-keep';
 export const branch = 'master';
@@ -453,6 +454,89 @@ describe('Test OCI support', { tags: ['@p1', '@pr-tests'] }, () => {
     },
   );
 });
+
+if (isRancherVersionAtLeast(15)) {
+  describe('Test OCI HelmOps using the +up/_up tag convention', { tags: ['@p1', '@fleet-oci-up-tags'] }, () => {
+    const acceptedTests = [
+      {
+        qase_id: 489,
+        file: 'helmop-oci-up-tags-exact.yaml',
+        title: 'FLEET-489: Test OCI HelmOp with the full version "109.0.1+up1.0.2" gets that exact chart version',
+        expect: '109.0.1+up1.0.2',
+      },
+      {
+        qase_id: 490,
+        file: 'helmop-oci-up-tags.yaml',
+        title:
+          'FLEET-490: Test OCI HelmOp with the version written as the registry tag "109.0.1_up1.0.2" gets chart version 109.0.1+up1.0.2',
+        expect: '109.0.1+up1.0.2',
+      },
+      {
+        qase_id: 491,
+        file: 'helmop-oci-up-tags-bare.yaml',
+        title: 'FLEET-491: Test OCI HelmOp with a bare version "109.0.1" gets chart version 109.0.1+up1.0.2',
+        expect: '109.0.1+up1.0.2',
+      },
+      {
+        qase_id: 492,
+        file: 'helmop-oci-up-tags-constraint.yaml',
+        title: 'FLEET-492: Test OCI HelmOp with ">= 109.0.0" gets the newest published chart version',
+        expect: '110.0.0+up1.1.0',
+      },
+      {
+        qase_id: 493,
+        file: 'helmop-oci-up-tags-empty.yaml',
+        title: 'FLEET-493: Test OCI HelmOp with no version gets the newest published chart version',
+        expect: '110.0.0+up1.1.0',
+      },
+      {
+        qase_id: 494,
+        file: 'helmop-oci-up-tags-no-match.yaml',
+        title: 'FLEET-494: Test OCI HelmOp with a version no tag matches shows the "no tag matching version" error',
+        expect: 'Error',
+        message: 'no tag matching version "109.0.2" found',
+      },
+      {
+        qase_id: 495,
+        file: 'helmop-oci-up-tags-lower-bound.yaml',
+        title: 'FLEET-495: Test OCI HelmOp with "<= 109.0.1" gets chart version 109.0.1+up1.0.2, not the newest',
+        expect: '109.0.1+up1.0.2',
+      },
+      {
+        qase_id: 496,
+        file: 'helmop-oci-up-tags-older-major.yaml',
+        title: 'FLEET-496: Test OCI HelmOp with "108.0.x" gets chart version 108.0.2+up1.0.2',
+        expect: '108.0.2+up1.0.2',
+      },
+    ];
+
+    acceptedTests.forEach(({ qase_id, file, title, expect, message }) => {
+      it(qase(qase_id, title), { tags: `@fleet-${qase_id}` }, () => {
+        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'Helm Ops');
+        cy.fleetNamespaceToggle('fleet-local');
+        cy.clickButton('Create Helm Op');
+        cy.clickButton('Edit as YAML');
+        cy.addYamlFile(`assets/helmop-oci-up-tags/${file}`);
+        cy.clickButton('Create');
+
+        // Added in case HelmOps is not automatically removed between tests.
+        // this will filter the table to show only the HelmOp relevant to the current test.
+        cy.filterInSearchBox(file.replace('.yaml', ''));
+
+        // This test covers version resolution only, as in the issue. The resolved
+        // bundle version is spelled back as semver, with '+', and shown in the row.
+        // The test only verifies the resolved version displayed in the table row,
+        // but not the actual installation of the chart.
+        cy.verifyTableRow(0, expect);
+
+        // The error message is not inside the table row, so it needs its own check.
+        if (message) {
+          cy.contains(message).should('be.visible');
+        }
+      });
+    });
+  });
+}
 
 describe(
   'Test Self-Healing on IMMUTABLE resources when correctDrift is enabled',
