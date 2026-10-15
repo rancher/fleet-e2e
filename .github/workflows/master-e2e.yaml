@@ -259,7 +259,7 @@ jobs:
         with:
           ref: ${{ inputs.branch }}
       - name: Install Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: current
       - name: Resolve Rancher head image tag
@@ -406,7 +406,7 @@ jobs:
           cd tests && make start-cypress-tests
       - name: Upload Cypress screenshots (Basics)
         if: ${{ failure() || cancelled() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: cypress-screenshots-basics-${{ inputs.cluster_name }}
           path: tests/cypress/screenshots
@@ -415,7 +415,7 @@ jobs:
       - name: Upload Cypress videos (Basics)
         # Test run video is always captured, so this action uses "always()" condition
         if: ${{ failure() || cancelled() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: cypress-videos-basics-${{ inputs.cluster_name }}
           path: tests/cypress/videos
@@ -511,7 +511,7 @@ jobs:
           cd tests && make start-cypress-tests
       - name: Upload Cypress screenshots (after-upgrade)
         if: ${{ failure() && inputs.rancher_upgrade != '' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: cypress-screenshots-after-upgrade-${{ inputs.cluster_name }}
           path: tests/cypress/screenshots
@@ -519,14 +519,14 @@ jobs:
           if-no-files-found: ignore
       - name: Upload Cypress videos (after-upgrade)
         if: ${{ inputs.rancher_upgrade != '' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: cypress-videos-after-upgrade-${{ inputs.cluster_name }}
           path: tests/cypress/videos
           retention-days: 7
       - name: Upload webhook logs
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: webhook-logs-${{ inputs.cluster_name }}
           path: tests/assets/webhook-tests/*.log
