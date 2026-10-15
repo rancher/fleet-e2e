@@ -89,7 +89,7 @@ jobs:
       destroy_runner: ${{ github.event_name == 'schedule' && true || inputs.destroy_runner }}
       upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.37.1+k3s1' }}
       rancher_version: ${{ inputs.rancher_version || 'head/2.16' }}
-      rancher_image_registry: ${{ inputs.rancher_image_registry || 'docker.io' }}
+      rancher_image_registry: ${{ inputs.rancher_image_registry || 'stgregistry.suse.com' }}
       rancher_image_tag: ${{ inputs.rancher_image_tag || '' }}
       qase_report: ${{ inputs.qase_report == true || (github.event_name == 'schedule' && true) }}
       qase_run_id: ${{ inputs.qase_run_id || '' }}
