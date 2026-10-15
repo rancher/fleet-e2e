@@ -13,6 +13,7 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
+import { isRancherVersionAtLeast } from 'cypress/support/commands';
 
 export const appName = 'nginx-keep';
 export const branch = 'master';
@@ -454,6 +455,89 @@ describe('Test OCI support', { tags: ['@p1', '@pr-tests'] }, () => {
   );
 });
 
+if (isRancherVersionAtLeast(15)) {
+  describe('Test OCI HelmOps using the +up/_up tag convention', { tags: ['@p1', '@fleet-oci-up-tags'] }, () => {
+    const acceptedTests = [
+      {
+        qase_id: 489,
+        file: 'helmop-oci-up-tags-exact.yaml',
+        title: 'FLEET-489: Test OCI HelmOp with the full version "109.0.1+up1.0.2" gets that exact chart version',
+        expect: '109.0.1+up1.0.2',
+      },
+      {
+        qase_id: 490,
+        file: 'helmop-oci-up-tags.yaml',
+        title:
+          'FLEET-490: Test OCI HelmOp with the version written as the registry tag "109.0.1_up1.0.2" gets chart version 109.0.1+up1.0.2',
+        expect: '109.0.1+up1.0.2',
+      },
+      {
+        qase_id: 491,
+        file: 'helmop-oci-up-tags-bare.yaml',
+        title: 'FLEET-491: Test OCI HelmOp with a bare version "109.0.1" gets chart version 109.0.1+up1.0.2',
+        expect: '109.0.1+up1.0.2',
+      },
+      {
+        qase_id: 492,
+        file: 'helmop-oci-up-tags-constraint.yaml',
+        title: 'FLEET-492: Test OCI HelmOp with ">= 109.0.0" gets the newest published chart version',
+        expect: '110.0.0+up1.1.0',
+      },
+      {
+        qase_id: 493,
+        file: 'helmop-oci-up-tags-empty.yaml',
+        title: 'FLEET-493: Test OCI HelmOp with no version gets the newest published chart version',
+        expect: '110.0.0+up1.1.0',
+      },
+      {
+        qase_id: 494,
+        file: 'helmop-oci-up-tags-no-match.yaml',
+        title: 'FLEET-494: Test OCI HelmOp with a version no tag matches shows the "no tag matching version" error',
+        expect: 'Error',
+        message: 'no tag matching version "109.0.2" found',
+      },
+      {
+        qase_id: 495,
+        file: 'helmop-oci-up-tags-lower-bound.yaml',
+        title: 'FLEET-495: Test OCI HelmOp with "<= 109.0.1" gets chart version 109.0.1+up1.0.2, not the newest',
+        expect: '109.0.1+up1.0.2',
+      },
+      {
+        qase_id: 496,
+        file: 'helmop-oci-up-tags-older-major.yaml',
+        title: 'FLEET-496: Test OCI HelmOp with "108.0.x" gets chart version 108.0.2+up1.0.2',
+        expect: '108.0.2+up1.0.2',
+      },
+    ];
+
+    acceptedTests.forEach(({ qase_id, file, title, expect, message }) => {
+      it(qase(qase_id, title), { tags: `@fleet-${qase_id}` }, () => {
+        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'Helm Ops');
+        cy.fleetNamespaceToggle('fleet-local');
+        cy.clickButton('Create Helm Op');
+        cy.clickButton('Edit as YAML');
+        cy.addYamlFile(`assets/helmop-oci-up-tags/${file}`);
+        cy.clickButton('Create');
+
+        // Added in case HelmOps is not automatically removed between tests.
+        // this will filter the table to show only the HelmOp relevant to the current test.
+        cy.filterInSearchBox(file.replace('.yaml', ''));
+
+        // This test covers version resolution only, as in the issue. The resolved
+        // bundle version is spelled back as semver, with '+', and shown in the row.
+        // The test only verifies the resolved version displayed in the table row,
+        // but not the actual installation of the chart.
+        cy.verifyTableRow(0, expect);
+
+        // The error message is not inside the table row, so it needs its own check.
+        if (message) {
+          cy.contains(message).should('be.visible');
+        }
+      });
+    });
+  });
+}
+
 describe(
   'Test Self-Healing on IMMUTABLE resources when correctDrift is enabled',
   { tags: ['@p1', '@pr-tests'] },
@@ -505,7 +589,11 @@ describe(
             if (resourceType === 'ConfigMaps') {
               cy.clickButton('Add');
               cy.get('[data-testid="input-kv-item-key-1"]').eq(0).focus().type('test_key');
-              cy.get('div.code-mirror.as-text-area').eq(1).click().type('test_data_value');
+              // 2.16's CodeMirror 6 value fields are `rc-code-mirror--input` editors (typeable via `.cm-content`)
+              cy.get('div.code-mirror.as-text-area, div.rc-code-mirror--input .cm-content')
+                .eq(1)
+                .click()
+                .type('test_data_value');
               cy.clickButton('Add');
             } else if (resourceType === 'Services') {
               cy.get('input[type=number]').clear().type('6341');
@@ -551,7 +639,9 @@ describe(
                 cy.deleteConfigMap(resourceName, dsCluster);
               } else {
                 cy.get('body').then(($body) => {
-                  const button = $body.find('[data-testid="sortable-table-promptRemove"]');
+                  const button = $body.find(
+                    '[data-testid="sortable-table-promptRemove"], td.row-check .selection-checkbox',
+                  );
                   if (button.length > 0) {
                     cy.wrap(button)
                       .should('be.visible')
@@ -718,7 +808,7 @@ describe('Tests with disablePolling', { tags: '@p1' }, () => {
       // Unpausing using checkbox to avoid problems with dropdown in 3dots menu when state is paused.
       cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
       cy.wait(2000);
-      cy.clickButton('Unpause');
+      cy.unpauseSelectedRows();
       cy.wait(5000); // Wait also time for unpause to take effect.
       cy.verifyTableRow(0, 'Active');
       cy.checkGitRepoStatus('test-disable-polling', '1 / 1', '1 / 1');
@@ -858,6 +948,57 @@ describe('Test GitRepo creation from a Git revision instead of a branch', { tags
 
       // Application should be deployed from the pinned revision.
       cy.checkApplicationStatus(appName);
+    },
+  );
+});
+
+describe('Test correctDrift does not create excessive secrets after multiple modifications', { tags: '@p1' }, () => {
+  it(
+    qase(
+      138,
+      'Fleet-138: Test correctDrift ensures secret count does not exceed 2 after multiple application modifications',
+    ),
+    { tags: '@fleet-138' },
+    () => {
+      const repoName = 'local-cluster-correct-138';
+      const appNamespace = 'nginx-keep';
+
+      // Create GitRepo with correctDrift enabled via YAML
+      cy.continuousDeliveryMenuSelection();
+      cy.fleetNamespaceToggle('fleet-local');
+      cy.clickCreateGitRepo();
+      cy.clickButton('Edit as YAML');
+      cy.addYamlFile('assets/git-repo-correct-drift-138.yaml');
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      cy.checkApplicationStatus(appName);
+
+      // Modify deployment three times without verification (correctDrift heals too fast)
+      for (let i = 1; i <= 3; i++) {
+        cy.log(`Modification ${i} of 3`);
+        cy.modifyDeployedApplication(appName, 'local', false);
+
+        // Wait for correctDrift to restore
+        cy.wait(15000);
+      }
+
+      // Verify application is restored to 1/1 after all modifications
+      cy.nameSpaceMenuToggle(appNamespace);
+      cy.filterInSearchBox(appName);
+      cy.verifyTableRow(0, 'Active', '1/1');
+
+      // Check secrets in the application namespace
+      cy.accesMenuSelection('local', 'Storage', 'Secrets');
+      cy.nameSpaceMenuToggle(appNamespace);
+      cy.filterInSearchBox('sh.helm.release');
+      cy.wait(1000);
+
+      // Count the secrets and verify count is not more than 2
+      cy.get('table > tbody > tr.main-row').then(($rows) => {
+        const secretCount = $rows.length;
+        cy.log(`Found ${secretCount} secrets in namespace ${appNamespace}`);
+        expect(secretCount).to.be.lte(2, `Secret count should not exceed 2, but found ${secretCount}`);
+      });
     },
   );
 });

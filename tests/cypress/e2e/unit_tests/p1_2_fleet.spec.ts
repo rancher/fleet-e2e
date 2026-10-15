@@ -833,7 +833,8 @@ describe('Test namespace deletion when bundle is deleted', { tags: ['@p1_2', '@p
     // Check namespace is deleted
     cy.accesMenuSelection('local', 'Projects/Namespaces');
     cy.filterInSearchBox(namespaceName);
-    cy.contains(namespaceName, { timeout: 40000 }).should('not.exist');
+    // Scoped to rows: 2.16's query box shows the filter text itself.
+    cy.contains('tr.main-row', namespaceName, { timeout: 40000 }).should('not.exist');
   });
 
   it(
@@ -872,7 +873,8 @@ describe('Test namespace deletion when bundle is deleted', { tags: ['@p1_2', '@p
       // Check namespace is deleted
       cy.accesMenuSelection('local', 'Projects/Namespaces');
       cy.filterInSearchBox(namespaceName);
-      cy.contains(namespaceName, { timeout: 50000 }).should('not.exist');
+      // Scoped to rows: 2.16's query box shows the filter text itself.
+      cy.contains('tr.main-row', namespaceName, { timeout: 50000 }).should('not.exist');
     },
   );
 });
@@ -1447,7 +1449,8 @@ if (!/\/2\.11/.test(Cypress.expose('rancher_version'))) {
         cy.continuousDeliveryBundlesMenu();
         cy.filterInSearchBox(repoName);
 
-        cy.contains(repoName).click();
+        // Click the Name link; 2.16's query box also contains the filter text.
+        cy.get('td.col-link-detail a').contains(repoName).click();
 
         cy.clickButton('Show Configuration');
         cy.get('[data-testid="btn-yaml-tab"]').contains('YAML').click();
@@ -1648,7 +1651,7 @@ describe('Validate bundleDeployment labels and status.resources', { tags: '@p1_2
       cy.accesMenuSelection('Cluster Management', 'Clusters');
 
       cy.wrap(dsAllClusterList).each((displayName: any) => {
-        cy.get('input.search-box, .search-box input').should('be.visible').clear();
+        cy.get('input.search-box, .search-box input, [data-testid="table-views-query"]').should('be.visible').clear();
         cy.wait(500);
         cy.filterInSearchBox(displayName);
         cy.wait(500);
@@ -1773,8 +1776,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
         openGitRepoYaml(repoName);
 
         // Get YAML text and validate each cluster
-        cy.get('.CodeMirror', { log: false }).then(($el) => {
-          const yamlText = $el.text();
+        cy.getYamlEditorValue().then((yamlText) => {
           const clusterIDs = Object.keys(clusterMap);
 
           // Loop through each cluster ID and validate complete structure
@@ -1833,9 +1835,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       // Verify initial state
       openGitRepoYaml(repoName);
 
-      cy.get('.CodeMirror', { log: false }).then(($el) => {
-        const yamlText = $el.text();
-
+      cy.getYamlEditorValue().then((yamlText) => {
         // Verify initial counts - only check important fields
         expect(yamlText).to.include('ready: 1', 'Should initially have ready: 1');
         expect(yamlText).to.include('desiredReady: 1', 'Should have desiredReady: 1');
@@ -1860,9 +1860,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       openGitRepoYaml(repoName, true);
 
       // Verify modified state
-      cy.get('.CodeMirror', { log: false }).then(($el) => {
-        const yamlText = $el.text();
-
+      cy.getYamlEditorValue().then((yamlText) => {
         // Verify the key change: modified: 1 (other fields decrease as expected)
         expect(yamlText).to.include('modified: 1', 'Should have modified: 1 after modification');
         expect(yamlText).to.include('desiredReady: 1', 'Should still have desiredReady: 1');
@@ -1892,9 +1890,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       // Verify initial state
       openGitRepoYaml(repoName);
 
-      cy.get('.CodeMirror', { log: false }).then(($el) => {
-        const yamlText = $el.text();
-
+      cy.getYamlEditorValue().then((yamlText) => {
         expect(yamlText).to.include('ready: 1', 'Should initially have ready: 1');
         expect(yamlText).to.include('desiredReady: 1', 'Should have desiredReady: 1');
 
@@ -1918,9 +1914,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       openGitRepoYaml(repoName, true);
 
       // Verify missing state
-      cy.get('.CodeMirror', { log: false }).then(($el) => {
-        const yamlText = $el.text();
-
+      cy.getYamlEditorValue().then((yamlText) => {
         // Verify the key change: missing: 1
         expect(yamlText).to.include('missing: 1', 'Should have missing: 1 after deletion');
         expect(yamlText).to.include('desiredReady: 1', 'Should still have desiredReady: 1');
@@ -1952,9 +1946,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       // Open YAML view while pod is still starting (before readiness probe succeeds)
       openGitRepoYaml(repoName);
 
-      cy.get('.CodeMirror', { log: false }).then(($el) => {
-        const yamlText = $el.text();
-
+      cy.getYamlEditorValue().then((yamlText) => {
         // Verify notReady state appears during startup
         expect(yamlText).to.include('notReady: 1', 'Should have notReady: 1 during pod startup');
         expect(yamlText).to.include('desiredReady: 1', 'Should have desiredReady: 1');
@@ -1978,9 +1970,7 @@ describe('Validate GitRepo perClusterResourceCounts - Resource States', { tags: 
       // Verify it eventually transitions to ready state in perClusterResourceCounts
       openGitRepoYaml(repoName);
 
-      cy.get('.CodeMirror', { log: false }).then(($el) => {
-        const yamlText = $el.text();
-
+      cy.getYamlEditorValue().then((yamlText) => {
         // After startup completes, notReady should be 0 and ready should be 1
         expect(yamlText).to.include('ready: 1', 'Should have ready: 1 after startup completes');
         expect(yamlText).to.include('desiredReady: 1', 'Should still have desiredReady: 1');
@@ -2052,7 +2042,8 @@ describe(
         cy.accesMenuSelection('local', 'Storage', 'Secrets');
         cy.nameSpaceMenuToggle('All Namespaces');
         cy.filterInSearchBox(release1Secret);
-        cy.contains(release1Secret, { timeout: 120000 }).should('not.exist');
+        // Scoped to rows: 2.16's query box shows the filter text itself.
+        cy.contains('tr.main-row', release1Secret, { timeout: 120000 }).should('not.exist');
       },
     );
   },
@@ -2081,9 +2072,8 @@ describe(
         cy.verifyTableRow(0, 'Active', namespaceName);
 
         cy.open3dotsMenu(namespaceName, 'Edit YAML');
-        // Read the full YAML via getValue (CodeMirror only renders visible lines).
-        cy.get('.CodeMirror', { log: false }).then(($el) => {
-          const yamlText = ($el[0] as any).CodeMirror.getValue();
+        // Read the full YAML via getYamlEditorValue (CodeMirror only renders visible lines).
+        cy.getYamlEditorValue().then((yamlText) => {
           expect(yamlText.includes('env: test'), 'Namespace should carry the configured namespaceLabels').to.eq(true);
           expect(yamlText.includes('pod: deny'), 'Namespace should carry the configured namespaceAnnotations').to.eq(
             true,
