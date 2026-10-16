@@ -170,6 +170,14 @@ describe('Test "fleet-agent" image version on each downstream cluster', { tags: 
               cy.log('Fleet Agent image version AFTER upgrade: ' + fleetAgentVersionAfterUpgrade);
               cy.wrap(fleetAgentVersionAfterUpgrade).should('not.eq', fleetAgentVersionBeforeUpgrade);
             });
+
+          // From Rancher 2.13 the pod config opens in a slide-in panel that covers the top-level menu
+          cy.get('body').then(($body) => {
+            if ($body.find('[data-testid="slide-in-glass"]').length) {
+              cy.clickButton('Close');
+              cy.get('[data-testid="slide-in-glass"]').should('not.exist');
+            }
+          });
         });
       } else {
         cy.log('This test has to run After Upgrade only');
