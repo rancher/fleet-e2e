@@ -117,21 +117,7 @@ var _ = Describe("E2E - Deploy only certs and Rancher Manager", Label("deploy-on
 			extraFlags := []string{
 				"--set", "useBundledSystemChart=false",
 			}
-
-			// As of 09/2026, all head/devel Rancher images are on stgregistry.suse.com.
-			// Agent images remain on Docker Hub (rancher/rancher-agent).
-			// For head/2.XX format: rancherChannel=head, rancherVersion=2.XX, rancherHeadVersion="".
-			if rancherChannel == "head" {
-				headVer := rancherHeadVersion
-				if headVer == "" {
-					headVer = rancherVersion
-				}
-				imageTag := "v" + headVer + "-head"
-				extraFlags = append(extraFlags,
-					"--set", "rancherImage=stgregistry.suse.com/rancher/rancher",
-					"--set", "rancherImageTag="+imageTag,
-				)
-			}
+			extraFlags = append(extraFlags, headRancherImageFlags()...)
 
 			err := rancher.DeployRancherManager(rancherHostname, rancherChannel, rancherVersion, rancherHeadVersion, "none", "none", extraFlags)
 			Expect(err).To(Not(HaveOccurred()))

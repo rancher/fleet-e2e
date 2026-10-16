@@ -1,0 +1,14 @@
+apiVersion: fleet.cattle.io/v1alpha1
+kind: HelmOp
+metadata:
+  name: helmop-oci-up-tags-constraint
+  namespace: fleet-local
+spec:
+  defaultNamespace: default
+  helm:
+    releaseName: helmop-oci-up-tags-constraint
+    repo: oci://registry.suse.com/rancher/charts/rancher-ai-agent
+    version: '>= 109.0.0'
+    takeOwnership: true
+  targets:
+    - clusterName: local
