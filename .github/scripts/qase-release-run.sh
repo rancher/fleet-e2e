@@ -13,9 +13,13 @@
 # Writes qase_run_id / suites / all_passed to $GITHUB_OUTPUT and a table to $GITHUB_STEP_SUMMARY.
 
 set -euo pipefail
+# Make errors inside $(...) abort too, otherwise a failed API call leaves list_all looping forever
+shopt -s inherit_errexit
 
 : "${QASE_API_TOKEN:?QASE_API_TOKEN is required}"
 : "${MILESTONE:?MILESTONE is required (e.g. v2.15.2)}"
+# QASE milestones are titled "vX.Y.Z": add the "v" when it is left out (2.15.3 -> v2.15.3)
+MILESTONE="v${MILESTONE#v}"
 QASE_PROJECT_CODE="${QASE_PROJECT_CODE:-FLEET}"
 API="https://api.qase.io/v1"
 TITLE_PREFIX="Fleet Automation E2E"
@@ -49,7 +53,7 @@ list_all() { # list_all <endpoint> [--data-urlencode k=v...] -> all entities as 
       --data-urlencode "limit=100" --data-urlencode "offset=${offset}" "$@")
     all=$(jq -c --argjson acc "$all" '$acc + (.result.entities // [])' <<<"$page")
     count=$(jq -r '.result.entities | length' <<<"$page")
-    [ "$count" -lt 100 ] && break
+    [ "${count:-0}" -lt 100 ] && break
     offset=$((offset + count))
   done
   echo "$all"
@@ -63,7 +67,9 @@ milestone_id() {
 }
 
 release_runs() { # all release runs (any status) under the milestone
-  list_all run --data-urlencode "milestone=$(milestone_id)" \
+  local mid
+  mid=$(milestone_id)
+  list_all run --data-urlencode "milestone=${mid}" \
     | jq -c --arg p "$TITLE_PREFIX" '[.[] | select(.title | startswith($p))]'
 }
 
@@ -75,7 +81,10 @@ spec_case_ids() {
 }
 
 cmd_resolve() {
+  # "auto" is the qase_run_id default of the other ui-rm_* lanes: treat it as "not set"
+  [ "${QASE_RUN_ID:-}" = "auto" ] && QASE_RUN_ID=""
   if [ -n "${QASE_RUN_ID:-}" ]; then
+    [[ "$QASE_RUN_ID" =~ ^[0-9]+$ ]] || die "QASE_RUN_ID must be a numeric run ID, got '${QASE_RUN_ID}'"
     echo "Using provided QASE run ${QASE_RUN_ID}" >&2
   else
     : "${RANCHER_VERSION:?RANCHER_VERSION is required}"
