@@ -1572,6 +1572,22 @@ Cypress.Commands.add('closePopWindow', (windowMessage, retries = 5, delay = 1000
   checkAndClose(retries);
 });
 
+// Close the 2.16+ "What's new in this release" welcome modal (data-testid="release-welcome")
+// if it appears. Manual retry loop because cy.get() fails when absent and the modal renders async.
+Cypress.Commands.add('closeWelcomeModalIfPresent', (retries = 10, delay = 1000) => {
+  const checkAndClose = (remaining) => {
+    if (remaining <= 0) return;
+    cy.get('body').then(($body) => {
+      if ($body.find('[data-testid="release-welcome"]').length > 0) {
+        cy.get('[data-testid="release-welcome-close"]').click();
+      } else {
+        cy.wait(delay).then(() => checkAndClose(remaining - 1));
+      }
+    });
+  };
+  checkAndClose(retries);
+});
+
 Cypress.Commands.add('k8sUpgradeInRancher', (clusterName) => {
   const k8s_version_for_upgrade_ds_cluster = Cypress.expose('k8s_version_upgrade_ds_cluster_to');
   const timeout = 420000;
