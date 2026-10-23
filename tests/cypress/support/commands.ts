@@ -413,7 +413,9 @@ Cypress.Commands.add('connectAppcoForNamespace', (namespace, appcoUsername, appc
 
 // Create an App Bundle from a SUSE Application Collection chart, assuming the App Bundles page
 // (correct namespace already toggled) is visible and the AppCo connection is already configured.
-Cypress.Commands.add('createAppBundleFromAppco', (chartName) => {
+// `values` (raw YAML) is appended to the wizard's Helm values before Create - needed when the
+// chart's latest version marks values as required with no default (e.g. external-dns 1.22+ `policy`).
+Cypress.Commands.add('createAppBundleFromAppco', (chartName, values?) => {
   cy.clickButton('Create App Bundle');
   cy.contains('App Bundle: Create').should('be.visible');
   cy.contains('SUSE Application Collection').should('be.visible').click();
@@ -425,9 +427,34 @@ Cypress.Commands.add('createAppBundleFromAppco', (chartName) => {
 
   cy.contains('button', 'Install this version', { timeout: 15000 }).click();
   cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+
+  if (values) {
+    cy.appendAppCoValues(values);
+  }
+
   cy.clickButton('Create');
 
   cy.contains('App Bundles').should('be.visible');
+});
+
+// Append raw YAML to the App Bundle install wizard's Helm values editor.
+// The editor starts pre-filled with the imagePullSecrets values the install needs,
+// so this appends instead of overwriting.
+Cypress.Commands.add('appendAppCoValues', (values) => {
+  // The values editor lives in the Advanced section, which is collapsed by default.
+  cy.get('body').then(($body) => {
+    const $collapsed = $body.find('[data-testid="appco-config-advanced"] .section-header.collapsed');
+
+    // Section is collapsed -> click its header to expand it.
+    if ($collapsed.length) {
+      cy.wrap($collapsed).click();
+    }
+  });
+
+  cy.getYamlEditorValue().then((current) => {
+    // New values go on a new line after whatever the editor already contains.
+    cy.setYamlEditorValue(`${current.trimEnd()}\n${values}`);
+  });
 });
 
 // Verify a chart installed via createAppBundleFromAppco() reached Active with all resources up.

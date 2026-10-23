@@ -64,7 +64,8 @@ declare global {
       accesMenuSelection(firstAccessMenu: string, secondAccessMenu?: string, clickOption?: string): Chainable<Element>;
       filterInSearchBox(filterText: string): Chainable<Element>;
       connectAppcoForNamespace(namespace: string, appcoUsername: string, appcoAccessToken: string): Chainable<Element>;
-      createAppBundleFromAppco(chartName: string): Chainable<Element>;
+      createAppBundleFromAppco(chartName: string, values?: string): Chainable<Element>;
+      appendAppCoValues(values: string): Chainable<Element>;
       verifyChartActiveFromAppco(
         chartName: string,
         timeout: number,
