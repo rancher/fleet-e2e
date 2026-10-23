@@ -148,36 +148,25 @@ describe('Test "fleet-agent" image version on each downstream cluster', { tags: 
         const fleetAppVersion = Cypress.expose('fleet_app_version');
         // Chart name format varies: fleet-105.0.3+up0.11.3 (old) or fleet-105.0.4_up0.12.0 (new)
         const match = fleetAppVersion.match(/[+_]up(.+)$/);
-        expect(match, `fleet_app_version "${fleetAppVersion}" must contain +up or _up`).to.not.be.null;
+        expect(match, `fleet_app_version "${fleetAppVersion}" must contain +up or _up`).to.not.equal(null);
         const fleetAgentVersionBeforeUpgrade = match![1];
         cy.log('Fleet Agent image version BEFORE upgrade: ' + fleetAgentVersionBeforeUpgrade);
 
         dsAllClusterList.forEach((dsCluster) => {
-          cy.accesMenuSelection(dsCluster, 'Workloads', 'Pods');
+          // Read the image from the Deployments list "Image" column: no pod detail page or slide-in panel needed.
+          // fleet-agent is a Deployment from Fleet 0.12 (Rancher 2.11); older versions used a StatefulSet.
+          cy.accesMenuSelection(dsCluster, 'Workloads', 'Deployments');
           cy.nameSpaceMenuToggle('All Namespaces');
           cy.filterInSearchBox('fleet-agent');
-          cy.verifyTableRow(0, 'Running', 'fleet-agent');
-          cy.contains('fleet-agent').click();
-          cy.wait(500);
-          cy.clickButton('Config');
+          cy.verifyTableRow(0, 'Active', 'fleet-agent');
 
-          cy.get('input[placeholder*="nginx"]')
-            .invoke('val')
+          cy.contains('tr.main-row td', /fleet-agent:v\S+/, { timeout: 20000 })
+            .invoke('text')
             .then((fleetAgentImageAfterUpgrade) => {
-              expect(fleetAgentImageAfterUpgrade, 'fleet-agent image should be a non-empty string').to.be.a('string')
-                .and.not.be.empty;
-              const fleetAgentVersionAfterUpgrade = (fleetAgentImageAfterUpgrade as string).split(':v')[1];
-              cy.log('Fleet Agent image version AFTER upgrade: ' + fleetAgentVersionAfterUpgrade);
+              const fleetAgentVersionAfterUpgrade = fleetAgentImageAfterUpgrade.trim().match(/fleet-agent:v(\S+)/)![1];
+              cy.log(`${dsCluster} Fleet Agent image version AFTER upgrade: ${fleetAgentVersionAfterUpgrade}`);
               cy.wrap(fleetAgentVersionAfterUpgrade).should('not.eq', fleetAgentVersionBeforeUpgrade);
             });
-
-          // From Rancher 2.13 the pod config opens in a slide-in panel that covers the top-level menu
-          cy.get('body').then(($body) => {
-            if ($body.find('[data-testid="slide-in-glass"]').length) {
-              cy.clickButton('Close');
-              cy.get('[data-testid="slide-in-glass"]').should('not.exist');
-            }
-          });
         });
       } else {
         cy.log('This test has to run After Upgrade only');
