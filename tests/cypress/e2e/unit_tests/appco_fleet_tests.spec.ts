@@ -48,12 +48,13 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
       // Batch 1 - controllers/operators, no PV. Lightest charts, kept small on purpose to stay
       // under the local cluster pod cap.
       const charts = [
-        'argo-rollouts',
-        'cert-manager-approver-policy',
-        'cloudnative-pg',
-        'coredns',
-        'external-dns',
-        'external-secrets-operator',
+        { name: 'argo-rollouts' },
+        { name: 'cert-manager-approver-policy' },
+        { name: 'cloudnative-pg' },
+        { name: 'coredns' },
+        // Old versions acted as `upsert-only` when policy was omitted; 1.22+ refuses to start without it.
+        { name: 'external-dns', values: 'policy: upsert-only' },
+        { name: 'external-secrets-operator' },
       ];
 
       cy.accesMenuSelection('Continuous Delivery', 'App Bundles');
@@ -61,14 +62,14 @@ describe('Test Appco - Fleet integration', { tags: '@appco' }, () => {
 
       // Fire off every install first so Fleet reconciles them concurrently on the cluster, instead of
       // waiting for each chart to reach Active before starting the next one.
-      charts.forEach((chartName) => {
-        cy.createAppBundleFromAppco(chartName);
+      charts.forEach(({ name: chartName, values }) => {
+        cy.createAppBundleFromAppco(chartName, values);
         // Stagger installs so Fleet doesn't burst-pull several charts from the OCI registry at once (429s).
         cy.wait(3000);
       });
 
       // Then check every row reached Active/N-of-N.
-      charts.forEach((chartName) => {
+      charts.forEach(({ name: chartName }) => {
         cy.verifyChartActiveFromAppco(chartName, 120000);
       });
     },
