@@ -170,6 +170,7 @@ declare global {
       createConfigMap(configMapName: string): Chainable<Element>;
       deleteConfigMap(configMapName: string, clusterName?: string): Chainable<Element>;
       closePopWindow(windowMessage: string): Chainable<Element>;
+      closeWelcomeModalIfPresent(): Chainable<Element>;
       k8sUpgradeInRancher(clusterName: string): Chainable<Element>;
       continuousDeliveryMenuSelection(navToAppBundles?: boolean): Chainable<Element>;
       continuousDeliveryWorkspacesMenu(): Chainable<Element>;
