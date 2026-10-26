@@ -30,18 +30,18 @@ on:
         default: true
         type: boolean
       rancher_version:
-        description: Rancher version to install BEFORE the upgrade (channel/version, e.g. head/2.15, latest/2.y.x, prime/2.y.x, alpha/2.y.0-alphaZ)
-        default: head/2.15
+        description: Rancher version to install BEFORE the upgrade (channel/version, e.g. head/2.14, latest/2.y.x, prime/2.y.x, alpha/2.y.0-alphaZ)
+        default: head/2.14
         type: string
         required: true
       rancher_upgrade:
-        description: Rancher version to upgrade TO (same format, must be newer than the installed one, e.g. head/2.16)
-        default: head/2.16
+        description: Rancher version to upgrade TO (same format, must be newer than the installed one, e.g. head/2.15)
+        default: head/2.15
         required: true
         type: string
       upstream_cluster_version:
-        description: K3s upstream cluster version where to install Rancher
-        default: "v1.36.1+k3s1"
+        description: K3s upstream cluster version where to install Rancher (must support the installed version)
+        default: "v1.35.2+k3s1"
         type: string
         required: true
       k8s_version_upgrade_ds_cluster:
