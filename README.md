@@ -24,9 +24,6 @@ Automation Repository for Fleet i.e. Rancher Continuous Delivery.
 | ---------------- | ------------------ |
 | v2.11-head       | :heavy_check_mark: |
 | v2.10-head       | :heavy_check_mark: |
-| v2.9-head        | :heavy_check_mark: |
-| v2.8-head        | :heavy_check_mark: |
-| v2.7-head        | :heavy_check_mark: |
 
 ---
 
@@ -41,8 +38,6 @@ Automation Repository for Fleet i.e. Rancher Continuous Delivery.
 | v2.12-head      | v1.33.7+k3s1               |
 | v2.11-head      | v1.32.10+k3s1              |
 | v2.10-head      | v1.31.9+k3s1               |
-| v2.9-head       | v1.29.12+k3s1              |
-| v2.8-head       | v1.28.8+k3s1               |
 
 # What is Fleet?
 
