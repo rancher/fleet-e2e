@@ -71,39 +71,39 @@ func RunHelmCmdWithRetry(s ...string) {
 }
 
 /**
- * Build the Helm flags selecting the Rancher image for the head channel
- * RANCHER_IMAGE_REGISTRY defaults to stgregistry.suse.com, the only registry publishing floating v2.XX-head tags.
- * RANCHER_IMAGE_TAG is required for docker.io, which only has v2.XX-<sha>-head tags (resolved by the CI workflow).
+ * Build the Helm extra flags for DeployRancherManager
+ * Always uses the system default charts, and selects the Rancher image on the head channel.
+ * registry defaults to stgregistry.suse.com, the only registry publishing floating v2.XX-head tags.
+ * imageTag is required for docker.io, which only has v2.XX-<sha>-head tags (resolved by the CI workflow).
  * Agent images always come from Docker Hub (rancher/rancher-agent).
- * @returns --set flags for rancherImage/rancherImageTag, nil if not on the head channel
+ * @returns --set flags, with rancherImage/rancherImageTag only on the head channel
  */
-func headRancherImageFlags() []string {
-	if rancherChannel != "head" {
-		return nil
+func rancherExtraFlags(channel, version, headVersion, registry, imageTag string) []string {
+	flags := []string{"--set", "useBundledSystemChart=false"}
+	if channel != "head" {
+		return flags
 	}
 
-	registry := os.Getenv("RANCHER_IMAGE_REGISTRY")
 	if registry == "" {
 		registry = "stgregistry.suse.com"
 	}
 
-	// For head/2.XX format: rancherVersion=2.XX, rancherHeadVersion=""
-	imageTag := os.Getenv("RANCHER_IMAGE_TAG")
+	// For head/2.XX format: version=2.XX, headVersion=""
 	if imageTag == "" {
 		if registry == "docker.io" {
 			Fail("RANCHER_IMAGE_TAG must be set when using docker.io, it has no floating v2.XX-head tag")
 		}
-		headVer := rancherHeadVersion
+		headVer := headVersion
 		if headVer == "" {
-			headVer = rancherVersion
+			headVer = version
 		}
 		imageTag = "v" + headVer + "-head"
 	}
 
-	return []string{
-		"--set", "rancherImage=" + registry + "/rancher/rancher",
-		"--set", "rancherImageTag=" + imageTag,
-	}
+	return append(flags,
+		"--set", "rancherImage="+registry+"/rancher/rancher",
+		"--set", "rancherImageTag="+imageTag,
+	)
 }
 
 func FailWithReport(message string, callerSkip ...int) {
