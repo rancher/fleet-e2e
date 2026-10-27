@@ -124,6 +124,8 @@ describe('Test Crontab for Fleet job cleanup is present', { tags: '@upgrade' }, 
     // only checking the existance of Crontab for Fleet cleanup job.
 
     cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
+    // The CronJob lives in the cattle-fleet-system (system) namespace
+    cy.nameSpaceMenuToggle('All Namespaces');
     cy.filterInSearchBox('fleet-cleanup-gitrepo-jobs');
 
     // Check Crontab for Fleet Cleanup job present and is Active
