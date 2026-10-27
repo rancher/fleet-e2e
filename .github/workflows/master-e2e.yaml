@@ -523,6 +523,17 @@ jobs:
             unset QASE_API_TOKEN
           fi
           cd tests && make start-cypress-tests
+      - name: Complete the QASE run if after-upgrade tests were skipped
+        # Phase 1 keeps the run open for Phase 2; if Phase 2 never ran (e.g. failed upgrade)
+        # the run would otherwise stay in "In Progress" state
+        if: ${{ !cancelled() && inputs.qase_report == true && inputs.qase_complete_run == true && inputs.rancher_upgrade != '' && steps.cypress_result_after_rancher_upgrade.outcome == 'skipped' && steps.qase_run_id.outputs.qase_run_id != '' }}
+        run: |
+          RUN_ID=${{ steps.qase_run_id.outputs.qase_run_id }}
+          curl -X POST \
+            --url https://api.qase.io/v1/run/FLEET/${RUN_ID}/complete \
+            -H "Token: ${{ secrets.qase_api_token }}" \
+            -H 'accept: application/json'
+          echo "QASE run $RUN_ID marked as Completed (after-upgrade tests skipped)" >> ${GITHUB_STEP_SUMMARY}
       - name: Upload Cypress screenshots (after-upgrade)
         if: ${{ !cancelled() && failure() && inputs.rancher_upgrade != '' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
