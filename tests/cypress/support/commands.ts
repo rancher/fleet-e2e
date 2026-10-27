@@ -1334,7 +1334,7 @@ Cypress.Commands.add('checkGitRepoAfterUpgrade', (repoName, fleetNamespace = 'fl
   cy.continuousDeliveryMenuSelection();
   cy.fleetNamespaceToggle(fleetNamespace);
   cy.filterInSearchBox(repoName);
-  cy.verifyTableRow(0, /Active|Modified/, repoName);
+  cy.verifyTableRow(0, 'Active', repoName);
 });
 
 Cypress.Commands.add('currentClusterResourceCount', (clusterName) => {
