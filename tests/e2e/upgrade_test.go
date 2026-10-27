@@ -16,6 +16,7 @@ package e2e_test
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -120,6 +121,7 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 		}
 
 		beforeUpgradeImages := strings.Fields(fleetVersionBeforeUpgrade)
+		Expect(beforeUpgradeImages).To(HaveLen(3), "unexpected pre-upgrade Fleet images: %q", fleetVersionBeforeUpgrade)
 
 		// Wait for Fleet pods to roll out with a genuinely different version tag.
 		Eventually(func(g Gomega) {
@@ -152,6 +154,14 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 		// The Ginkgo upgrade test only verifies local Fleet pods; downstream agents
 		// reconnect asynchronously and must be Ready before Cypress Phase 2 runs.
 		By("Waiting for downstream clusters to be Ready after upgrade", func() {
+			dsClusterCount := 1
+			if dsClusterCountStr != "" {
+				c, err := strconv.Atoi(dsClusterCountStr)
+				if err == nil {
+					dsClusterCount = c
+				}
+			}
+
 			count := 1
 			Eventually(func() error {
 				// List all non-local imported cluster IDs
@@ -163,7 +173,11 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 				if err != nil {
 					return err
 				}
-				for _, clusterID := range strings.Fields(clusterIDs) {
+				ids := strings.Fields(clusterIDs)
+				if len(ids) != dsClusterCount {
+					return fmt.Errorf("expected %d downstream clusters, found %d (%s)", dsClusterCount, len(ids), clusterIDs)
+				}
+				for _, clusterID := range ids {
 					status, err := kubectl.RunWithoutErr(
 						"get", "clusters.management.cattle.io", clusterID,
 						"-o", "jsonpath={.status.conditions[?(@.type==\"Ready\")].status}",

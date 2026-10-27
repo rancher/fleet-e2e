@@ -454,15 +454,18 @@ jobs:
       - name: Upgrade diagnostics
         if: ${{ failure() && steps.rancher_upgrade.outcome == 'failure' }}
         run: |
+          # Best-effort: one failing probe must not hide the others
+          set +e
           # Helm releases (Fleet chart stuck pending/failed?)
           helm list -A
           # Chart catalog commit (stale catalog after upgrade?)
           kubectl get clusterrepo rancher-charts -o jsonpath='{.status.commit}{"\n"}{.status.conditions}{"\n"}'
           # Fleet version expected by Rancher
-          kubectl get setting fleet-version -o jsonpath='{.value}{"\n"}' || true
-          kubectl -n cattle-system get deploy rancher -o yaml | grep -A1 CATTLE_FLEET || true
+          kubectl get setting fleet-version -o jsonpath='{.value}{"\n"}'
+          kubectl -n cattle-system get deploy rancher -o yaml | grep -A1 CATTLE_FLEET
           kubectl -n cattle-fleet-system get pods -o wide
-          kubectl -n cattle-system logs -l app=rancher --tail=500 | grep -i fleet || true
+          kubectl -n cattle-system logs -l app=rancher --tail=500 | grep -i fleet
+          exit 0
       - name: Extract component versions/informations after Upgrade
         id: upgraded_component
         if: ${{ !cancelled() && inputs.rancher_upgrade != '' && steps.rancher_upgrade.outcome == 'success' }}
