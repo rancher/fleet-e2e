@@ -1602,6 +1602,7 @@ Cypress.Commands.add('closePopWindow', (windowMessage, retries = 5, delay = 1000
 // Close the 2.16+ "What's new in this release" welcome modal (data-testid="release-welcome")
 // if it appears. Manual retry loop because cy.get() fails when absent and the modal renders async.
 Cypress.Commands.add('closeWelcomeModalIfPresent', (retries = 10, delay = 1000) => {
+  if (!isRancherVersionAtLeast(16)) return; // Optimization: won't run < 2.16
   const checkAndClose = (remaining) => {
     if (remaining <= 0) return;
     cy.get('body').then(($body) => {
