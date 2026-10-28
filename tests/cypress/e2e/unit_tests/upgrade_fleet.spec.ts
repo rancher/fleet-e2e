@@ -20,6 +20,8 @@ export const upgrade = Cypress.expose('upgrade') === 'true';
 beforeEach(() => {
   cy.login();
   cy.visit('/');
+  // 2.16 shows a "What's new in this release" modal after the upgrade; close it if it appears.
+  cy.closeWelcomeModalIfPresent();
 });
 
 Cypress.config();
