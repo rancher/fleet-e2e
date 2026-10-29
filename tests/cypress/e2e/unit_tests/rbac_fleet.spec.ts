@@ -283,10 +283,10 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
     ),
     { tags: '@fleet-42' },
     () => {
-      const baseUser = 'base-user';
+      const baseUser = 'base-user-42';
       const customRoleName = 'fleetworkspaces-bundles-gitrepos-all-verbs-role';
 
-      // Create 'base-user' User using "Standard User"
+      // Create 'base-user-42' User using "Standard User"
       cypressLib.burgerMenuToggle();
       cy.createNewUser(baseUser, uiPassword, 'Standard User', true);
 

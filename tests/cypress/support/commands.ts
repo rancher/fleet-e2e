@@ -997,15 +997,20 @@ Cypress.Commands.add('deleteAllUsers', (userName) => {
   // Delete all users (Admin one will stay as cannot be deleted)
   cy.accesMenuSelection('Users & Authentication');
   cy.contains('.title', 'Users').should('be.visible');
-  cy.get('body').then(($body) => {
-    if ($body.find('td.row-check .selection-checkbox').length > 0) {
-      cy.wait(250); // Add small wait to give time for things to settle
-      cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
-      cy.deleteSelectedRows();
-    } else {
-      cy.log('No users to delete');
-    }
-  });
+  // Admin row is always listed: wait for the table to load before deciding, otherwise users get skipped
+  cy.get('tbody tr.main-row')
+    .should('have.length.gte', 1)
+    .then(($rows) => {
+      if ($rows.length > 1) {
+        cy.wait(250); // Add small wait to give time for things to settle
+        cy.get('[width="30"] > .checkbox-outer-container.check').click();
+        cy.deleteSelectedRows();
+        // Wait for deletion to finish so a test re-creating the same username is not rejected
+        cy.get('tbody tr.main-row', { timeout: 30000 }).should('have.length', 1);
+      } else {
+        cy.log('No users to delete');
+      }
+    });
 });
 
 // Delete created role
