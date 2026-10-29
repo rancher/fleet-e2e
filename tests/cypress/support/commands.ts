@@ -798,7 +798,8 @@ Cypress.Commands.add(
   'checkGitRepoStatus',
   (repoName, bundles, resources, { timeout = 30000, repoStatus = 'Active' } = {}) => {
     cy.verifyTableRow(0, repoStatus, repoName);
-    cy.contains(repoName).click();
+    // Click the row link: on 2.16+ a bare cy.contains() can match the filter text in the search box
+    cy.get('td.col-link-detail a').contains(repoName).click();
     cy.get('.primaryheader > h1, h1 > span.resource-name.masthead-resource-title')
       .contains(repoName)
       .should('be.visible');
