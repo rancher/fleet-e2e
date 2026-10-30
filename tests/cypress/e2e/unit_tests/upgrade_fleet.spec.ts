@@ -20,6 +20,8 @@ export const upgrade = Cypress.expose('upgrade') === 'true';
 beforeEach(() => {
   cy.login();
   cy.visit('/');
+  // 2.16 shows a "What's new in this release" modal after the upgrade; close it if it appears.
+  cy.closeWelcomeModalIfPresent();
 });
 
 Cypress.config();
@@ -124,6 +126,8 @@ describe('Test Crontab for Fleet job cleanup is present', { tags: '@upgrade' }, 
     // only checking the existance of Crontab for Fleet cleanup job.
 
     cy.accesMenuSelection('local', 'Workloads', 'CronJobs');
+    // The CronJob lives in the cattle-fleet-system (system) namespace
+    cy.nameSpaceMenuToggle('All Namespaces');
     cy.filterInSearchBox('fleet-cleanup-gitrepo-jobs');
 
     // Check Crontab for Fleet Cleanup job present and is Active

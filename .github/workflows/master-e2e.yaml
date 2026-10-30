@@ -160,6 +160,53 @@ jobs:
       # actions/checkout MUST come before auth
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check Rancher upgrade versions
+        # Fail before anything (VM, Rancher, QASE run) is created
+        if: ${{ inputs.rancher_upgrade != '' }}
+        run: |
+          FROM="${{ inputs.rancher_version }}"
+          TO="${{ inputs.rancher_upgrade }}"
+          fail() {
+            echo "::error::Invalid upgrade ${FROM} ➜ ${TO}: $1"
+            exit 1
+          }
+          # channel/version[/head_version]: head and devel take the version from head_version
+          parse() {
+            IFS=/ read -r CH V HV <<< "$1"
+            if [[ "${CH}" == "head" || "${V}" == "devel" ]]; then
+              V="${HV:-${V}}"
+            fi
+            echo "${CH} ${V}"
+          }
+          read -r FROM_CH FROM_VER <<< "$(parse "${FROM}")"
+          read -r TO_CH TO_VER <<< "$(parse "${TO}")"
+          [[ "${FROM}" == "${TO}" ]] && fail "same version"
+          FROM_MINOR=$(grep -oE '^[0-9]+\.[0-9]+' <<< "${FROM_VER}" || true)
+          TO_MINOR=$(grep -oE '^[0-9]+\.[0-9]+' <<< "${TO_VER}" || true)
+          # Non-numeric versions (e.g. stable/latest) can't be compared
+          if [[ -n "${FROM_MINOR}" && -n "${TO_MINOR}" ]]; then
+            LOWEST=$(printf '%s\n%s\n' "${FROM_VER}" "${TO_VER}" | sort -V | head -1)
+            [[ "${FROM_VER}" != "${TO_VER}" && "${LOWEST}" == "${TO_VER}" ]] && fail "downgrade"
+            IFS=. read -r FROM_MAJ FROM_MIN <<< "${FROM_MINOR}"
+            IFS=. read -r TO_MAJ TO_MIN <<< "${TO_MINOR}"
+            if [[ "${TO_MAJ}" != "${FROM_MAJ}" ]] || (( TO_MIN > FROM_MIN + 1 )); then
+              fail "skips a minor version, Rancher upgrades one minor at a time"
+            fi
+          fi
+          # The target chart must exist (same repos as ele-testhelpers' DeployRancherManager)
+          case "${TO_CH}" in
+            head) REPO="https://charts.optimus.rancher.io/server-charts/release-${TO_VER}" ;;
+            prime) REPO="https://charts.rancher.com/server-charts/prime" ;;
+            prime-alpha) REPO="https://charts.optimus.rancher.io/server-charts/alpha" ;;
+            prime-rc) REPO="https://charts.optimus.rancher.io/server-charts/latest" ;;
+            alpha|latest|stable) REPO="https://releases.rancher.com/server-charts/${TO_CH}" ;;
+            *) fail "unknown channel ${TO_CH}" ;;
+          esac
+          INDEX=$(curl -fsS --retry 3 "${REPO}/index.yaml" 2> /dev/null) || fail "no Rancher chart repo for ${TO_CH}/${TO_VER}"
+          if [[ "${TO_CH}" != "head" && "${TO_VER}" =~ ^[0-9] ]]; then
+            grep -qE "^\s+version: v?${TO_VER}$" <<< "${INDEX}" || fail "Rancher ${TO_VER} not found in ${REPO}"
+          fi
+          echo "Upgrade ${FROM} ➜ ${TO} is valid"
       - name: Generate UUID and Runner hostname
         id: generator
         run: |
@@ -523,6 +570,18 @@ jobs:
             unset QASE_API_TOKEN
           fi
           cd tests && make start-cypress-tests
+      - name: Complete the QASE run after upgrade
+        # Phase 1 keeps the run open for Phase 2; close it whatever happened next
+        # (failed upgrade, Phase 2 crash), otherwise it stays in "In Progress" state.
+        # Harmless if the Phase 2 reporter already completed it
+        if: ${{ !cancelled() && inputs.qase_report == true && inputs.qase_complete_run == true && inputs.rancher_upgrade != '' && steps.qase_run_id.outputs.qase_run_id != '' }}
+        run: |
+          RUN_ID=${{ steps.qase_run_id.outputs.qase_run_id }}
+          curl -X POST \
+            --url https://api.qase.io/v1/run/FLEET/${RUN_ID}/complete \
+            -H "Token: ${{ secrets.qase_api_token }}" \
+            -H 'accept: application/json'
+          echo "QASE run $RUN_ID ensured Completed" >> ${GITHUB_STEP_SUMMARY}
       - name: Upload Cypress screenshots (after-upgrade)
         if: ${{ !cancelled() && failure() && inputs.rancher_upgrade != '' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -581,7 +640,8 @@ jobs:
           fi
 
   delete-runner:
-    if: ${{ always() && inputs.destroy_runner == true }}
+    # No runner name means the upgrade check failed before any VM was created
+    if: ${{ always() && inputs.destroy_runner == true && needs.create-runner.outputs.runner != '' }}
     needs: [create-runner, e2e]
     runs-on: ubuntu-latest
     steps:
