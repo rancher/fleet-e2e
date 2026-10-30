@@ -997,15 +997,20 @@ Cypress.Commands.add('deleteAllUsers', (userName) => {
   // Delete all users (Admin one will stay as cannot be deleted)
   cy.accesMenuSelection('Users & Authentication');
   cy.contains('.title', 'Users').should('be.visible');
-  cy.get('body').then(($body) => {
-    if ($body.find('td.row-check .selection-checkbox').length > 0) {
-      cy.wait(250); // Add small wait to give time for things to settle
-      cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
-      cy.deleteSelectedRows();
-    } else {
-      cy.log('No users to delete');
-    }
-  });
+  // Admin row is always listed: wait for the table to load before deciding, otherwise users get skipped
+  cy.get('tbody tr.main-row')
+    .should('have.length.gte', 1)
+    .then(($rows) => {
+      if ($rows.length > 1) {
+        cy.wait(250); // Add small wait to give time for things to settle
+        cy.get('[width="30"] > .checkbox-outer-container.check').click();
+        cy.deleteSelectedRows();
+        // Wait for deletion to finish so a test re-creating the same username is not rejected
+        cy.get('tbody tr.main-row', { timeout: 30000 }).should('have.length', 1);
+      } else {
+        cy.log('No users to delete');
+      }
+    });
 });
 
 // Delete created role
@@ -1602,6 +1607,7 @@ Cypress.Commands.add('closePopWindow', (windowMessage, retries = 5, delay = 1000
 // Close the 2.16+ "What's new in this release" welcome modal (data-testid="release-welcome")
 // if it appears. Manual retry loop because cy.get() fails when absent and the modal renders async.
 Cypress.Commands.add('closeWelcomeModalIfPresent', (retries = 10, delay = 1000) => {
+  if (!isRancherVersionAtLeast(16)) return; // Optimization: won't run < 2.16
   const checkAndClose = (remaining) => {
     if (remaining <= 0) return;
     cy.get('body').then(($body) => {

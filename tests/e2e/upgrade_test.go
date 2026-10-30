@@ -16,6 +16,7 @@ package e2e_test
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -51,17 +52,19 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 
 		// Get Fleet Version before-upgrade
 		getFleetImageVersion := []string{"get", "pod",
-		"--namespace", "cattle-fleet-system",
-		"-l", "app=fleet-controller",
-		"-o", "jsonpath={.items[*].status.containerStatuses[*].image}",
+			"--namespace", "cattle-fleet-system",
+			"-l", "app=fleet-controller",
+			"-o", "jsonpath={.items[*].status.containerStatuses[*].image}",
 		}
 
 		// Execute the shell command to get version before upgrade
 		fleetVersionBeforeUpgrade, err := kubectl.RunWithoutErr(getFleetImageVersion...)
+		Expect(err).To(Not(HaveOccurred()))
 
 		// Upgrade Rancher Manager
 		// NOTE: Don't check the status, we can have false-positive here...
 		//       Better to check the rollout after the upgrade, it will fail if the upgrade failed
+		upgradeExtraFlags := rancherExtraFlags(rancherUpgradeChannel, rancherUpgradeVersion, rancherUpgradeHeadVersion, "", "")
 		_ = rancher.DeployRancherManager(
 			rancherHostname,
 			rancherUpgradeChannel,
@@ -69,6 +72,7 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 			rancherUpgradeHeadVersion,
 			"None",
 			"None",
+			upgradeExtraFlags,
 		)
 
 		// Wait for Rancher Manager to be restarted
@@ -104,45 +108,88 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 		Expect(err).To(Not(HaveOccurred()))
 		Expect(versionAfterUpgrade).To(Not(Equal(versionBeforeUpgrade)))
 
-		// Function to check if all Fleet pods are updated and running the new version
+		// extractTag returns the version tag from a full image reference, e.g.
+		// "stgregistry.suse.com/rancher/fleet:v0.16.2" -> "v0.16.2"
+		// Compares tags only so a registry change (docker.io vs stgregistry.suse.com)
+		// does not cause a false-pass when the Fleet version itself didn't change.
+		extractTag := func(image string) string {
+			parts := strings.SplitN(image, ":", 2)
+			if len(parts) == 2 {
+				return parts[1]
+			}
+			return image
+		}
+
+		beforeUpgradeImages := strings.Fields(fleetVersionBeforeUpgrade)
+		Expect(beforeUpgradeImages).To(HaveLen(3), "unexpected pre-upgrade Fleet images: %q", fleetVersionBeforeUpgrade)
+
+		// Wait for Fleet pods to roll out with a genuinely different version tag.
 		Eventually(func(g Gomega) {
-			// Check the rollout status of Fleet pods to ensure they are updated
 			rolloutStatus, err := kubectl.RunWithoutErr(
-					"rollout",
-					"--namespace", "cattle-fleet-system",
-					"status", "deployment/fleet-controller",
+				"rollout",
+				"--namespace", "cattle-fleet-system",
+				"status", "deployment/fleet-controller",
 			)
 			g.Expect(err).To(Not(HaveOccurred()))
 			g.Expect(rolloutStatus).To(ContainSubstring(`deployment "fleet-controller" successfully rolled out`))
 
-			// Get Fleet version after upgrade
-			// and check that it's different to the version before upgrade
 			fleetVersionAfterUpgrade, err := kubectl.RunWithoutErr(getFleetImageVersion...)
-
-			// Parse the versions from the images
-			beforeUpgradeImages := strings.Fields(fleetVersionBeforeUpgrade)
-			afterUpgradeImages := strings.Fields(fleetVersionAfterUpgrade)
-
-			// Get after-upgrade Fleet version and check that it's different from the before-upgrade version
-			// getFleetImageVersion output consists of 3 fleet images,
-			// so we're checking 3 images must be present there.
 			g.Expect(err).To(Not(HaveOccurred()))
-			g.Expect(len(strings.Fields(fleetVersionAfterUpgrade))).To(Equal(3))
 
-			// Check version of the first image
-			fmt.Println("First Fleet image after upgrade:", afterUpgradeImages[0]) // Debugging output
-			g.Expect(beforeUpgradeImages[0]).To(Not(Equal(afterUpgradeImages[0])))
+			afterUpgradeImages := strings.Fields(fleetVersionAfterUpgrade)
+			g.Expect(len(afterUpgradeImages)).To(Equal(3))
 
-			// Check version of the second image
-			fmt.Println("Second Fleet image after upgrade:", afterUpgradeImages[1]) // Debugging output
-			g.Expect(beforeUpgradeImages[1]).To(Not(Equal(afterUpgradeImages[1])))
+			for i, afterImage := range afterUpgradeImages {
+				afterTag := extractTag(afterImage)
+				beforeTag := extractTag(beforeUpgradeImages[i])
+				fmt.Printf("Fleet image %d — before: %s, after: %s\n", i+1, beforeTag, afterTag)
+				g.Expect(afterTag).To(Not(Equal(beforeTag)),
+					"Fleet image %d version tag must change after upgrade (got same tag %s)", i+1, afterTag)
+			}
 
-			// Check version of the third image
-			fmt.Println("Third Fleet image after upgrade:", afterUpgradeImages[2]) // Debugging output
-			g.Expect(beforeUpgradeImages[2]).To(Not(Equal(afterUpgradeImages[2])))
+			fmt.Println("Fleet version after upgrade:", fleetVersionAfterUpgrade)
+		}, tools.SetTimeout(10*time.Minute), 20*time.Second).Should(Succeed())
 
-			fmt.Println("Current Fleet version after upgrade:", fleetVersionAfterUpgrade) // Debugging output
-			g.Expect(fleetVersionAfterUpgrade).To(Not(Equal(fleetVersionBeforeUpgrade)))
-	}, tools.SetTimeout(10*time.Minute), 20*time.Second).Should(Succeed())
+		// Wait for all downstream clusters to reconnect and report Ready.
+		// The Ginkgo upgrade test only verifies local Fleet pods; downstream agents
+		// reconnect asynchronously and must be Ready before Cypress Phase 2 runs.
+		By("Waiting for downstream clusters to be Ready after upgrade", func() {
+			dsClusterCount := 1
+			if dsClusterCountStr != "" {
+				c, err := strconv.Atoi(dsClusterCountStr)
+				if err == nil {
+					dsClusterCount = c
+				}
+			}
+
+			count := 1
+			Eventually(func() error {
+				// List all non-local imported cluster IDs
+				clusterIDs, err := kubectl.RunWithoutErr(
+					"get", "clusters.management.cattle.io",
+					"--field-selector", "metadata.name!=local",
+					"-o", "jsonpath={.items[*].metadata.name}",
+				)
+				if err != nil {
+					return err
+				}
+				ids := strings.Fields(clusterIDs)
+				if len(ids) != dsClusterCount {
+					return fmt.Errorf("expected %d downstream clusters, found %d (%s)", dsClusterCount, len(ids), clusterIDs)
+				}
+				for _, clusterID := range ids {
+					status, err := kubectl.RunWithoutErr(
+						"get", "clusters.management.cattle.io", clusterID,
+						"-o", "jsonpath={.status.conditions[?(@.type==\"Ready\")].status}",
+					)
+					GinkgoWriter.Printf("Downstream cluster %s Ready status (loop %d): %s\n", clusterID, count, status)
+					if err != nil || !strings.Contains(status, "True") {
+						return fmt.Errorf("cluster %s not Ready yet (status=%s)", clusterID, status)
+					}
+				}
+				count++
+				return nil
+			}, tools.SetTimeout(5*time.Minute), 15*time.Second).Should(Succeed())
+		})
 	})
 })
