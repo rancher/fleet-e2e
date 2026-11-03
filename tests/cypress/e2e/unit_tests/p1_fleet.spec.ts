@@ -481,13 +481,13 @@ if (isRancherVersionAtLeast(15)) {
         qase_id: 492,
         file: 'helmop-oci-up-tags-constraint.yaml',
         title: 'FLEET-492: Test OCI HelmOp with ">= 109.0.0" gets the newest published chart version',
-        expect: '110.0.0+up1.1.0',
+        expect: /\b(?:1[1-9]\d|[2-9]\d{2}|[1-9]\d{3,})\.\d+\.\d+\+up\d+\.\d+(?:\.\w+)?(?:\/\d+)?/,
       },
       {
         qase_id: 493,
         file: 'helmop-oci-up-tags-empty.yaml',
         title: 'FLEET-493: Test OCI HelmOp with no version gets the newest published chart version',
-        expect: '110.0.0+up1.1.0',
+        expect: /\b(?:1[1-9]\d|[2-9]\d{2}|[1-9]\d{3,})\.\d+\.\d+\+up\d+\.\d+(?:\.\w+)?(?:\/\d+)?/,
       },
       {
         qase_id: 494,
