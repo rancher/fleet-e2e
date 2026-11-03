@@ -153,7 +153,7 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 		// Wait for all downstream clusters to reconnect and report Ready.
 		// The Ginkgo upgrade test only verifies local Fleet pods; downstream agents
 		// reconnect asynchronously and must be Ready before Cypress Phase 2 runs.
-		By("Waiting for downstream clusters to be Ready after upgrade", func() {
+		By("Waiting for local and downstream clusters to be Ready after upgrade", func() {
 			dsClusterCount := 1
 			if dsClusterCountStr != "" {
 				c, err := strconv.Atoi(dsClusterCountStr)
@@ -177,12 +177,13 @@ var _ = Describe("E2E - Upgrading Rancher Manager", Label("upgrade-rancher-manag
 				if len(ids) != dsClusterCount {
 					return fmt.Errorf("expected %d downstream clusters, found %d (%s)", dsClusterCount, len(ids), clusterIDs)
 				}
-				for _, clusterID := range ids {
+				// The local cluster also settles after the upgrade, so check it as well
+				for _, clusterID := range append([]string{"local"}, ids...) {
 					status, err := kubectl.RunWithoutErr(
 						"get", "clusters.management.cattle.io", clusterID,
 						"-o", "jsonpath={.status.conditions[?(@.type==\"Ready\")].status}",
 					)
-					GinkgoWriter.Printf("Downstream cluster %s Ready status (loop %d): %s\n", clusterID, count, status)
+					GinkgoWriter.Printf("Cluster %s Ready status (loop %d): %s\n", clusterID, count, status)
 					if err != nil || !strings.Contains(status, "True") {
 						return fmt.Errorf("cluster %s not Ready yet (status=%s)", clusterID, status)
 					}
