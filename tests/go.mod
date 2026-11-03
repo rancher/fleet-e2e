@@ -1,6 +1,6 @@
 module github.com/rancher/fleet-e2e/tests
 
-go 1.27.0
+go 1.27.3
 
 replace go.qase.io/client => github.com/rancher/qase-go/client v0.0.0-20231114201952-65195ec001fa
 
