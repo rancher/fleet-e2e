@@ -64,7 +64,8 @@ declare global {
       accesMenuSelection(firstAccessMenu: string, secondAccessMenu?: string, clickOption?: string): Chainable<Element>;
       filterInSearchBox(filterText: string): Chainable<Element>;
       connectAppcoForNamespace(namespace: string, appcoUsername: string, appcoAccessToken: string): Chainable<Element>;
-      createAppBundleFromAppco(chartName: string): Chainable<Element>;
+      createAppBundleFromAppco(chartName: string, values?: string): Chainable<Element>;
+      appendAppCoValues(values: string): Chainable<Element>;
       verifyChartActiveFromAppco(
         chartName: string,
         timeout: number,
@@ -170,6 +171,7 @@ declare global {
       createConfigMap(configMapName: string): Chainable<Element>;
       deleteConfigMap(configMapName: string, clusterName?: string): Chainable<Element>;
       closePopWindow(windowMessage: string): Chainable<Element>;
+      closeWelcomeModalIfPresent(): Chainable<Element>;
       k8sUpgradeInRancher(clusterName: string): Chainable<Element>;
       continuousDeliveryMenuSelection(navToAppBundles?: boolean): Chainable<Element>;
       continuousDeliveryWorkspacesMenu(): Chainable<Element>;

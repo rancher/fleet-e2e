@@ -23,10 +23,13 @@ Cypress.config();
 describe('First login on Rancher', { tags: ['@login', '@pr-tests'] }, () => {
   it(qase(120, 'Log in and accept terms and conditions'), { tags: '@fleet-120' }, () => {
     cypressLib.firstLogin();
+    // 2.16 shows a "What's new in this release" modal on first login; close it if it appears.
+    cy.closeWelcomeModalIfPresent();
   });
 
   it(qase(114, 'Check ready state of local cluster after Rancher login'), { tags: '@fleet-114' }, () => {
     cy.login();
+    cy.closeWelcomeModalIfPresent();
     cy.visit('/');
     cypressLib.burgerMenuToggle();
     cypressLib.accesMenu('Continuous Delivery');

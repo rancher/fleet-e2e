@@ -413,7 +413,9 @@ Cypress.Commands.add('connectAppcoForNamespace', (namespace, appcoUsername, appc
 
 // Create an App Bundle from a SUSE Application Collection chart, assuming the App Bundles page
 // (correct namespace already toggled) is visible and the AppCo connection is already configured.
-Cypress.Commands.add('createAppBundleFromAppco', (chartName) => {
+// `values` (raw YAML) is appended to the wizard's Helm values before Create - needed when the
+// chart's latest version marks values as required with no default (e.g. external-dns 1.22+ `policy`).
+Cypress.Commands.add('createAppBundleFromAppco', (chartName, values?) => {
   cy.clickButton('Create App Bundle');
   cy.contains('App Bundle: Create').should('be.visible');
   cy.contains('SUSE Application Collection').should('be.visible').click();
@@ -425,9 +427,34 @@ Cypress.Commands.add('createAppBundleFromAppco', (chartName) => {
 
   cy.contains('button', 'Install this version', { timeout: 15000 }).click();
   cy.get('input[placeholder="A unique name"]').clear().type(chartName);
+
+  if (values) {
+    cy.appendAppCoValues(values);
+  }
+
   cy.clickButton('Create');
 
   cy.contains('App Bundles').should('be.visible');
+});
+
+// Append raw YAML to the App Bundle install wizard's Helm values editor.
+// The editor starts pre-filled with the imagePullSecrets values the install needs,
+// so this appends instead of overwriting.
+Cypress.Commands.add('appendAppCoValues', (values) => {
+  // The values editor lives in the Advanced section, which is collapsed by default.
+  cy.get('body').then(($body) => {
+    const $collapsed = $body.find('[data-testid="appco-config-advanced"] .section-header.collapsed');
+
+    // Section is collapsed -> click its header to expand it.
+    if ($collapsed.length) {
+      cy.wrap($collapsed).click();
+    }
+  });
+
+  cy.getYamlEditorValue().then((current) => {
+    // New values go on a new line after whatever the editor already contains.
+    cy.setYamlEditorValue(`${current.trimEnd()}\n${values}`);
+  });
 });
 
 // Verify a chart installed via createAppBundleFromAppco() reached Active with all resources up.
@@ -771,7 +798,8 @@ Cypress.Commands.add(
   'checkGitRepoStatus',
   (repoName, bundles, resources, { timeout = 30000, repoStatus = 'Active' } = {}) => {
     cy.verifyTableRow(0, repoStatus, repoName);
-    cy.contains(repoName).click();
+    // Click the row link: on 2.16+ a bare cy.contains() can match the filter text in the search box
+    cy.get('td.col-link-detail a').contains(repoName).click();
     cy.get('.primaryheader > h1, h1 > span.resource-name.masthead-resource-title')
       .contains(repoName)
       .should('be.visible');
@@ -970,15 +998,20 @@ Cypress.Commands.add('deleteAllUsers', (userName) => {
   // Delete all users (Admin one will stay as cannot be deleted)
   cy.accesMenuSelection('Users & Authentication');
   cy.contains('.title', 'Users').should('be.visible');
-  cy.get('body').then(($body) => {
-    if ($body.find('td.row-check .selection-checkbox').length > 0) {
-      cy.wait(250); // Add small wait to give time for things to settle
-      cy.get('[width="30"] > .checkbox-outer-container.check', { timeout: 50000 }).click();
-      cy.deleteSelectedRows();
-    } else {
-      cy.log('No users to delete');
-    }
-  });
+  // Admin row is always listed: wait for the table to load before deciding, otherwise users get skipped
+  cy.get('tbody tr.main-row')
+    .should('have.length.gte', 1)
+    .then(($rows) => {
+      if ($rows.length > 1) {
+        cy.wait(250); // Add small wait to give time for things to settle
+        cy.get('[width="30"] > .checkbox-outer-container.check').click();
+        cy.deleteSelectedRows();
+        // Wait for deletion to finish so a test re-creating the same username is not rejected
+        cy.get('tbody tr.main-row', { timeout: 30000 }).should('have.length', 1);
+      } else {
+        cy.log('No users to delete');
+      }
+    });
 });
 
 // Delete created role
@@ -1302,7 +1335,7 @@ Cypress.Commands.add('checkGitRepoAfterUpgrade', (repoName, fleetNamespace = 'fl
   cy.continuousDeliveryMenuSelection();
   cy.fleetNamespaceToggle(fleetNamespace);
   cy.filterInSearchBox(repoName);
-  cy.verifyTableRow(0, /Active|Modified/, repoName);
+  cy.verifyTableRow(0, 'Active', repoName);
 });
 
 Cypress.Commands.add('currentClusterResourceCount', (clusterName) => {
@@ -1569,6 +1602,27 @@ Cypress.Commands.add('closePopWindow', (windowMessage, retries = 5, delay = 1000
     });
   };
 
+  checkAndClose(retries);
+});
+
+// Close the 2.16+ "What's new in this release" welcome modal (data-testid="release-welcome")
+// if it appears. Manual retry loop because cy.get() fails when absent and the modal renders async.
+// The "seen" user preference is saved asynchronously after closing; give it time, otherwise
+// the next cy.visit() aborts the save and the modal opens again on every page load.
+Cypress.Commands.add('closeWelcomeModalIfPresent', (retries = 10, delay = 1000) => {
+  if (!isRancherVersionAtLeast(16)) return; // Optimization: won't run < 2.16
+  const checkAndClose = (remaining) => {
+    if (remaining <= 0) return;
+    cy.get('body').then(($body) => {
+      if ($body.find('[data-testid="release-welcome"]').length > 0) {
+        cy.get('[data-testid="release-welcome-close"]').click();
+        cy.get('[data-testid="release-welcome"]').should('not.exist');
+        cy.wait(2000);
+      } else {
+        cy.wait(delay).then(() => checkAndClose(remaining - 1));
+      }
+    });
+  };
   checkAndClose(retries);
 });
 

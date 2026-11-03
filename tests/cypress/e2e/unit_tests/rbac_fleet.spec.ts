@@ -41,6 +41,7 @@ export const supported_versions_212_and_above = [
 
 beforeEach(() => {
   cy.login();
+  cy.closeWelcomeModalIfPresent();
   cy.visit('/');
   cy.deleteAllUsers();
   cy.deleteRole('-role', roleTypeTemplate.toUpperCase());
@@ -89,6 +90,7 @@ describe(
         // Logout as admin and login as other user
         cypressLib.logout();
         cy.login(baseUser, uiPassword);
+        cy.closeWelcomeModalIfPresent();
 
         // Ensuring the user IS able to access "Continuous Delivery" and
         // sub menu "GitRepo", "FleetWorkspaces" and "Bundles".
@@ -143,6 +145,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       // Logout as admin and login as other user
       cypressLib.logout();
       cy.login(stduser, uiPassword);
+      cy.closeWelcomeModalIfPresent();
 
       // Ensuring the user IS able to "go to Continuous Delivery",
       //"go to Bundles" and "list" and "create" workspaces.
@@ -201,6 +204,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       // Logout as admin and login as other user
       cypressLib.logout();
       cy.login(stduser, uiPassword);
+      cy.closeWelcomeModalIfPresent();
 
       // Ensuring the user IS able  to "list", "edit" and "create" workspaces.
       cy.continuousDeliveryMenuSelection();
@@ -257,6 +261,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       // Logout as admin and login as other user
       cypressLib.logout();
       cy.login(stduser, uiPassword);
+      cy.closeWelcomeModalIfPresent();
 
       // Ensuring the user IS able to "go to Continuous Delivery", "list" and "delete" workspaces.
       cy.continuousDeliveryMenuSelection();
@@ -278,10 +283,10 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
     ),
     { tags: '@fleet-42' },
     () => {
-      const baseUser = 'base-user';
+      const baseUser = 'base-user-42';
       const customRoleName = 'fleetworkspaces-bundles-gitrepos-all-verbs-role';
 
-      // Create 'base-user' User using "Standard User"
+      // Create 'base-user-42' User using "Standard User"
       cypressLib.burgerMenuToggle();
       cy.createNewUser(baseUser, uiPassword, 'Standard User', true);
 
@@ -310,6 +315,7 @@ describe('Test Fleet access with RBAC with custom roles using Standard User', { 
       // Logout as admin and login as other user
       cypressLib.logout();
       cy.login(baseUser, uiPassword);
+      cy.closeWelcomeModalIfPresent();
 
       // Ensuring the user IS able to access "Continuous Delivery" and
       // sub-menu "GitRepo", "FleetWorkspaces" and "Bundles".
@@ -338,6 +344,7 @@ describe(
   () => {
     before('Deleting leftover Gitrepos preparing needed ones for next tests', () => {
       cy.login();
+      cy.closeWelcomeModalIfPresent();
       cy.deleteAllFleetRepos();
       // A leftover GitRepoRestriction from a failed test elsewhere would otherwise
       // reject the GitRepos this hook is about to create.
@@ -390,6 +397,7 @@ describe(
         // Logout as admin and login as other user
         cypressLib.logout();
         cy.login(stduser, uiPassword);
+        cy.closeWelcomeModalIfPresent();
 
         // CAN go to Continuous Delivery Dashboard and "list" gitrepos
         cy.continuousDeliveryMenuSelection();
@@ -450,6 +458,7 @@ describe(
         // Logout as admin and login as other user
         cypressLib.logout();
         cy.login(stduser, uiPassword);
+        cy.closeWelcomeModalIfPresent();
 
         // CAN go to Continuous Delivery Dashboard and "list" gitrepos
         cy.continuousDeliveryMenuSelection();
@@ -511,6 +520,7 @@ describe(
         // Logout as admin and login as other user
         cypressLib.logout();
         cy.login(stduser, uiPassword);
+        cy.closeWelcomeModalIfPresent();
 
         // CAN go to Continuous Delivery Dashboard and "list" gitrepos
         cy.continuousDeliveryMenuSelection();
@@ -575,6 +585,7 @@ describe(
         // Logout as admin and login as other user
         cypressLib.logout();
         cy.login(stduser, uiPassword);
+        cy.closeWelcomeModalIfPresent();
 
         // CAN go to Continuous Delivery Dashboard and "list" gitrepos
         cy.continuousDeliveryMenuSelection();
@@ -612,6 +623,7 @@ describe(
   () => {
     before('Deleting leftover Gitrepos preparing needed ones for next tests', () => {
       cy.login();
+      cy.closeWelcomeModalIfPresent();
       cy.deleteAllFleetRepos();
       // A leftover GitRepoRestriction from a failed test elsewhere would otherwise
       // reject the GitRepos this hook is about to create.
@@ -662,6 +674,7 @@ describe(
         // Logout as admin and login as other user
         cypressLib.logout();
         cy.login(baseUser, uiPassword);
+        cy.closeWelcomeModalIfPresent();
 
         // CAN go to Continuous Delivery Dashboard/App Bundles page and "list" gitrepos
         if (supported_versions_212_and_above.some((r) => r.test(rancherVersion))) {
@@ -730,6 +743,7 @@ describe(
         // Logout as admin and login as other user
         cypressLib.logout();
         cy.login(baseUser, uiPassword);
+        cy.closeWelcomeModalIfPresent();
 
         // CAN go to Continuous Delivery Dashboard and "list" gitrepos
         cy.continuousDeliveryMenuSelection();
@@ -792,6 +806,7 @@ describe(
         // Logout as admin and login as other user
         cypressLib.logout();
         cy.login(baseUser, uiPassword);
+        cy.closeWelcomeModalIfPresent();
 
         // CAN go to Continuous Delivery Dashboard and "list" gitrepos
         cy.continuousDeliveryMenuSelection();
@@ -857,6 +872,7 @@ describe(
         // Logout as admin and login as other user
         cypressLib.logout();
         cy.login(baseUser, uiPassword);
+        cy.closeWelcomeModalIfPresent();
 
         // CAN go to Continuous Delivery Dashboard and "list" gitrepos
         cy.continuousDeliveryMenuSelection();
@@ -928,6 +944,7 @@ describe(
         // Logout as admin and login as other user
         cypressLib.logout();
         cy.login(baseUser, uiPassword);
+        cy.closeWelcomeModalIfPresent();
 
         // Ensuring the user IS able to "go to Continuous Delivery",
         //"go to Bundles" and "list" and "create" workspaces.
@@ -985,6 +1002,7 @@ describe(
         // Logout as admin and login as other user
         cypressLib.logout();
         cy.login(baseUser, uiPassword);
+        cy.closeWelcomeModalIfPresent();
 
         // Ensuring the user IS able  to "list", "edit" and "create" workspaces.
         cy.continuousDeliveryMenuSelection();
@@ -1040,6 +1058,7 @@ describe(
         // Logout as admin and login as other user
         cypressLib.logout();
         cy.login(baseUser, uiPassword);
+        cy.closeWelcomeModalIfPresent();
 
         // Ensuring the user IS able to "go to Continuous Delivery", "list" and "delete" workspaces.
         cy.continuousDeliveryMenuSelection();
