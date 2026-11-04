@@ -2164,3 +2164,42 @@ if (isRancherVersionAtLeast(16)) {
     );
   });
 }
+
+// Fleet labels deployed resources with their source since v0.17.0-alpha.7 (Rancher 2.16), main only.
+if (/\/2\.(1[6-9]|[2-9][0-9])/.test(Cypress.expose('rancher_version'))) {
+  describe('Test resources deployed by Fleet are labelled with their source.', { tags: '@p1_2' }, () => {
+    it(
+      'Fleet-XXX: Test GitRepo resources carry managed-by labels and fleet-agent does not.',
+      { tags: '@fleet-XXX' },
+      () => {
+        const repoName = 'test-managed-by-labels';
+        const managedByLabels = [
+          'fleet.cattle.io/managed-by-kind: gitrepo',
+          `fleet.cattle.io/managed-by-name: ${repoName}`,
+          'fleet.cattle.io/managed-by-namespace: fleet-local',
+        ];
+
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+        // The nginx-keep Deployment from the GitRepo carries all three source labels.
+        cy.accesMenuSelection('local', 'Workloads', 'Deployments');
+        cy.nameSpaceMenuToggle('All Namespaces');
+        cy.filterInSearchBox(appName);
+        cy.verifyTableRow(0, appName);
+        cy.open3dotsMenu(appName, 'Edit YAML');
+        cy.get('.CodeMirror, .cm-editor').should('contain', 'apiVersion');
+        cy.getYamlEditorValue().then((yamlText) => {
+          managedByLabels.forEach((label) => {
+            expect(yamlText.includes(label), `${appName} should have "${label}"`).to.eq(true);
+          });
+        });
+        cy.clickButton('Cancel');
+
+        // fleet-agent is not deployed from a GitRepo/HelmOp, so it must not be labelled.
+        cy.checkAnnotationInYaml('fleet-agent', 'fleet.cattle.io/managed-by-kind', false);
+      },
+    );
+  });
+}
