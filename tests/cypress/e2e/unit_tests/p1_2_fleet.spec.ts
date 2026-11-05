@@ -13,6 +13,7 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
+import { isRancherVersionAtLeast } from 'cypress/support/commands';
 
 export const appName = 'nginx-keep';
 export const branch = 'master';
@@ -2132,3 +2133,34 @@ describe('Test "helm.sh/resource-policy: keep" annotation is added to CRDs only.
     },
   );
 });
+
+// AgentVersionUpToDate condition on Fleet clusters since v0.17.0-alpha.1 (Rancher 2.16), main only.
+if (isRancherVersionAtLeast(16)) {
+  describe('Test AgentVersionUpToDate condition on Fleet clusters.', { tags: '@p1_2' }, () => {
+    it(
+      qase(497, 'Fleet-497: Test Fleet clusters report AgentVersionUpToDate=True without affecting Ready.'),
+      { tags: '@fleet-497' },
+      () => {
+        const conditionRows = 'section#conditions tbody tr, section[data-testid="tab-panel-conditions"] tbody tr';
+
+        // Local cluster (fleet-local) and one downstream (fleet-default); same check on each.
+        [
+          { workspace: 'fleet-local', clusterName: 'local' },
+          { workspace: 'fleet-default', clusterName: dsFirstClusterName },
+        ].forEach(({ workspace, clusterName }) => {
+          cy.continuousDeliveryMenuSelection();
+          cy.fleetNamespaceToggle(workspace);
+          cy.clickNavMenu(['Clusters']);
+          cy.filterInSearchBox(clusterName);
+          cy.verifyTableRow(0, 'Active', clusterName);
+          cy.get('td.col-link-detail a').contains(clusterName).click();
+
+          // Informational condition is True and leaves cluster readiness untouched.
+          cy.get('ul[role="tablist"]').contains('Conditions').click();
+          cy.contains(conditionRows, 'AgentVersionUpToDate').should('contain', 'True');
+          cy.contains(conditionRows, 'Ready').should('contain', 'True');
+        });
+      },
+    );
+  });
+}
