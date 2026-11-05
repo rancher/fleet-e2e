@@ -934,15 +934,17 @@ if (
   });
 }
 
-describe('Test GitRepo creation from a Git revision instead of a branch', { tags: '@p1' }, () => {
+describe('Test GitRepo revision and branch switching', { tags: '@p1' }, () => {
+  const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public.git';
+  const revision = 'v1.0.0';
+  const path = 'nginx-tag';
+  const appName = 'nginx-tag';
+
   it(
     qase(122, 'Fleet-122: Test GitRepo can be created from a specific Git revision (tag) instead of a branch'),
     { tags: '@fleet-122' },
     () => {
-      const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public.git';
       const repoName = 'local-cluster-revision-122';
-      const revision = 'v1.0.0';
-      const path = 'nginx-tag';
 
       // Create a GitRepo pinned to a Git revision (tag) instead of the master branch.
       cy.addFleetGitRepo({ repoName, repoUrl, revision, path, local: true });
@@ -950,7 +952,30 @@ describe('Test GitRepo creation from a Git revision instead of a branch', { tags
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
 
       // Application should be deployed from the pinned revision.
-      cy.checkApplicationStatus('nginx-tag');
+      cy.checkApplicationStatus(appName);
+    },
+  );
+
+  it(
+    qase(
+      510,
+      'Fleet-510: Test GitRepo can switch from pinned revision to watching a branch without "Invalid Commit Id" error',
+    ),
+    { tags: '@fleet-510' },
+    () => {
+      const repoName = 'local-cluster-revision-to-branch-510';
+
+      // Create a GitRepo pinned to a Git revision (tag) instead of the master branch.
+      cy.addFleetGitRepo({ repoName, repoUrl, revision, path, local: true });
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+      // Switch the GitRepo from the pinned revision to watching a branch (used to fail with "Invalid Commit Id").
+      // Ref: https://github.com/rancher/fleet/issues/1779
+      cy.addFleetGitRepo({ repoName, branch: 'main', editConfig: true });
+      cy.clickButton('Save');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      cy.contains('Invalid Commit Id').should('not.exist');
     },
   );
 });
