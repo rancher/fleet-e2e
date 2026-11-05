@@ -208,6 +208,7 @@ Cypress.Commands.add(
     editConfig = false,
     helmRepoURLRegex,
     deployToTarget,
+    targetClusterName,
     allowedTargetNamespace = '',
     local = false,
   }) => {
@@ -250,6 +251,9 @@ Cypress.Commands.add(
 
     if (deployToTarget) {
       cy.deployToClusterOrClusterGroup(deployToTarget);
+    }
+    if (targetClusterName) {
+      cy.selectTargetClusterByName(targetClusterName);
     }
 
     if (allowedTargetNamespace !== '') {
@@ -372,6 +376,16 @@ Cypress.Commands.add('deployToClusterOrClusterGroup', (deployToTarget) => {
       }
     });
   }
+});
+
+// Deploy To > "Manually selected clusters", then pick one cluster from the "Cluster names" select.
+Cypress.Commands.add('selectTargetClusterByName', (clusterName) => {
+  cy.get('[data-testid="fleet-target-cluster-radio-button"]')
+    .contains('Manually selected clusters')
+    .should('be.visible')
+    .click();
+  cy.get('[data-testid="fleet-target-cluster-name-selector"]').should('be.visible').click();
+  cy.get('ul.vs__dropdown-menu > li').contains(clusterName).should('be.visible').click();
 });
 
 Cypress.Commands.add('clickCreateGitRepo', (local) => {
@@ -1816,6 +1830,28 @@ Cypress.Commands.add('checkAnnotationInYaml', (resourceName, annotation, shouldB
       yamlText.includes(annotation),
       `${resourceName} should ${shouldBePresent ? '' : 'not '}have "${annotation}"`,
     ).to.eq(shouldBePresent);
+  });
+  cy.clickButton('Cancel');
+});
+
+// Assert a Deployment deployed by Fleet carries the managed-by-{kind,name,namespace} labels of its source.
+Cypress.Commands.add('checkManagedByLabels', ({ resourceName, clusterName = 'local', kind, name, namespace }) => {
+  const managedByLabels = [
+    `fleet.cattle.io/managed-by-kind: ${kind}`,
+    `fleet.cattle.io/managed-by-name: ${name}`,
+    `fleet.cattle.io/managed-by-namespace: ${namespace}`,
+  ];
+
+  cy.accesMenuSelection(clusterName, 'Workloads', 'Deployments');
+  cy.nameSpaceMenuToggle('All Namespaces');
+  cy.filterInSearchBox(resourceName);
+  cy.verifyTableRow(0, resourceName);
+  cy.open3dotsMenu(resourceName, 'Edit YAML');
+  cy.get('.CodeMirror, .cm-editor').should('contain', 'apiVersion');
+  cy.getYamlEditorValue().then((yamlText) => {
+    managedByLabels.forEach((label) => {
+      expect(yamlText.includes(label), `${resourceName} should have "${label}"`).to.eq(true);
+    });
   });
   cy.clickButton('Cancel');
 });
