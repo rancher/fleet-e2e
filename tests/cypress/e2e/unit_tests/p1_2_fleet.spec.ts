@@ -13,6 +13,7 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
+import { isRancherVersionAtLeast } from 'cypress/support/commands';
 
 export const appName = 'nginx-keep';
 export const branch = 'master';
@@ -2134,7 +2135,7 @@ describe('Test "helm.sh/resource-policy: keep" annotation is added to CRDs only.
 });
 
 // AgentVersionUpToDate condition on Fleet clusters since v0.17.0-alpha.1 (Rancher 2.16), main only.
-if (!/\/2\.(1[0-5])/.test(Cypress.expose('rancher_version'))) {
+if (isRancherVersionAtLeast(16)) {
   describe('Test AgentVersionUpToDate condition on Fleet clusters.', { tags: '@p1_2' }, () => {
     it(
       qase(497, 'Fleet-497: Test Fleet clusters report AgentVersionUpToDate=True without affecting Ready.'),
