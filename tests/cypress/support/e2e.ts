@@ -48,6 +48,7 @@ declare global {
         editConfig?: boolean,
         helmRepoURLRegex?: string,
         deployToTarget?: string,
+        targetClusterName?: string,
         tlsOption?: string,
         tlsCertificate?: string,
         allowedTargetNamespace?: string,
@@ -123,6 +124,7 @@ declare global {
       ): Chainable<Element>;
       deleteClusterGroups(): Chainable<Element>;
       deployToClusterOrClusterGroup(deployToTarget: string): Chainable<Element>;
+      selectTargetClusterByName(clusterName: string): Chainable<Element>;
       removeClusterLabels(clusterName: string, key: string, value: string): Chainable<Element>;
       clusterCountClusterGroup(clusterGroupName: string, clusterCount: number): Chainable<Element>;
       addYamlFile(yamlFilePath: string): Chainable<Element>;
@@ -204,6 +206,13 @@ declare global {
       continuousDeliveryGitRepoRestrictionsMenu(): Chainable<Element>;
       getClusterIds(clusterList: string[]): Chainable<Record<string, string>>;
       checkAnnotationInYaml(resourceName: string, annotation: string, shouldBePresent?: boolean): Chainable<Element>;
+      checkManagedByLabels(
+        resourceName: string,
+        kind: string,
+        name: string,
+        namespace: string,
+        clusterName?: string,
+      ): Chainable<Element>;
       checkResourcePolicyAnnotation(
         crdName: string,
         serviceName: string,

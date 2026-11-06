@@ -2164,3 +2164,77 @@ if (isRancherVersionAtLeast(16)) {
     );
   });
 }
+
+// Fleet labels deployed resources with their source since v0.17.0-alpha.7 (Rancher 2.16+), main only.
+if (isRancherVersionAtLeast(16)) {
+  describe('Test resources deployed by Fleet are labelled with their source.', { tags: '@p1_2' }, () => {
+    it(
+      qase(
+        498,
+        'Fleet-498: Test GitRepo resources carry managed-by labels, correctDrift ignores them and fleet-agent is not labelled.',
+      ),
+      { tags: '@fleet-498' },
+      () => {
+        const repoName = 'test-managed-by-labels';
+
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift: 'yes', local: true });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+        // The nginx-keep Deployment from the GitRepo carries all three source labels.
+        cy.checkManagedByLabels({ resourceName: appName, kind: 'gitrepo', name: repoName, namespace: 'fleet-local' });
+
+        // fleet-agent is not deployed from a GitRepo/HelmOp, so it must not be labelled.
+        cy.checkAnnotationInYaml('fleet-agent', 'fleet.cattle.io/managed-by-kind', false);
+
+        // With correctDrift enabled the labels must not be treated as drift (no Modified state).
+        cy.continuousDeliveryMenuSelection();
+        cy.fleetNamespaceToggle('fleet-local');
+        cy.filterInSearchBox(repoName);
+        cy.verifyTableRow(0, 'Active', repoName);
+      },
+    );
+
+    it(qase(499, 'Fleet-499: Test HelmOp resources carry managed-by labels.'), { tags: '@fleet-499' }, () => {
+      const repoName = 'test-managed-by-helmop';
+
+      cy.addHelmOp({
+        fleetNamespace: 'fleet-local',
+        repoName,
+        repoUrl: 'https://grafana.github.io/helm-charts',
+        chart: 'grafana',
+      });
+      cy.verifyTableRow(0, 'Active', '1/1');
+
+      // The grafana chart names its Deployment after the release, which is the HelmOp name.
+      cy.checkManagedByLabels({ resourceName: repoName, kind: 'helmop', name: repoName, namespace: 'fleet-local' });
+    });
+
+    it(
+      qase(500, 'Fleet-500: Test GitRepo resources on a downstream cluster carry the fleet-default managed-by labels.'),
+      { tags: '@fleet-500' },
+      () => {
+        const repoName = 'test-managed-by-labels-ds';
+
+        cy.addFleetGitRepo({
+          repoName,
+          repoUrl,
+          branch,
+          path,
+          fleetNamespace: 'fleet-default',
+          targetClusterName: dsFirstClusterName,
+        });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+        cy.checkManagedByLabels({
+          resourceName: appName,
+          clusterName: dsFirstClusterName,
+          kind: 'gitrepo',
+          name: repoName,
+          namespace: 'fleet-default',
+        });
+      },
+    );
+  });
+}
