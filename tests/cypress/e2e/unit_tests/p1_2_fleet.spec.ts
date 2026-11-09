@@ -2238,3 +2238,60 @@ if (isRancherVersionAtLeast(16)) {
     );
   });
 }
+
+// Rancher passes Fleet workspace annotations to its namespace since v2.15.0, backported to v2.14.
+if (isRancherVersionAtLeast(14)) {
+  describe('Test Fleet workspace labels and annotations are passed to its namespace.', { tags: '@p1_2' }, () => {
+    it(
+      qase(502, 'Fleet-502: Test namespace created by a Fleet workspace carries the workspace annotations and labels.'),
+      { tags: '@fleet-502' },
+      () => {
+        const workspaceName = 'qa-workspace-annotations';
+
+        // Create the workspace with labels and annotations, as in the issue.
+        cy.continuousDeliveryMenuSelection();
+        cy.continuousDeliveryWorkspacesMenu();
+        cy.clickButton('Create');
+        cy.contains('Workspace:').should('be.visible');
+        cy.typeValue('Name', workspaceName);
+        cy.contains('Labels & Annotations').click();
+        // Labels and annotations number their rows from 0 each, hence the .eq() on row 0.
+        cy.clickButton('Add Label');
+        cy.get('[data-testid="input-kv-item-key-0"]').eq(0).type('qa-team');
+        cy.get('[data-testid="kv-item-value-0"]').eq(0).find('textarea, input').first().type('team-a');
+        cy.clickButton('Add Annotation');
+        cy.get('[data-testid="input-kv-item-key-0"]').eq(1).type('qa-owner');
+        cy.get('[data-testid="kv-item-value-0"]').eq(1).find('textarea, input').first().type('team-a');
+        cy.clickButton('Add Annotation');
+        cy.get('[data-testid="input-kv-item-key-1"]').eq(0).type('qa-environment');
+        cy.get('[data-testid="kv-item-value-1"]').eq(0).find('textarea, input').first().type('production');
+        // KeyValue emits its rows 500ms after the last keystroke; saving sooner drops them.
+        cy.wait(1000);
+        cy.clickButton('Create');
+        cy.filterInSearchBox(workspaceName);
+        cy.verifyTableRow(0, 'Active', workspaceName);
+
+        // The namespace carries the annotations (the fix) and the label (worked before the fix).
+        cy.accesMenuSelection('local', 'Projects/Namespaces');
+        cy.filterInSearchBox(workspaceName);
+        cy.verifyTableRow(0, 'Active', workspaceName);
+        cy.open3dotsMenu(workspaceName, 'Edit YAML');
+        cy.get('.CodeMirror, .cm-editor').should('contain', 'apiVersion');
+        cy.getYamlEditorValue().then((yamlText) => {
+          // Collect every missing entry so one failure shows whether only the annotations are missing.
+          const missing = ['qa-owner: team-a', 'qa-environment: production', 'qa-team: team-a'].filter(
+            (entry) => !yamlText.includes(entry),
+          );
+          expect(missing, `Entries missing on namespace ${workspaceName}`).to.deep.eq([]);
+        });
+        cy.clickButton('Cancel');
+
+        // Delete the workspace; its namespace goes with it.
+        cy.continuousDeliveryMenuSelection();
+        cy.continuousDeliveryWorkspacesMenu();
+        cy.filterInSearchBox(workspaceName);
+        cy.deleteAll(false);
+      },
+    );
+  });
+}
