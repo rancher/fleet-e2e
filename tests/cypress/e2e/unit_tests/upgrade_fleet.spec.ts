@@ -13,6 +13,7 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
+import { isRancherVersionAtLeast } from 'cypress/support/commands';
 
 export const branch = 'master';
 export const upgrade = Cypress.expose('upgrade') === 'true';
@@ -89,6 +90,37 @@ describe('Test Fleet deployment on PUBLIC repos', { tags: '@upgrade' }, () => {
     cy.verifyTableRow(5, 'Service', 'redis-slave');
   });
 });
+
+// Managed-by labels exist since Rancher 2.16: absent before the upgrade, added after a Force Update.
+// Runs before the upgrade only on < 2.16, and after it only on 2.16+.
+if (upgrade === isRancherVersionAtLeast(16)) {
+  describe('Test resources deployed before the upgrade get managed-by labels', { tags: '@upgrade' }, () => {
+    it(
+      qase(501, 'Fleet-501: Test resources deployed before the upgrade carry managed-by labels after a Force Update'),
+      { tags: '@fleet-501' },
+      () => {
+        // Reuses the GitRepo deployed before the upgrade by Fleet-158 (@fleet-158 must run first).
+        const repoName = 'local-cluster-fleet-158';
+
+        if (upgrade) {
+          cy.checkGitRepoAfterUpgrade(repoName, 'fleet-local');
+          cy.open3dotsMenu(repoName, 'Force Update');
+          cy.checkGitRepoStatus(repoName, '1 / 1', '6 / 6');
+          cy.checkManagedByLabels({
+            resourceName: 'frontend',
+            kind: 'gitrepo',
+            name: repoName,
+            namespace: 'fleet-local',
+          });
+        } else {
+          cy.accesMenuSelection('local', 'Workloads', 'Deployments');
+          cy.nameSpaceMenuToggle('All Namespaces');
+          cy.checkAnnotationInYaml('frontend', 'fleet.cattle.io/managed-by-kind', false);
+        }
+      },
+    );
+  });
+}
 
 describe('Test gitrepos with cabundle', { tags: '@upgrade' }, () => {
   it(
