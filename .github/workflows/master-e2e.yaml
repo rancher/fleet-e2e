@@ -110,7 +110,7 @@ on:
         default: stgregistry.suse.com
         type: string
       rancher_image_tag:
-        description: Exact head Rancher image tag (empty = v2.XX-head on stgregistry, latest rancher/rancher branch build on docker.io)
+        description: Exact head Rancher image tag (empty = v2.XX-head on stgregistry, rancher/rancher-server for 2.16+; latest rancher/rancher branch build on docker.io)
         default: ""
         type: string
       rancher_upgrade:
@@ -371,7 +371,12 @@ jobs:
             fi
           fi
           # Empty TAG lets the install test default to the floating v2.XX-head tag
-          echo "Rancher image: ${RANCHER_IMAGE_REGISTRY}/rancher/rancher:${TAG:-v${VER}-head}"
+          # stgregistry publishes 2.16+ as rancher/rancher-server (picked by rancherExtraFlags in suite_test.go)
+          REPO=rancher/rancher
+          if [[ "${RANCHER_IMAGE_REGISTRY}" == "stgregistry.suse.com" && "$(cut -d. -f2 <<< "${VER}")" -ge 16 ]]; then
+            REPO=rancher/rancher-server
+          fi
+          echo "Rancher image: ${RANCHER_IMAGE_REGISTRY}/${REPO}:${TAG:-v${VER}-head}"
           echo "RANCHER_IMAGE_TAG=${TAG}" >> ${GITHUB_ENV}
       - name: Install prerequisite components
         env:

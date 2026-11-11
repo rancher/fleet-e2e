@@ -35,7 +35,7 @@ on:
         type: string
         required: true
       rancher_image_registry:
-        description: Registry for the head Rancher image (docker.io = latest branch build, 2.15+ only; stgregistry = v2.XX-head)
+        description: Registry for the head Rancher image (docker.io = latest branch build, 2.15+ only; stgregistry = v2.XX-head, rancher/rancher-server for 2.16+)
         default: stgregistry.suse.com
         type: choice
         options:

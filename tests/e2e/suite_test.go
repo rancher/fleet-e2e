@@ -71,9 +71,32 @@ func RunHelmCmdWithRetry(s ...string) {
 }
 
 /**
+ * Parse the major and minor numbers of a Rancher version
+ * @param version e.g. "2.16", "2.12.12-alpha1"
+ * @returns major, minor, and false if the version cannot be parsed
+ */
+func parseRancherMinor(version string) (int, int, bool) {
+	v := strings.SplitN(version, ".", 3)
+	if len(v) < 2 {
+		return 0, 0, false
+	}
+	maj, errMaj := strconv.Atoi(strings.TrimSpace(v[0]))
+	minStr := v[1]
+	if i := strings.IndexFunc(minStr, func(r rune) bool { return r < '0' || r > '9' }); i >= 0 {
+		minStr = minStr[:i]
+	}
+	min, errMin := strconv.Atoi(minStr)
+	if errMaj != nil || errMin != nil {
+		return 0, 0, false
+	}
+	return maj, min, true
+}
+
+/**
  * Build the Helm extra flags for DeployRancherManager
  * Always uses the system default charts, and selects the Rancher image on the head channel.
  * registry defaults to stgregistry.suse.com, the only registry publishing floating v2.XX-head tags.
+ * On stgregistry the image is rancher/rancher-server from 2.16, rancher/rancher before that.
  * imageTag is required for docker.io, which only has v2.XX-<sha>-head tags (resolved by the CI workflow).
  * Agent images always come from Docker Hub (rancher/rancher-agent).
  * @returns --set flags, with rancherImage/rancherImageTag only on the head channel
@@ -89,19 +112,25 @@ func rancherExtraFlags(channel, version, headVersion, registry, imageTag string)
 	}
 
 	// For head/2.XX format: version=2.XX, headVersion=""
+	headVer := headVersion
+	if headVer == "" {
+		headVer = version
+	}
+
 	if imageTag == "" {
 		if registry == "docker.io" {
 			Fail("RANCHER_IMAGE_TAG must be set when using docker.io, it has no floating v2.XX-head tag")
 		}
-		headVer := headVersion
-		if headVer == "" {
-			headVer = version
-		}
 		imageTag = "v" + headVer + "-head"
 	}
 
+	repo := "rancher/rancher"
+	if maj, min, ok := parseRancherMinor(headVer); ok && registry == "stgregistry.suse.com" && (maj > 2 || (maj == 2 && min >= 16)) {
+		repo = "rancher/rancher-server"
+	}
+
 	return append(flags,
-		"--set", "rancherImage="+registry+"/rancher/rancher",
+		"--set", "rancherImage="+registry+"/"+repo,
 		"--set", "rancherImageTag="+imageTag,
 	)
 }
@@ -183,16 +212,8 @@ var _ = BeforeSuite(func() {
 		}
 
 		// Set useDirectInsecureCmd for Rancher <= 2.12 (e.g. "2.11", "2.12.12-alpha1").
-		if v := strings.SplitN(rancherVersion, ".", 3); len(v) >= 2 {
-			maj, errMaj := strconv.Atoi(strings.TrimSpace(v[0]))
-			minStr := v[1]
-			if i := strings.IndexFunc(minStr, func(r rune) bool { return r < '0' || r > '9' }); i >= 0 {
-				minStr = minStr[:i]
-			}
-			min, errMin := strconv.Atoi(minStr)
-			if errMaj == nil && errMin == nil {
-				useDirectInsecureCmd = maj < 2 || (maj == 2 && min <= 12)
-			}
+		if maj, min, ok := parseRancherMinor(rancherVersion); ok {
+			useDirectInsecureCmd = maj < 2 || (maj == 2 && min <= 12)
 		}
 	}
 
