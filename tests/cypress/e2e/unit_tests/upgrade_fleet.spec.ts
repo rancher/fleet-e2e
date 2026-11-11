@@ -99,6 +99,7 @@ if (upgrade === isRancherVersionAtLeast(16)) {
       qase(501, 'Fleet-501: Test resources deployed before the upgrade carry managed-by labels after a Force Update'),
       { tags: '@fleet-501' },
       () => {
+        // Reuses the GitRepo deployed before the upgrade by Fleet-158 (@fleet-158 must run first).
         const repoName = 'local-cluster-fleet-158';
 
         if (upgrade) {
