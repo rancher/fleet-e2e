@@ -2366,3 +2366,42 @@ if (isRancherVersionAtLeast(16)) {
     );
   });
 }
+
+// Fleet sends a fleet/<version> User-Agent on Helm repository and OCI requests since v0.17.0-beta.1 (Rancher 2.16+), main only.
+if (isRancherVersionAtLeast(16)) {
+  describe('Test Fleet identifies its requests with a fleet/<version> User-Agent.', { tags: '@p1_2' }, () => {
+    it(
+      qase(507, 'Fleet-507: Test HelmOp requests to a Helm repository carry the fleet/<version> User-Agent.'),
+      { tags: '@fleet-507' },
+      () => {
+        const repoName = 'test-fleet-user-agent';
+        const helmRepoPod = 'nginx-ua-helm-repo';
+
+        // Dedicated Helm repository, so its access log only holds the requests made by this test.
+        cy.exec('bash assets/helm-server-user-agent.sh', { timeout: 240000 }).then((result) => {
+          cy.log(result.stdout, result.stderr);
+        });
+
+        cy.addHelmOp({
+          fleetNamespace: 'fleet-local',
+          repoName,
+          repoUrl: 'http://nginx-ua-service.fleet-ua-test.svc.cluster.local',
+          chart: 'app',
+          version: '0.1.0',
+        });
+        // Active 1/1 proves Fleet fetched the index and the chart from the repository.
+        cy.verifyTableRow(0, 'Active', '1/1');
+
+        // nginx logs the User-Agent of every request: both the index and the chart download come from Fleet.
+        cy.checkApplicationStatus(helmRepoPod);
+        cy.open3dotsMenu(helmRepoPod, 'View Logs');
+        cy.contains(/GET \/index\.yaml .*"fleet\/v\d+\.\d+\.\d+/).should('exist');
+        cy.contains(/GET \/app-0\.1\.0\.tgz .*"fleet\/v\d+\.\d+\.\d+/).should('exist');
+
+        cy.exec('bash assets/helm-server-user-agent.sh delete').then((result) => {
+          cy.log(result.stdout, result.stderr);
+        });
+      },
+    );
+  });
+}

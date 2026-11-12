@@ -1,0 +1,71 @@
+# Plain HTTP Helm repository used to check the User-Agent Fleet sends (rancher/fleet#4085).
+# nginx keeps its default access log (combined format, to stdout), which includes the User-Agent.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fleet-ua-test
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-ua-helm-repo
+  namespace: fleet-ua-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-ua-helm-repo
+  template:
+    metadata:
+      labels:
+        app: nginx-ua-helm-repo
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: data
+          configMap:
+            name: helm-repo-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-ua-service
+  namespace: fleet-ua-test
+spec:
+  selector:
+    app: nginx-ua-helm-repo
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: helm-repo-data
+  namespace: fleet-ua-test
+data:
+  index.yaml: |
+    apiVersion: v1
+    entries:
+      app:
+        - name: app
+          version: 0.1.0
+          urls:
+            - app-0.1.0.tgz
+binaryData:
+  app-0.1.0.tgz: H4sIFAAAAAAA/ykAK2FIUjBjSE02THk5NWIzVjBkUzVpWlM5Nk9WVjZNV2xqYW5keVRRbz1IZWxtAOyVsWrDMBCGPesp7gXinBxHAW8lS6G0Q4fuV/vSilrOYSmBEvLuRSkJOEMztE4o6Fskn43t4/7/F4lMl+/Uh/yTXJuNAiKiKcvDiojnK+pylunSFNqY2SLWtV7MywxwnN8ZsvGB+gx//a3z5v4JJPaFe2/XXQXbQpHI6RJznaNq2Ne9lXAo3cE9tw7qKBhYrXt42Lxy33FgrzpyXAGJqO3wDbduMfED0f9bajfsxwuAS/6P+6H/iwKL5P9rEOcf2ElLgf20Xncr++ZI/lQMF/PfzM/mXxqDaf7XYJD/Wn3YrqlgeZDBI4lyHKihQJUC+A743Q7yZ26ZPOdP5Bj2+8lJNur4rCcnLU9qVx238c7Edt42nE6ERCKRuD1fAQAA//9ZTKl3AA4AAA==
