@@ -2295,3 +2295,74 @@ if (isRancherVersionAtLeast(14)) {
     );
   });
 }
+
+// ${ } templates in namespaceLabels / namespaceAnnotations are rendered since Fleet v0.17.0 (Rancher 2.16+).
+if (isRancherVersionAtLeast(16)) {
+  describe('Test templates in namespaceLabels and namespaceAnnotations of fleet.yaml.', { tags: '@p1_2' }, () => {
+    const templatingPath = 'qa-test-apps/namespace-metadata-templating';
+
+    it(
+      qase(
+        504,
+        'Fleet-504: Test namespaceLabels and namespaceAnnotations templates are rendered with the target cluster values.',
+      ),
+      { tags: '@fleet-504' },
+      () => {
+        const repoName = 'test-ns-templating-render';
+        const namespaceName = 'ns-templated';
+
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path: `${templatingPath}/render`, local: true });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+        // Each template field renders to the local cluster's value; none stays literal.
+        cy.accesMenuSelection('local', 'Projects/Namespaces');
+        cy.filterInSearchBox(namespaceName);
+        cy.verifyTableRow(0, 'Active', namespaceName);
+        cy.open3dotsMenu(namespaceName, 'Edit YAML');
+        cy.get('.CodeMirror, .cm-editor').should('contain', 'apiVersion');
+        cy.getYamlEditorValue().then((yamlText) => {
+          const missing = [
+            /^\s*cluster-name: local$/m,
+            /^\s*cluster-namespace: fleet-local$/m,
+            /^\s*cluster-label-name: local$/m,
+            /^\s*example\.io\/cluster: local:p-local-myproject$/m,
+          ].filter((entry) => !entry.test(yamlText));
+          expect(missing, `Rendered entries missing on namespace ${namespaceName}`).to.deep.eq([]);
+          expect(yamlText.includes('${'), 'Namespace should not carry a literal template').to.eq(false);
+        });
+        cy.clickButton('Cancel');
+      },
+    );
+
+    it(
+      qase(
+        505,
+        'Fleet-505: Test namespaceLabels template referring to a missing cluster label reports a render error.',
+      ),
+      { tags: '@fleet-505' },
+      () => {
+        const repoName = 'test-ns-templating-missing-label';
+
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path: `${templatingPath}/missing-label`, local: true });
+        cy.clickButton('Create');
+        cy.verifyTableRow(0, 'Error', repoName);
+        cy.contains(/namespaceLabels: key "env": failed to render template/).should('be.visible');
+      },
+    );
+
+    it(
+      qase(506, 'Fleet-506: Test helm.disablePreProcess keeps namespaceLabels templates literal.'),
+      { tags: '@fleet-506' },
+      () => {
+        const repoName = 'test-ns-templating-disable-preprocess';
+
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path: `${templatingPath}/disable-preprocess`, local: true });
+        cy.clickButton('Create');
+        // Not rendered, so the API server rejects the literal label value.
+        cy.verifyTableRow(0, 'Err Applied', repoName);
+        cy.contains(/Invalid value: "\$\{ \.ClusterName \}"/).should('be.visible');
+      },
+    );
+  });
+}
