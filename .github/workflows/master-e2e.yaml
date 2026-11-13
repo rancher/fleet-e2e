@@ -96,6 +96,16 @@ on:
         required: false
         type: string
         default: ''
+      qase_milestone:
+        description: QASE milestone to create the run under, e.g. 2.15.4 (leave empty for none, or the auto-resolved one on scheduled runs)
+        required: false
+        type: string
+        default: ''
+      qase_milestone_auto:
+        description: Resolve the QASE milestone as the next patch of the latest released Rancher of the lane (daily runs)
+        required: false
+        type: boolean
+        default: false
       qase_complete_run:
         description: Complete the QASE run after tests finish (set false when appending multiple test suites to same run)
         required: false
@@ -416,6 +426,19 @@ jobs:
           echo "rm_version=${RM_VERSION}" >> ${GITHUB_OUTPUT}
           echo "fleet_app_version=${FLEET_APP_VERSION}" >> ${GITHUB_OUTPUT}
           echo "fleet_images=${FLEET_IMAGES}" >> ${GITHUB_OUTPUT}
+      - name: Create QASE run under milestone
+        id: qase_milestone
+        # Only for new runs: appending to an existing run (e.g. release testing) is left untouched
+        if: ${{ inputs.qase_report == true && inputs.qase_run_id == '' && (inputs.qase_milestone != '' || inputs.qase_milestone_auto == true) }}
+        env:
+          QASE_API_TOKEN: ${{ secrets.qase_api_token }}
+          GH_TOKEN: ${{ github.token }}
+          RANCHER_VERSION: ${{ inputs.rancher_upgrade != '' && inputs.rancher_upgrade || inputs.rancher_version }}
+          MILESTONE: ${{ inputs.qase_milestone }}
+          MILESTONE_AUTO: ${{ inputs.qase_milestone_auto }}
+          RUN_TITLE: ${{ env.QASE_TESTOPS_RUN_TITLE }}
+          RUN_DESCRIPTION: ${{ env.QASE_TESTOPS_RUN_DESCRIPTION }}
+        run: ./.github/scripts/qase-milestone.sh
       - name: Cypress tests - Basics
         env:
           BROWSER: chrome
@@ -440,7 +463,7 @@ jobs:
           GH_APP_PRIVATE_KEY: ${{ secrets.github_app_private_key }}
           APPCO_USERNAME: ${{ secrets.appco_username }}
           APPCO_ACCESS_TOKEN: ${{ secrets.appco_access_token }}
-          QASE_TESTOPS_RUN_ID: ${{ inputs.qase_run_id }}
+          QASE_TESTOPS_RUN_ID: ${{ inputs.qase_run_id || steps.qase_milestone.outputs.qase_run_id }}
           QASE_MODE: ${{ inputs.qase_report == true && 'testops' || 'off' }}
           # When an upgrade follows, keep the QASE run open so Phase 2 can append results.
           # Without this, cypress-qase-reporter closes the run here and Phase 2 reports to a completed run.
@@ -477,6 +500,9 @@ jobs:
           if [ -f tests/cypress/e2e/unit_tests/QASE_TESTOPS_RUN_ID.txt ]; then
             QASE_TESTOPS_RUN_ID=$(cat tests/cypress/e2e/unit_tests/QASE_TESTOPS_RUN_ID.txt)
             echo "qase_run_id=${QASE_TESTOPS_RUN_ID}" >> ${GITHUB_OUTPUT}
+          elif [[ -n "${{ steps.qase_milestone.outputs.qase_run_id }}" ]]; then
+            # Run was pre-created under a milestone
+            echo "qase_run_id=${{ steps.qase_milestone.outputs.qase_run_id }}" >> ${GITHUB_OUTPUT}
           fi
       - name: Upgrade Rancher Manager
         id: rancher_upgrade
