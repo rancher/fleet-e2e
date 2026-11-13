@@ -14,6 +14,11 @@ on:
         required: false
         type: string
         default: ''
+      qase_milestone:
+        description: QASE milestone for a new run, e.g. 2.15.4 (leave empty for none; scheduled runs auto-resolve the next patch release)
+        required: false
+        type: string
+        default: ''
       qase_complete_run:
         description: "`Uncheck` when appending test runs. `Check` on final run to close QASE. For daily runs, keep it checked."
         default: true
@@ -84,6 +89,8 @@ jobs:
       rancher_version: ${{ inputs.rancher_version }}
       qase_report: ${{ inputs.qase_report == true || (github.event_name == 'schedule' && true) }}
       qase_run_id: ${{ inputs.qase_run_id || '' }}
+      qase_milestone: ${{ inputs.qase_milestone }}
+      qase_milestone_auto: ${{ github.event_name == 'schedule' }}
       qase_complete_run: ${{ inputs.qase_complete_run != false }}
       grep_test_by_tag: ${{ inputs.grep_test_by_tag }}
       hardening: ${{ inputs.hardening }}
