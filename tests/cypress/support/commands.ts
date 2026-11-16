@@ -1763,10 +1763,10 @@ Cypress.Commands.add('createCloudCluster', (cloudInstanceType, clusterName, subn
   });
 });
 
-Cypress.Commands.add('deleteDownstreamCluster', (clusterName, deleteOption = false) => {
+Cypress.Commands.add('deleteDownstreamCluster', (clusterName, deleteOption = false, textCheckTimeout) => {
   cy.accesMenuSelection('Cluster Management', 'Clusters');
   cy.filterInSearchBox(clusterName);
-  cy.deleteAll(deleteOption);
+  cy.deleteAll(deleteOption, textCheckTimeout);
 });
 
 Cypress.Commands.add('executeKubectlCommand', (labelCommand, clusterName = 'local') => {
