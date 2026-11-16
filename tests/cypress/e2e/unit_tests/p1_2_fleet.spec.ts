@@ -360,64 +360,88 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
     },
   );
 
-  if (supported_versions_212_and_above.some((r) => r.test(rancherVersion))) {
-    console.log({ message: 'UI for `clusterGroup` option is removed and available only via YAML. So Skipping tests.' });
-  } else {
-    it(
-      qase(29, "Fleet-29: Test install app to new set of clusters from old set of clusters using 'clusterGroup'"),
-      { tags: '@fleet-29' },
-      () => {
-        const repoName = 'default-single-app-cluster-group-29';
-        const newClusterGroupName = 'cluster-group-env-third-cluster';
+  it(
+    qase(29, "Fleet-29: Test install app to new set of clusters from old set of clusters using 'clusterGroup'"),
+    { tags: '@fleet-29' },
+    () => {
+      const isYamlOnly = supported_versions_212_and_above.some((r) => r.test(rancherVersion));
+      let repoName = 'default-single-app-cluster-group-29';
+      if (isYamlOnly) {
+        // clusterGroup.yaml (used on 2.12+) creates the GitRepo with this fixed name.
+        repoName = 'default-single-app-cluster-group';
+      }
+      const newClusterGroupName = 'cluster-group-env-third-cluster';
 
-        // Assign label to the first 2 clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
-        cy.executeKubectlCommand(labelFirstTwoImportedClusters);
+      // Assign label to the first 2 clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
+      cy.executeKubectlCommand(labelFirstTwoImportedClusters);
 
-        // Create group of cluster consists of same label.
-        cy.continuousDeliveryMenuSelection();
-        cy.clickNavMenu(['Cluster Groups']);
-        cy.contains('.title', 'Cluster Groups').should('be.visible');
-        cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
+      // Create group of cluster consists of same label.
+      cy.continuousDeliveryMenuSelection();
+      cy.clickNavMenu(['Cluster Groups']);
+      cy.contains('.title', 'Cluster Groups').should('be.visible');
+      cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
 
-        // Create a GitRepo targeting cluster group created.
+      // Create a GitRepo targeting cluster group created.
+      if (isYamlOnly) {
+        // 2.12+: the `clusterGroup` target is only available via YAML.
+        cy.clickNavMenu(['Resources']);
+        cy.clickNavMenu(['Git Repos']);
+        cy.wait(1000);
+        cy.clickButton('Add Repository');
+        cy.wait(1000);
+        cy.clickButton('Edit as YAML');
+        cy.addYamlFile('assets/cluster-group-tests/clusterGroup.yaml');
+      } else {
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, deployToTarget: clusterGroupName });
-        cy.clickButton('Create');
-        cy.checkGitRepoStatus(repoName, '1 / 1');
+      }
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1');
 
-        // Check first application status on both clusters i.e. imported-0 and imported-1
-        dsFirstTwoClusterList.forEach((dsCluster) => {
-          cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+      // Check first application status on both clusters i.e. imported-0 and imported-1
+      dsFirstTwoClusterList.forEach((dsCluster) => {
+        cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+      });
+
+      cy.executeKubectlCommand(newLabelThirdImportedCluster);
+
+      // Create another clusterGroup using third cluster.
+      const newBannerMessageToAssert = /Matches 1 of 3 existing clusters: "imported-\d"/;
+      cy.continuousDeliveryMenuSelection();
+      cy.clickNavMenu(['Cluster Groups']);
+      cy.contains('.title', 'Cluster Groups').should('be.visible');
+      cy.createClusterGroup(newClusterGroupName, new_key, new_value, newBannerMessageToAssert);
+
+      // Update GitRepo with newly created clusterGroup.
+      if (isYamlOnly) {
+        cy.continuousDeliveryMenuSelection();
+        cy.fleetNamespaceToggle('fleet-default');
+        cy.verifyTableRow(0, /Active|Modified/, repoName);
+        cy.open3dotsMenu(repoName, 'Edit Config');
+        cy.clickButton('Edit as YAML');
+        cy.getYamlEditorValue().then((yamlText) => {
+          cy.setYamlEditorValue(yamlText.replace(clusterGroupName, newClusterGroupName));
         });
-
-        cy.executeKubectlCommand(newLabelThirdImportedCluster);
-
-        // Create another clusterGroup using third cluster.
-        const newBannerMessageToAssert = /Matches 1 of 3 existing clusters: "imported-\d"/;
-        cy.clickNavMenu(['Cluster Groups']);
-        cy.contains('.title', 'Cluster Groups').should('be.visible');
-        cy.createClusterGroup(newClusterGroupName, new_key, new_value, newBannerMessageToAssert);
-
-        // Update GitRepo with newly created clusterGroup.
+      } else {
         cy.addFleetGitRepo({
           repoName,
           deployToTarget: newClusterGroupName,
           fleetNamespace: 'fleet-default',
           editConfig: true,
         });
-        cy.clickButton('Save');
-        cy.checkGitRepoStatus(repoName, '1 / 1');
+      }
+      cy.clickButton('Save');
+      cy.checkGitRepoStatus(repoName, '1 / 1');
 
-        // Check application is present on third cluster i.e. imported-2
-        cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
+      // Check application is present on third cluster i.e. imported-2
+      cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
 
-        // Check application status on first 2 clusters i.e. imported-0 and imported-1
-        // Application should be removed from first 2 clusters i.e. imported-0 and imported-1
-        dsFirstTwoClusterList.forEach((dsCluster) => {
-          cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces', false);
-        });
-      },
-    );
-  }
+      // Check application status on first 2 clusters i.e. imported-0 and imported-1
+      // Application should be removed from first 2 clusters i.e. imported-0 and imported-1
+      dsFirstTwoClusterList.forEach((dsCluster) => {
+        cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces', false);
+      });
+    },
+  );
 });
 
 describe('Test multiple applications deployment based on clusterGroup', { tags: ['@p1_2', '@pr-tests'] }, () => {
