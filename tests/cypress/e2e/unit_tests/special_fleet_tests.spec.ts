@@ -61,7 +61,8 @@ describe('Test Fleet on AWS EC2 imported cluster', { tags: '@cloud_ds' }, () => 
   it(qase(188, 'Delete EC2 cluster'), () => {
     const clusterName = 'qa-fleet-ec2-cluster';
 
-    cy.deleteDownstreamCluster(clusterName, false);
+    // EC2 cluster removal takes several minutes, much longer than the 30s default
+    cy.deleteDownstreamCluster(clusterName, false, 900000);
   });
 });
 
