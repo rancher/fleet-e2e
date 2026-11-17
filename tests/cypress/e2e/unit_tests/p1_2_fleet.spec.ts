@@ -1141,7 +1141,7 @@ describe('Test Fleet bundle status for longhorn-crd', { tags: '@p1_2' }, () => {
 
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift: 'yes' });
       cy.clickButton('Create');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '66 / 66');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '81 / 81');
 
       // Check bundle status of longhorn-crd
       cy.continuousDeliveryBundlesMenu();
