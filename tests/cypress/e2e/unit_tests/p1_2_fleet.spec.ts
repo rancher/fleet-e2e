@@ -364,12 +364,7 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
     qase(29, "Fleet-29: Test install app to new set of clusters from old set of clusters using 'clusterGroup'"),
     { tags: '@fleet-29' },
     () => {
-      const isYamlOnly = supported_versions_212_and_above.some((r) => r.test(rancherVersion));
-      let repoName = 'default-single-app-cluster-group-29';
-      if (isYamlOnly) {
-        // clusterGroup.yaml (used on 2.12+) creates the GitRepo with this fixed name.
-        repoName = 'default-single-app-cluster-group';
-      }
+      const repoName = 'default-single-app-cluster-group';
       const newClusterGroupName = 'cluster-group-env-third-cluster';
 
       // Assign label to the first 2 clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
@@ -382,18 +377,13 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
       cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
 
       // Create a GitRepo targeting cluster group created.
-      if (isYamlOnly) {
-        // 2.12+: the `clusterGroup` target is only available via YAML.
-        cy.clickNavMenu(['Resources']);
-        cy.clickNavMenu(['Git Repos']);
-        cy.wait(1000);
-        cy.clickButton('Add Repository');
-        cy.wait(1000);
-        cy.clickButton('Edit as YAML');
-        cy.addYamlFile('assets/cluster-group-tests/clusterGroup.yaml');
-      } else {
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, deployToTarget: clusterGroupName });
-      }
+      cy.clickNavMenu(['Resources']);
+      cy.clickNavMenu(['Git Repos']);
+      cy.wait(1000);
+      cy.clickButton('Add Repository');
+      cy.wait(1000);
+      cy.clickButton('Edit as YAML');
+      cy.addYamlFile('assets/cluster-group-tests/clusterGroup.yaml');
       cy.clickButton('Create');
       cy.checkGitRepoStatus(repoName, '1 / 1');
 
@@ -412,23 +402,14 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
       cy.createClusterGroup(newClusterGroupName, new_key, new_value, newBannerMessageToAssert);
 
       // Update GitRepo with newly created clusterGroup.
-      if (isYamlOnly) {
-        cy.continuousDeliveryMenuSelection();
-        cy.fleetNamespaceToggle('fleet-default');
-        cy.verifyTableRow(0, /Active|Modified/, repoName);
-        cy.open3dotsMenu(repoName, 'Edit Config');
-        cy.clickButton('Edit as YAML');
-        cy.getYamlEditorValue().then((yamlText) => {
-          cy.setYamlEditorValue(yamlText.replace(clusterGroupName, newClusterGroupName));
-        });
-      } else {
-        cy.addFleetGitRepo({
-          repoName,
-          deployToTarget: newClusterGroupName,
-          fleetNamespace: 'fleet-default',
-          editConfig: true,
-        });
-      }
+      cy.continuousDeliveryMenuSelection();
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.verifyTableRow(0, 'Active', repoName);
+      cy.open3dotsMenu(repoName, 'Edit Config');
+      cy.clickButton('Edit as YAML');
+      cy.getYamlEditorValue().then((yamlText) => {
+        cy.setYamlEditorValue(yamlText.replace(clusterGroupName, newClusterGroupName));
+      });
       cy.clickButton('Save');
       cy.checkGitRepoStatus(repoName, '1 / 1');
 
