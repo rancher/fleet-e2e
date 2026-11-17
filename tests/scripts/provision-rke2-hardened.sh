@@ -147,7 +147,7 @@ EOF'
 sudo sysctl -p /etc/sysctl.d/90-kubelet.conf
 
 # ETCD configuration creating its group
-id etcd > /dev/null 2>&1 || sudo useradd -r -c "etcd user" -s /sbin/nologin -M etcd -U
+sudo useradd -r -c "etcd user" -s /sbin/nologin -M etcd -U
 
 # Create RKE2 Config PodSecurityAdmission policy yaml: 
 # https://ranchermanager.docs.rancher.com/reference-guides/rancher-security/psa-restricted-exemptions

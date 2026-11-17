@@ -394,15 +394,8 @@ jobs:
       - name: Install diagnostics
         if: ${{ failure() && steps.install_prerequisites.outcome == 'failure' }}
         run: |
-          # Best-effort: one failing probe must not hide the others
+          # Don't stop at the first failing command, so all the output below is still printed
           set +e
-          for KC in "${KUBECONFIG}" "${HOME}/.kube/config" /etc/rancher/rke2/rke2.yaml "${HOME}/rke2.yaml"; do
-            if [[ -n "${KC}" && -r "${KC}" ]] && kubectl --kubeconfig "${KC}" get ns > /dev/null 2>&1; then
-              export KUBECONFIG="${KC}"
-              break
-            fi
-          done
-          echo "Using KUBECONFIG=${KUBECONFIG}"
           kubectl version
           kubectl get nodes -o wide
           # Helm releases (Fleet chart missing/failed/pending?)
