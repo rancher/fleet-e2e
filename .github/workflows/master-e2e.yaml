@@ -396,6 +396,11 @@ jobs:
         run: |
           # Don't stop at the first failing command, so all the output below is still printed
           set +e
+          # Hardened RKE2: the provisioning script's KUBECONFIG is not kept between steps,
+          # and ~/.kube/config only exists once the install test has copied it
+          if [[ -r /etc/rancher/rke2/rke2.yaml ]]; then
+            export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
+          fi
           kubectl version
           kubectl get nodes -o wide
           # Helm releases (Fleet chart missing/failed/pending?)
