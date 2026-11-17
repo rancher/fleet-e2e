@@ -222,6 +222,17 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
     });
   });
 
+  // Fleet-141/143 select an existing secret in "Git Authentication".
+  // Workaround for rancher/dashboard#19816 (Rancher 2.16): on the first load of the Advanced step the
+  // dropdown can omit existing secrets; re-entering the step (Previous, Next) lists them.
+  // Remove once the dashboard fix is in the tested Rancher version.
+  const addRepoWithExistingAuthSecret = (repoName: string, gitAuthType: string) => {
+    cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+    cy.clickButton('Previous');
+    cy.clickButton('Next');
+    cy.gitRepoAuth('Git', gitAuthType);
+  };
+
   // Custom / no default
   it(
     qase(141, 'FLEET-141  Test to install "NGINX" app using "KNOWN HOSTS" auth on PRIVATE repository'),
@@ -233,7 +244,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
       cy.continuousDeliveryMenuSelection();
 
       // Create private repo using known host
-      cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path, local: true });
+      addRepoWithExistingAuthSecret(repoName, gitAuthType);
       cy.clickButton('Create');
       cy.verifyTableRow(0, 'Active', '1/1');
       cy.checkGitRepoStatus(repoName, '1 / 1');
@@ -252,7 +263,7 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
       const gitAuthType = 'ssh-key-knownhost-missmatch';
 
       // Create private repo using known host
-      cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path, local: true });
+      addRepoWithExistingAuthSecret(repoName, gitAuthType);
       cy.clickButton('Create');
 
       // Enrure that apps cannot be installed && error appears
