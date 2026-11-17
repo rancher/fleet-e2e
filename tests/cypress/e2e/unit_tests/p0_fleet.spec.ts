@@ -227,10 +227,14 @@ describe('Test Fleet deployment on PRIVATE repos using KNOWN HOSTS', { tags: '@p
   // dropdown can omit existing secrets; re-entering the step (Previous, Next) lists them.
   // Remove once the dashboard fix is in the tested Rancher version.
   const addRepoWithExistingAuthSecret = (repoName: string, gitAuthType: string) => {
-    cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
-    cy.clickButton('Previous');
-    cy.clickButton('Next');
-    cy.gitRepoAuth('Git', gitAuthType);
+    if (isRancherVersionAtLeast(16)) {
+      cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+      cy.clickButton('Previous');
+      cy.clickButton('Next');
+      cy.gitRepoAuth('Git', gitAuthType);
+    } else {
+      cy.addFleetGitRepo({ repoName, repoUrl, gitAuthType, branch, path, local: true });
+    }
   };
 
   // Custom / no default
