@@ -224,9 +224,13 @@ describe(
 
 describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', '@pr-tests'] }, () => {
   let repoName;
+  // Only used by Fleet-29.
+  const newClusterGroupName = 'cluster-group-env-third-cluster';
+  const removeNewClusterGroupCommand = `kubectl delete clustergroups.fleet.cattle.io ${newClusterGroupName} -n fleet-default --ignore-not-found {enter}`;
 
   beforeEach('Cleanup leftover cluster groups and labels etc. if any.', () => {
     cy.executeKubectlCommand(removeClusterGroupCommand);
+    cy.executeKubectlCommand(removeNewClusterGroupCommand);
     cy.executeKubectlCommand(removeLabelFromAllClusters);
   });
 
@@ -365,7 +369,6 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
     { tags: '@fleet-29' },
     () => {
       const repoName = 'default-single-app-cluster-group';
-      const newClusterGroupName = 'cluster-group-env-third-cluster';
 
       // Assign label to the first 2 clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
       cy.executeKubectlCommand(labelFirstTwoImportedClusters);
@@ -408,6 +411,7 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
       cy.open3dotsMenu(repoName, 'Edit Config');
       cy.clickButton('Edit as YAML');
       cy.getYamlEditorValue().then((yamlText) => {
+        expect(yamlText).to.include(clusterGroupName, `GitRepo YAML should reference ${clusterGroupName}`);
         cy.setYamlEditorValue(yamlText.replace(clusterGroupName, newClusterGroupName));
       });
       cy.clickButton('Save');
