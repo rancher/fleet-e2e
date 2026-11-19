@@ -81,7 +81,13 @@ Cypress.Commands.add(
 
 Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
   cypressLib.burgerMenuToggle();
-  cy.get('div.cluster-name').contains(clusterName).click();
+  if (isRancherVersionAtLeast(16) && clusterName !== 'local') {
+    // 2.16 moved downstream clusters behind the "Cluster Switch" popover; they are no longer in the burger menu.
+    cy.get('button[data-testid="cluster-switcher-trigger"]').click();
+    cy.get('#cluster-switcher-listbox').contains(clusterName).should('be.visible').click();
+  } else {
+    cy.get('div.cluster-name').contains(clusterName).click();
+  }
   cy.wait(500);
   cy.get('header').find('button').filter(':has(i.icon-upload)').click();
   // 2.16 replaced the dialog's div.card-container with an rc-modal (data-testid="import-yaml")
