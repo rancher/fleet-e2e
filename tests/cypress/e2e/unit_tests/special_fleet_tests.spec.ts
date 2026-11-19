@@ -220,7 +220,7 @@ describe('Global settings related tests', { tags: '@special_tests' }, () => {
   );
 });
 
-// TODO: move back this with resto of GitRepoRestrictions tests once proven consistently successful on 2.12
+// TODO: move this back with the rest of the GitRepoRestrictions tests once proven consistently successful on 2.12
 describe(
   'Test "defaultServiceAccount" from "GitRepoRestrictions" is enforced on downstream cluster',
   { tags: '@special_tests' },
