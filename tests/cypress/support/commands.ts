@@ -84,13 +84,14 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
   cy.get('div.cluster-name').contains(clusterName).click();
   cy.wait(500);
   cy.get('header').find('button').filter(':has(i.icon-upload)').click();
-  cy.get('div.card-container').contains('Import YAML').should('be.visible');
+  // 2.16 replaced the dialog's div.card-container with an rc-modal (data-testid="import-yaml")
+  cy.get('div.card-container, [data-testid="import-yaml"]').contains('Import YAML').should('be.visible');
 
   // Insert file content into the CodeMirror editor
   // We could use File Upload but this has benefit we may modify the content on the fly (not implemented yet)
   cy.addYamlFile(yamlFilePath);
   cy.clickButton('Import');
-  cy.get('div.card-container')
+  cy.get('div.card-container, [data-testid="import-yaml"]')
     .contains(/Applied \d+ Resources?/)
     .should('be.visible');
 
