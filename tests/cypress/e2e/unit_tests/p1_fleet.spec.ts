@@ -21,6 +21,7 @@ export const path = 'qa-test-apps/nginx-app';
 export const repoUrl = 'https://github.com/rancher/fleet-test-data/';
 export const dsAllClusterList = ['imported-0', 'imported-1', 'imported-2'];
 export const dsFirstClusterName = dsAllClusterList[0];
+export const dsSecondClusterName = dsAllClusterList[1];
 
 beforeEach(() => {
   cy.login();
@@ -1004,100 +1005,59 @@ describe('Test correctDrift does not create excessive secrets after multiple mod
 });
 
 if (isRancherVersionAtLeast(16)) {
-  describe('Test deleteNamespace on downstream cluster', { tags: ['@p1', '@fleet-5800'] }, () => {
-    it(qase(5800, 'Fleet-5800: Two HelmOps share a target namespace'), { tags: '@fleet-5800' }, () => {
-      const sharedNs = 'test-shared-ns';
+  describe('Test deleteNamespace option on downstream cluster', { tags: ['@p1', '@fleet-508'] }, () => {
+    it(
+      qase(
+        508,
+        'Fleet-508: Test that target namespace shared by two HelmOps is deleted on downstream clusters only after last HelmOp is deleted',
+      ),
+      { tags: '@fleet-508' },
+      () => {
+        const sharedNs = 'test-shared-ns';
 
-      // Collapsing sidebar first to ensure clean state
-      cy.get('[data-testid="top-level-menu"]').click();
-      cy.wait(500);
-      cy.accesMenuSelection('Continuous Delivery', 'Resources', 'Helm Ops');
-      cy.fleetNamespaceToggle('fleet-default');
-      cy.clickButton('Create Helm Op');
-      cy.clickButton('Edit as YAML');
-      cy.addYamlFile('assets/helmop-shared-ns-1.yaml');
-      cy.clickButton('Create');
+        // After 'Create' Fleet returns to the HelmOps list of the same workspace, so navigate only once.
+        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'Helm Ops');
+        cy.fleetNamespaceToggle('fleet-default');
 
-      // Deploy second HelmOp with deleteNamespace: true, same targetNamespace
-      cy.clickButton('Create Helm Op');
-      cy.clickButton('Edit as YAML');
-      cy.addYamlFile('assets/helmop-shared-ns-2.yaml');
-      cy.clickButton('Create');
+        // Two HelmOps with deleteNamespace: true deploying to the same target namespace.
+        cy.addHelmOpFromYaml('assets/helmop-shared-ns-1.yaml');
+        cy.addHelmOpFromYaml('assets/helmop-shared-ns-2.yaml');
+        cy.verifyTableRow(0, 'Active', 'test-shared');
+        cy.verifyTableRow(1, 'Active', 'test-shared');
+        cy.checkNamespaceInCluster(sharedNs, dsFirstClusterName, true);
+        cy.checkNamespaceInCluster(sharedNs, dsSecondClusterName, true);
 
-      // Verify both are Active
-      cy.accesMenuSelection('Continuous Delivery', 'Resources', 'Helm Ops');
-      cy.fleetNamespaceToggle('fleet-default');
-      cy.verifyTableRow(0, 'Active', 'test-shared-2');
-      cy.verifyTableRow(1, 'Active', 'test-shared-1');
+        // Deleting the first HelmOp must keep the namespace: the second release still uses it.
+        cy.deleteHelmOp('test-shared-1', 'fleet-default');
+        cy.wait(15000);
+        cy.checkNamespaceInCluster(sharedNs, dsFirstClusterName, true);
+        cy.checkNamespaceInCluster(sharedNs, dsSecondClusterName, true);
 
-      // Verify namespace exists on downstream cluster
-      cy.executeKubectlCommand(`kubectl get namespace ${sharedNs}`, dsFirstClusterName);
-
-      // Delete only the first HelmOp
-      cy.filterInSearchBox('test-shared-1');
-      cy.open3dotsMenu('test-shared-1', 'Delete');
-      cy.get('[data-testid="modal-footer"] > [data-testid="btn_confirm"]').click();
-
-      // Wait for first HelmOp to be removed
-      cy.wait(5000);
-
-      // Verify namespace STILL exists — second release still uses it
-      cy.executeKubectlCommand(`kubectl get namespace ${sharedNs} 2>&1 || true`, dsFirstClusterName).then((result) => {
-        cy.wrap(result).its('stdout').should('include', sharedNs);
-      });
-
-      // Now delete the second HelmOp
-      cy.filterInSearchBox('test-shared-2');
-      cy.open3dotsMenu('test-shared-2', 'Delete');
-      cy.get('[data-testid="modal-footer"] > [data-testid="btn_confirm"]').click();
-
-      // Verify namespace is NOW deleted (no more releases in it)
-      cy.executeKubectlCommand(`kubectl get namespace ${sharedNs} 2>&1 || true`, dsFirstClusterName).then((result) => {
-        cy.wrap(result).its('stdout').should('include', 'not found');
-      });
-    });
+        // Deleting the last HelmOp must remove the namespace.
+        cy.deleteHelmOp('test-shared-2', 'fleet-default');
+        cy.checkNamespaceInCluster(sharedNs, dsFirstClusterName, false);
+        cy.checkNamespaceInCluster(sharedNs, dsSecondClusterName, false);
+      },
+    );
 
     it(
-      qase(5800, 'Fleet-5800: GitRepo with deleteNamespace=true deletes target namespace on downstream cluster'),
-      { tags: '@fleet-5800' },
+      qase(
+        509,
+        'Fleet-509: Test that target namespace is deleted on downstream clusters after GitRepo with deleteNamespace=true is deleted',
+      ),
+      { tags: '@fleet-509' },
       () => {
         const repoName = 'test-delns-gitrepo';
         const targetNs = 'test-delns-gitrepo';
 
-        // Collapsing sidebar first to ensure clean state
-        cy.get('[data-testid="top-level-menu"]').click();
-        cy.wait(500);
-        cy.continuousDeliveryMenuSelection();
-        cy.fleetNamespaceToggle('fleet-default');
-        cy.clickCreateGitRepo(false); // false = not local, creates in fleet-default
-        cy.clickButton('Edit as YAML');
-        cy.addYamlFile('assets/gitrepo-delete-namespace-true.yaml');
-        cy.clickButton('Create');
+        cy.addFleetRepoFromYaml('assets/gitrepo-delete-namespace-true.yaml', 'fleet-default');
+        cy.checkGitRepoStatus(repoName, '1 / 1');
+        cy.checkNamespaceInCluster(targetNs, dsFirstClusterName, true);
+        cy.checkNamespaceInCluster(targetNs, dsSecondClusterName, true);
 
-        // Wait for deployment on all clusters (local + at least 1 downstream = 2/2+)
-        cy.continuousDeliveryMenuSelection();
-        cy.fleetNamespaceToggle('fleet-default');
-        // The status should show > 1/1 meaning it reached the downstream
-        cy.verifyTableRow(0, 'Active', repoName);
-
-        // Verify namespace exists on downstream cluster
-        cy.executeKubectlCommand(`kubectl get namespace ${targetNs}`, dsFirstClusterName);
-
-        // Delete the GitRepo
-        cy.continuousDeliveryMenuSelection();
-        cy.fleetNamespaceToggle('fleet-default');
-        cy.filterInSearchBox(repoName);
         cy.deleteAllFleetRepos('fleet-default');
-
-        // Wait for deletion to propagate
-        cy.wait(10000);
-
-        // Verify namespace deleted on downstream cluster
-        cy.executeKubectlCommand(`kubectl get namespace ${targetNs} 2>&1 || true`, dsFirstClusterName).then(
-          (result) => {
-            cy.wrap(result).its('stdout').should('include', 'not found');
-          },
-        );
+        cy.checkNamespaceInCluster(targetNs, dsFirstClusterName, false);
+        cy.checkNamespaceInCluster(targetNs, dsSecondClusterName, false);
       },
     );
   });

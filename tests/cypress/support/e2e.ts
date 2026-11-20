@@ -82,6 +82,14 @@ declare global {
       scrollYamlEditorTo(text: string): Chainable<Element>;
       deleteAllFleetRepos(namespaceName?: string): Chainable<Element>;
       deleteAllGitRepoRestrictions(): Chainable<Element>;
+      addHelmOpFromYaml(yamlFilePath: string): Chainable<Element>;
+      deleteHelmOp(name: string, fleetNamespace?: string): Chainable<Element>;
+      checkNamespaceInCluster(
+        namespace: string,
+        clusterName?: string,
+        present?: boolean,
+        timeout?: number,
+      ): Chainable<Element>;
       checkBundlesDeleted(repoName: string, timeout?: number): Chainable<Element>;
       checkGitRepoStatus(
         repoName: string,

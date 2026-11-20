@@ -17,7 +17,12 @@ limitations under the License.
 import 'cypress-file-upload';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 
-export const noRowsMessages = ['There are no rows to show.', 'There are no rows which match your search query.'];
+export const noRowsMessages = [
+  'There are no rows to show.',
+  'There are no rows which match your search query.',
+  // 2.16 shows this intro box instead of an empty table when the last HelmOp is gone.
+  'No Helm Ops have been added',
+];
 export const NoAppBundleOrGitRepoPresentMessages = [
   'No Git Repos have been added',
   'No repositories have been added',
@@ -787,6 +792,38 @@ Cypress.Commands.add('deleteAllFleetRepos', (namespaceName) => {
   if (namespaceName) {
     cy.fleetNamespaceToggle(namespaceName);
     cy.deleteAll();
+  }
+});
+
+// Create a HelmOp from a YAML file. Expects the HelmOps list of the target workspace to be open.
+Cypress.Commands.add('addHelmOpFromYaml', (yamlFilePath) => {
+  cy.clickButton('Create Helm Op');
+  cy.clickButton('Edit as YAML');
+  cy.addYamlFile(yamlFilePath);
+  cy.clickButton('Create');
+});
+
+// Delete a single HelmOp by name from the given Fleet workspace
+Cypress.Commands.add('deleteHelmOp', (name, fleetNamespace = 'fleet-local') => {
+  cy.accesMenuSelection('Continuous Delivery', 'Resources', 'Helm Ops');
+  cy.fleetNamespaceToggle(fleetNamespace);
+  cy.filterInSearchBox(name);
+  // Select-all must only pick the filtered HelmOp, so wait for the filter to apply first.
+  cy.get('tr.main-row').should('have.length', 1).and('contain.text', name);
+  cy.deleteAll(false);
+});
+
+// Check a namespace is present (Active) or gone in the given cluster
+Cypress.Commands.add('checkNamespaceInCluster', (namespace, clusterName = 'local', present = true, timeout = 90000) => {
+  cy.accesMenuSelection(clusterName, 'Projects/Namespaces');
+  cy.filterInSearchBox(namespace);
+  if (present) {
+    cy.verifyTableRow(0, 'Active', namespace);
+  } else {
+    // Wait for the explicit empty-table message, so a table that has not rendered yet cannot pass as "gone".
+    cy.contains(new RegExp(noRowsMessages.join('|')), { timeout }).should('be.visible');
+    // Scoped to rows: 2.16's query box shows the filter text itself.
+    cy.contains('tr.main-row', namespace).should('not.exist');
   }
 });
 

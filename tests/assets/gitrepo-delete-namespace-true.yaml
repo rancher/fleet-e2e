@@ -5,7 +5,7 @@ metadata:
   namespace: fleet-default
 spec:
   repo: https://github.com/rancher/fleet-test-data
-  branch: main
+  branch: master
   paths:
     - simple
   targetNamespace: test-delns-gitrepo

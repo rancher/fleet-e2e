@@ -5,8 +5,8 @@ metadata:
   namespace: fleet-default
 spec:
   helm:
-    releaseName: shared-chart-2
-    chart: https://github.com/rancher/fleet/raw/refs/heads/main/integrationtests/cli/assets/helmrepository/deps-chart-1.0.0.tgz
+    releaseName: shared-hello-2
+    chart: https://github.com/helm/examples/releases/download/hello-world-0.1.0/hello-world-0.1.0.tgz
   namespace: test-shared-ns
   deleteNamespace: true
   targets:
