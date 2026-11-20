@@ -81,16 +81,23 @@ Cypress.Commands.add(
 
 Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
   cypressLib.burgerMenuToggle();
-  cy.get('div.cluster-name').contains(clusterName).click();
+  if (isRancherVersionAtLeast(16) && clusterName !== 'local') {
+    // 2.16 moved downstream clusters behind the "Cluster Switch" popover; they are no longer in the burger menu.
+    cy.get('button[data-testid="cluster-switcher-trigger"]').click();
+    cy.get('#cluster-switcher-listbox').contains(clusterName).should('be.visible').click();
+  } else {
+    cy.get('div.cluster-name').contains(clusterName).click();
+  }
   cy.wait(500);
   cy.get('header').find('button').filter(':has(i.icon-upload)').click();
-  cy.get('div.card-container').contains('Import YAML').should('be.visible');
+  // 2.16 replaced the dialog's div.card-container with an rc-modal (data-testid="import-yaml")
+  cy.get('div.card-container, [data-testid="import-yaml"]').contains('Import YAML').should('be.visible');
 
   // Insert file content into the CodeMirror editor
   // We could use File Upload but this has benefit we may modify the content on the fly (not implemented yet)
   cy.addYamlFile(yamlFilePath);
   cy.clickButton('Import');
-  cy.get('div.card-container')
+  cy.get('div.card-container, [data-testid="import-yaml"]')
     .contains(/Applied \d+ Resources?/)
     .should('be.visible');
 
@@ -208,6 +215,7 @@ Cypress.Commands.add(
     editConfig = false,
     helmRepoURLRegex,
     deployToTarget,
+    targetClusterName,
     allowedTargetNamespace = '',
     local = false,
   }) => {
@@ -250,6 +258,9 @@ Cypress.Commands.add(
 
     if (deployToTarget) {
       cy.deployToClusterOrClusterGroup(deployToTarget);
+    }
+    if (targetClusterName) {
+      cy.selectTargetClusterByName(targetClusterName);
     }
 
     if (allowedTargetNamespace !== '') {
@@ -372,6 +383,16 @@ Cypress.Commands.add('deployToClusterOrClusterGroup', (deployToTarget) => {
       }
     });
   }
+});
+
+// Deploy To > "Manually selected clusters", then pick one cluster from the "Cluster names" select.
+Cypress.Commands.add('selectTargetClusterByName', (clusterName) => {
+  cy.get('[data-testid="fleet-target-cluster-radio-button"]')
+    .contains('Manually selected clusters')
+    .should('be.visible')
+    .click();
+  cy.get('[data-testid="fleet-target-cluster-name-selector"]').should('be.visible').click();
+  cy.get('ul.vs__dropdown-menu > li').contains(clusterName).should('be.visible').click();
 });
 
 Cypress.Commands.add('clickCreateGitRepo', (local) => {
@@ -1749,10 +1770,10 @@ Cypress.Commands.add('createCloudCluster', (cloudInstanceType, clusterName, subn
   });
 });
 
-Cypress.Commands.add('deleteDownstreamCluster', (clusterName, deleteOption = false) => {
+Cypress.Commands.add('deleteDownstreamCluster', (clusterName, deleteOption = false, textCheckTimeout) => {
   cy.accesMenuSelection('Cluster Management', 'Clusters');
   cy.filterInSearchBox(clusterName);
-  cy.deleteAll(deleteOption);
+  cy.deleteAll(deleteOption, textCheckTimeout);
 });
 
 Cypress.Commands.add('executeKubectlCommand', (labelCommand, clusterName = 'local') => {
@@ -1816,6 +1837,28 @@ Cypress.Commands.add('checkAnnotationInYaml', (resourceName, annotation, shouldB
       yamlText.includes(annotation),
       `${resourceName} should ${shouldBePresent ? '' : 'not '}have "${annotation}"`,
     ).to.eq(shouldBePresent);
+  });
+  cy.clickButton('Cancel');
+});
+
+// Assert a Deployment deployed by Fleet carries the managed-by-{kind,name,namespace} labels of its source.
+Cypress.Commands.add('checkManagedByLabels', ({ resourceName, clusterName = 'local', kind, name, namespace }) => {
+  const managedByLabels = [
+    `fleet.cattle.io/managed-by-kind: ${kind}`,
+    `fleet.cattle.io/managed-by-name: ${name}`,
+    `fleet.cattle.io/managed-by-namespace: ${namespace}`,
+  ];
+
+  cy.accesMenuSelection(clusterName, 'Workloads', 'Deployments');
+  cy.nameSpaceMenuToggle('All Namespaces');
+  cy.filterInSearchBox(resourceName);
+  cy.verifyTableRow(0, resourceName);
+  cy.open3dotsMenu(resourceName, 'Edit YAML');
+  cy.get('.CodeMirror, .cm-editor').should('contain', 'apiVersion');
+  cy.getYamlEditorValue().then((yamlText) => {
+    managedByLabels.forEach((label) => {
+      expect(yamlText.includes(label), `${resourceName} should have "${label}"`).to.eq(true);
+    });
   });
   cy.clickButton('Cancel');
 });

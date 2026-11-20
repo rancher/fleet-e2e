@@ -13,6 +13,7 @@ limitations under the License.
 */
 
 import 'cypress/support/commands';
+import { isRancherVersionAtLeast } from 'cypress/support/commands';
 
 export const appName = 'nginx-keep';
 export const branch = 'master';
@@ -223,9 +224,13 @@ describe(
 
 describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', '@pr-tests'] }, () => {
   let repoName;
+  // Only used by Fleet-29.
+  const newClusterGroupName = 'cluster-group-env-third-cluster';
+  const removeNewClusterGroupCommand = `kubectl delete clustergroups.fleet.cattle.io ${newClusterGroupName} -n fleet-default --ignore-not-found {enter}`;
 
   beforeEach('Cleanup leftover cluster groups and labels etc. if any.', () => {
     cy.executeKubectlCommand(removeClusterGroupCommand);
+    cy.executeKubectlCommand(removeNewClusterGroupCommand);
     cy.executeKubectlCommand(removeLabelFromAllClusters);
   });
 
@@ -359,64 +364,69 @@ describe('Test application deployment based on clusterGroup', { tags: ['@p1_2', 
     },
   );
 
-  if (supported_versions_212_and_above.some((r) => r.test(rancherVersion))) {
-    console.log({ message: 'UI for `clusterGroup` option is removed and available only via YAML. So Skipping tests.' });
-  } else {
-    it(
-      qase(29, "Fleet-29: Test install app to new set of clusters from old set of clusters using 'clusterGroup'"),
-      { tags: '@fleet-29' },
-      () => {
-        const repoName = 'default-single-app-cluster-group-29';
-        const newClusterGroupName = 'cluster-group-env-third-cluster';
+  it(
+    qase(29, "Fleet-29: Test install app to new set of clusters from old set of clusters using 'clusterGroup'"),
+    { tags: '@fleet-29' },
+    () => {
+      const repoName = 'default-single-app-cluster-group';
 
-        // Assign label to the first 2 clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
-        cy.executeKubectlCommand(labelFirstTwoImportedClusters);
+      // Assign label to the first 2 clusters i.e. imported-0 and imported-1 using kubectl command in terminal.
+      cy.executeKubectlCommand(labelFirstTwoImportedClusters);
 
-        // Create group of cluster consists of same label.
-        cy.continuousDeliveryMenuSelection();
-        cy.clickNavMenu(['Cluster Groups']);
-        cy.contains('.title', 'Cluster Groups').should('be.visible');
-        cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
+      // Create group of cluster consists of same label.
+      cy.continuousDeliveryMenuSelection();
+      cy.clickNavMenu(['Cluster Groups']);
+      cy.contains('.title', 'Cluster Groups').should('be.visible');
+      cy.createClusterGroup(clusterGroupName, key, value, bannerMessageToAssert);
 
-        // Create a GitRepo targeting cluster group created.
-        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, deployToTarget: clusterGroupName });
-        cy.clickButton('Create');
-        cy.checkGitRepoStatus(repoName, '1 / 1');
+      // Create a GitRepo targeting cluster group created.
+      cy.clickNavMenu(['Resources']);
+      cy.clickNavMenu(['Git Repos']);
+      cy.wait(1000);
+      cy.clickButton('Add Repository');
+      cy.wait(1000);
+      cy.clickButton('Edit as YAML');
+      cy.addYamlFile('assets/cluster-group-tests/clusterGroup.yaml');
+      cy.clickButton('Create');
+      cy.checkGitRepoStatus(repoName, '1 / 1');
 
-        // Check first application status on both clusters i.e. imported-0 and imported-1
-        dsFirstTwoClusterList.forEach((dsCluster) => {
-          cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
-        });
+      // Check first application status on both clusters i.e. imported-0 and imported-1
+      dsFirstTwoClusterList.forEach((dsCluster) => {
+        cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces');
+      });
 
-        cy.executeKubectlCommand(newLabelThirdImportedCluster);
+      cy.executeKubectlCommand(newLabelThirdImportedCluster);
 
-        // Create another clusterGroup using third cluster.
-        const newBannerMessageToAssert = /Matches 1 of 3 existing clusters: "imported-\d"/;
-        cy.clickNavMenu(['Cluster Groups']);
-        cy.contains('.title', 'Cluster Groups').should('be.visible');
-        cy.createClusterGroup(newClusterGroupName, new_key, new_value, newBannerMessageToAssert);
+      // Create another clusterGroup using third cluster.
+      const newBannerMessageToAssert = /Matches 1 of 3 existing clusters: "imported-\d"/;
+      cy.continuousDeliveryMenuSelection();
+      cy.clickNavMenu(['Cluster Groups']);
+      cy.contains('.title', 'Cluster Groups').should('be.visible');
+      cy.createClusterGroup(newClusterGroupName, new_key, new_value, newBannerMessageToAssert);
 
-        // Update GitRepo with newly created clusterGroup.
-        cy.addFleetGitRepo({
-          repoName,
-          deployToTarget: newClusterGroupName,
-          fleetNamespace: 'fleet-default',
-          editConfig: true,
-        });
-        cy.clickButton('Save');
-        cy.checkGitRepoStatus(repoName, '1 / 1');
+      // Update GitRepo with newly created clusterGroup.
+      cy.continuousDeliveryMenuSelection();
+      cy.fleetNamespaceToggle('fleet-default');
+      cy.verifyTableRow(0, 'Active', repoName);
+      cy.open3dotsMenu(repoName, 'Edit Config');
+      cy.clickButton('Edit as YAML');
+      cy.getYamlEditorValue().then((yamlText) => {
+        expect(yamlText).to.include(clusterGroupName, `GitRepo YAML should reference ${clusterGroupName}`);
+        cy.setYamlEditorValue(yamlText.replace(clusterGroupName, newClusterGroupName));
+      });
+      cy.clickButton('Save');
+      cy.checkGitRepoStatus(repoName, '1 / 1');
 
-        // Check application is present on third cluster i.e. imported-2
-        cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
+      // Check application is present on third cluster i.e. imported-2
+      cy.checkApplicationStatus(appName, dsThirdClusterName, 'All Namespaces');
 
-        // Check application status on first 2 clusters i.e. imported-0 and imported-1
-        // Application should be removed from first 2 clusters i.e. imported-0 and imported-1
-        dsFirstTwoClusterList.forEach((dsCluster) => {
-          cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces', false);
-        });
-      },
-    );
-  }
+      // Check application status on first 2 clusters i.e. imported-0 and imported-1
+      // Application should be removed from first 2 clusters i.e. imported-0 and imported-1
+      dsFirstTwoClusterList.forEach((dsCluster) => {
+        cy.checkApplicationStatus(appName, dsCluster, 'All Namespaces', false);
+      });
+    },
+  );
 });
 
 describe('Test multiple applications deployment based on clusterGroup', { tags: ['@p1_2', '@pr-tests'] }, () => {
@@ -1140,7 +1150,7 @@ describe('Test Fleet bundle status for longhorn-crd', { tags: '@p1_2' }, () => {
 
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift: 'yes' });
       cy.clickButton('Create');
-      cy.checkGitRepoStatus(repoName, '1 / 1', '66 / 66');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '81 / 81');
 
       // Check bundle status of longhorn-crd
       cy.continuousDeliveryBundlesMenu();
@@ -2132,3 +2142,236 @@ describe('Test "helm.sh/resource-policy: keep" annotation is added to CRDs only.
     },
   );
 });
+
+// AgentVersionUpToDate condition on Fleet clusters since v0.17.0-alpha.1 (Rancher 2.16), main only.
+if (isRancherVersionAtLeast(16)) {
+  describe('Test AgentVersionUpToDate condition on Fleet clusters.', { tags: '@p1_2' }, () => {
+    it(
+      qase(497, 'Fleet-497: Test Fleet clusters report AgentVersionUpToDate=True without affecting Ready.'),
+      { tags: '@fleet-497' },
+      () => {
+        const conditionRows = 'section#conditions tbody tr, section[data-testid="tab-panel-conditions"] tbody tr';
+
+        // Local cluster (fleet-local) and one downstream (fleet-default); same check on each.
+        [
+          { workspace: 'fleet-local', clusterName: 'local' },
+          { workspace: 'fleet-default', clusterName: dsFirstClusterName },
+        ].forEach(({ workspace, clusterName }) => {
+          cy.continuousDeliveryMenuSelection();
+          cy.fleetNamespaceToggle(workspace);
+          cy.clickNavMenu(['Clusters']);
+          cy.filterInSearchBox(clusterName);
+          cy.verifyTableRow(0, 'Active', clusterName);
+          cy.get('td.col-link-detail a').contains(clusterName).click();
+
+          // Informational condition is True and leaves cluster readiness untouched.
+          cy.get('ul[role="tablist"]').contains('Conditions').click();
+          cy.contains(conditionRows, 'AgentVersionUpToDate').should('contain', 'True');
+          cy.contains(conditionRows, 'Ready').should('contain', 'True');
+        });
+      },
+    );
+  });
+}
+
+// Fleet labels deployed resources with their source since v0.17.0-alpha.7 (Rancher 2.16+), main only.
+if (isRancherVersionAtLeast(16)) {
+  describe('Test resources deployed by Fleet are labelled with their source.', { tags: '@p1_2' }, () => {
+    it(
+      qase(
+        498,
+        'Fleet-498: Test GitRepo resources carry managed-by labels, correctDrift ignores them and fleet-agent is not labelled.',
+      ),
+      { tags: '@fleet-498' },
+      () => {
+        const repoName = 'test-managed-by-labels';
+
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, correctDrift: 'yes', local: true });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+        // The nginx-keep Deployment from the GitRepo carries all three source labels.
+        cy.checkManagedByLabels({ resourceName: appName, kind: 'gitrepo', name: repoName, namespace: 'fleet-local' });
+
+        // fleet-agent is not deployed from a GitRepo/HelmOp, so it must not be labelled.
+        cy.checkAnnotationInYaml('fleet-agent', 'fleet.cattle.io/managed-by-kind', false);
+
+        // With correctDrift enabled the labels must not be treated as drift (no Modified state).
+        cy.continuousDeliveryMenuSelection();
+        cy.fleetNamespaceToggle('fleet-local');
+        cy.filterInSearchBox(repoName);
+        cy.verifyTableRow(0, 'Active', repoName);
+      },
+    );
+
+    it(qase(499, 'Fleet-499: Test HelmOp resources carry managed-by labels.'), { tags: '@fleet-499' }, () => {
+      const repoName = 'test-managed-by-helmop';
+
+      cy.addHelmOp({
+        fleetNamespace: 'fleet-local',
+        repoName,
+        repoUrl: 'https://grafana.github.io/helm-charts',
+        chart: 'grafana',
+      });
+      cy.verifyTableRow(0, 'Active', '1/1');
+
+      // The grafana chart names its Deployment after the release, which is the HelmOp name.
+      cy.checkManagedByLabels({ resourceName: repoName, kind: 'helmop', name: repoName, namespace: 'fleet-local' });
+    });
+
+    it(
+      qase(500, 'Fleet-500: Test GitRepo resources on a downstream cluster carry the fleet-default managed-by labels.'),
+      { tags: '@fleet-500' },
+      () => {
+        const repoName = 'test-managed-by-labels-ds';
+
+        cy.addFleetGitRepo({
+          repoName,
+          repoUrl,
+          branch,
+          path,
+          fleetNamespace: 'fleet-default',
+          targetClusterName: dsFirstClusterName,
+        });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+        cy.checkManagedByLabels({
+          resourceName: appName,
+          clusterName: dsFirstClusterName,
+          kind: 'gitrepo',
+          name: repoName,
+          namespace: 'fleet-default',
+        });
+      },
+    );
+  });
+}
+
+// Rancher passes Fleet workspace annotations to its namespace since v2.15.0, backported to v2.14.
+if (isRancherVersionAtLeast(14)) {
+  describe('Test Fleet workspace labels and annotations are passed to its namespace.', { tags: '@p1_2' }, () => {
+    it(
+      qase(502, 'Fleet-502: Test namespace created by a Fleet workspace carries the workspace annotations and labels.'),
+      { tags: '@fleet-502' },
+      () => {
+        const workspaceName = 'qa-workspace-annotations';
+
+        // Create the workspace with labels and annotations, as in the issue.
+        cy.continuousDeliveryMenuSelection();
+        cy.continuousDeliveryWorkspacesMenu();
+        cy.clickButton('Create');
+        cy.contains('Workspace:').should('be.visible');
+        cy.typeValue('Name', workspaceName);
+        cy.contains('Labels & Annotations').click();
+        // Labels and annotations number their rows from 0 each, hence the .eq() on row 0.
+        cy.clickButton('Add Label');
+        cy.get('[data-testid="input-kv-item-key-0"]').eq(0).type('qa-team');
+        cy.get('[data-testid="kv-item-value-0"]').eq(0).find('textarea, input').first().type('team-a');
+        cy.clickButton('Add Annotation');
+        cy.get('[data-testid="input-kv-item-key-0"]').eq(1).type('qa-owner');
+        cy.get('[data-testid="kv-item-value-0"]').eq(1).find('textarea, input').first().type('team-a');
+        cy.clickButton('Add Annotation');
+        cy.get('[data-testid="input-kv-item-key-1"]').eq(0).type('qa-environment');
+        cy.get('[data-testid="kv-item-value-1"]').eq(0).find('textarea, input').first().type('production');
+        // KeyValue emits its rows 500ms after the last keystroke; saving sooner drops them.
+        cy.wait(1000);
+        cy.clickButton('Create');
+        cy.filterInSearchBox(workspaceName);
+        cy.verifyTableRow(0, 'Active', workspaceName);
+
+        // The namespace carries the annotations (the fix) and the label (worked before the fix).
+        cy.accesMenuSelection('local', 'Projects/Namespaces');
+        cy.filterInSearchBox(workspaceName);
+        cy.verifyTableRow(0, 'Active', workspaceName);
+        cy.open3dotsMenu(workspaceName, 'Edit YAML');
+        cy.get('.CodeMirror, .cm-editor').should('contain', 'apiVersion');
+        cy.getYamlEditorValue().then((yamlText) => {
+          // Collect every missing entry so one failure shows whether only the annotations are missing.
+          const missing = ['qa-owner: team-a', 'qa-environment: production', 'qa-team: team-a'].filter(
+            (entry) => !yamlText.includes(entry),
+          );
+          expect(missing, `Entries missing on namespace ${workspaceName}`).to.deep.eq([]);
+        });
+        cy.clickButton('Cancel');
+
+        // Delete the workspace; its namespace goes with it.
+        cy.continuousDeliveryMenuSelection();
+        cy.continuousDeliveryWorkspacesMenu();
+        cy.filterInSearchBox(workspaceName);
+        cy.deleteAll(false);
+      },
+    );
+  });
+}
+
+// ${ } templates in namespaceLabels / namespaceAnnotations are rendered since Fleet v0.17.0 (Rancher 2.16+).
+if (isRancherVersionAtLeast(16)) {
+  describe('Test templates in namespaceLabels and namespaceAnnotations of fleet.yaml.', { tags: '@p1_2' }, () => {
+    const templatingPath = 'qa-test-apps/namespace-metadata-templating';
+
+    it(
+      qase(
+        504,
+        'Fleet-504: Test namespaceLabels and namespaceAnnotations templates are rendered with the target cluster values.',
+      ),
+      { tags: '@fleet-504' },
+      () => {
+        const repoName = 'test-ns-templating-render';
+        const namespaceName = 'ns-templated';
+
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path: `${templatingPath}/render`, local: true });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+        // Each template field renders to the local cluster's value; none stays literal.
+        cy.accesMenuSelection('local', 'Projects/Namespaces');
+        cy.filterInSearchBox(namespaceName);
+        cy.verifyTableRow(0, 'Active', namespaceName);
+        cy.open3dotsMenu(namespaceName, 'Edit YAML');
+        cy.get('.CodeMirror, .cm-editor').should('contain', 'apiVersion');
+        cy.getYamlEditorValue().then((yamlText) => {
+          const missing = [
+            /^\s*cluster-name: local$/m,
+            /^\s*cluster-namespace: fleet-local$/m,
+            /^\s*cluster-label-name: local$/m,
+            /^\s*example\.io\/cluster: local:p-local-myproject$/m,
+          ].filter((entry) => !entry.test(yamlText));
+          expect(missing, `Rendered entries missing on namespace ${namespaceName}`).to.deep.eq([]);
+          expect(yamlText.includes('${'), 'Namespace should not carry a literal template').to.eq(false);
+        });
+        cy.clickButton('Cancel');
+      },
+    );
+
+    it(
+      qase(
+        505,
+        'Fleet-505: Test namespaceLabels template referring to a missing cluster label reports a render error.',
+      ),
+      { tags: '@fleet-505' },
+      () => {
+        const repoName = 'test-ns-templating-missing-label';
+
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path: `${templatingPath}/missing-label`, local: true });
+        cy.clickButton('Create');
+        cy.verifyTableRow(0, 'Error', repoName);
+        cy.contains(/namespaceLabels: key "env": failed to render template/).should('be.visible');
+      },
+    );
+
+    it(
+      qase(506, 'Fleet-506: Test helm.disablePreProcess keeps namespaceLabels templates literal.'),
+      { tags: '@fleet-506' },
+      () => {
+        const repoName = 'test-ns-templating-disable-preprocess';
+
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path: `${templatingPath}/disable-preprocess`, local: true });
+        cy.clickButton('Create');
+        // Not rendered, so the API server rejects the literal label value.
+        cy.verifyTableRow(0, 'Err Applied', repoName);
+        cy.contains(/Invalid value: "\$\{ \.ClusterName \}"/).should('be.visible');
+      },
+    );
+  });
+}

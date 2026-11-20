@@ -40,8 +40,9 @@ describe('Test Hardened Fleet deployment on PUBLIC repos', { tags: '@hardening-t
     cy.contains('apiVersion: fleet.cattle.io/v1alpha1').should('be.visible');
     cy.clickButton('Create');
     cy.checkGitRepoStatus(repoName, '0 / 1', '3 / 6');
-    cy.verifyTableRow(0, 'Error', 'local-cluster-error-simple');
-    cy.contains('NotReady(1) [Cluster fleet-local/local];').should('be.visible');
+    // Rancher 2.16 reports the failed deployment as 'Not Ready' instead of 'Error'
+    cy.verifyTableRow(0, /Error|Not Ready/, 'local-cluster-error-simple');
+    cy.contains(/NotReady\(1\) \[Cluster fleet-local\/local\][;:]/).should('be.visible');
     cy.deleteAllFleetRepos();
   });
 

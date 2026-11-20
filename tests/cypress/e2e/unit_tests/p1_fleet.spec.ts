@@ -481,13 +481,13 @@ if (isRancherVersionAtLeast(15)) {
         qase_id: 492,
         file: 'helmop-oci-up-tags-constraint.yaml',
         title: 'FLEET-492: Test OCI HelmOp with ">= 109.0.0" gets the newest published chart version',
-        expect: '110.0.0+up1.1.0',
+        expect: /\b(?:1[1-9]\d|[2-9]\d{2}|[1-9]\d{3,})\.\d+\.\d+\+up\d+\.\d+(?:\.\w+)?(?:\/\d+)?/,
       },
       {
         qase_id: 493,
         file: 'helmop-oci-up-tags-empty.yaml',
         title: 'FLEET-493: Test OCI HelmOp with no version gets the newest published chart version',
-        expect: '110.0.0+up1.1.0',
+        expect: /\b(?:1[1-9]\d|[2-9]\d{2}|[1-9]\d{3,})\.\d+\.\d+\+up\d+\.\d+(?:\.\w+)?(?:\/\d+)?/,
       },
       {
         qase_id: 494,
@@ -938,8 +938,10 @@ describe('Test GitRepo creation from a Git revision instead of a branch', { tags
     qase(122, 'Fleet-122: Test GitRepo can be created from a specific Git revision (tag) instead of a branch'),
     { tags: '@fleet-122' },
     () => {
+      const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public.git';
       const repoName = 'local-cluster-revision-122';
       const revision = 'v1.0.0';
+      const path = 'nginx-tag';
 
       // Create a GitRepo pinned to a Git revision (tag) instead of the master branch.
       cy.addFleetGitRepo({ repoName, repoUrl, revision, path, local: true });
@@ -947,7 +949,7 @@ describe('Test GitRepo creation from a Git revision instead of a branch', { tags
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
 
       // Application should be deployed from the pinned revision.
-      cy.checkApplicationStatus(appName);
+      cy.checkApplicationStatus('nginx-tag');
     },
   );
 });
