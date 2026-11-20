@@ -106,11 +106,6 @@ on:
         required: false
         type: boolean
         default: false
-      qase_release_run:
-        description: Check to make this the release test run in QASE (title starts with 'Fleet Automation E2E'). Leave unchecked for a normal run.
-        required: false
-        type: boolean
-        default: false
       qase_complete_run:
         description: Complete the QASE run after tests finish (set false when appending multiple test suites to same run)
         required: false
@@ -461,14 +456,14 @@ jobs:
       - name: Create QASE run under milestone
         id: qase_milestone
         # Only for new runs: appending to an existing run (e.g. release testing) is left untouched
-        if: ${{ inputs.qase_report == true && inputs.qase_run_id == '' && (inputs.qase_milestone != '' || inputs.qase_milestone_auto == true || inputs.qase_release_run == true) }}
+        if: ${{ inputs.qase_report == true && inputs.qase_run_id == '' && (inputs.qase_milestone != '' || inputs.qase_milestone_auto == true) }}
         env:
           QASE_API_TOKEN: ${{ secrets.qase_api_token }}
           GH_TOKEN: ${{ github.token }}
           RANCHER_VERSION: ${{ inputs.rancher_upgrade != '' && inputs.rancher_upgrade || inputs.rancher_version }}
           MILESTONE: ${{ inputs.qase_milestone }}
-          MILESTONE_AUTO: ${{ inputs.qase_milestone_auto || inputs.qase_release_run }}
-          RUN_TITLE: ${{ inputs.qase_release_run && format('Fleet Automation E2E {0}', env.QASE_TESTOPS_RUN_TITLE) || env.QASE_TESTOPS_RUN_TITLE }}
+          MILESTONE_AUTO: ${{ inputs.qase_milestone_auto }}
+          RUN_TITLE: ${{ env.QASE_TESTOPS_RUN_TITLE }}
           RUN_DESCRIPTION: ${{ env.QASE_TESTOPS_RUN_DESCRIPTION }}
         run: ./.github/scripts/qase-milestone.sh
       - name: Cypress tests - Basics

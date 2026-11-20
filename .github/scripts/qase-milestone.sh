@@ -7,9 +7,6 @@
 # The milestone is created in QASE when missing. One that cannot be resolved/created never fails the job: the run is simply not created here and the
 # reporter creates it as before (no milestone).
 #
-# NOTE: release-testing runs are titled "Fleet Automation E2E ..." (qase-release-run.sh filters on that
-# prefix to find them under a milestone). Daily runs keep the "[N] Rancher-..." title, never use that prefix.
-#
 # Env: QASE_API_TOKEN, RANCHER_VERSION, MILESTONE, MILESTONE_AUTO, RUN_TITLE, RUN_DESCRIPTION, GH_TOKEN
 # Writes qase_run_id to $GITHUB_OUTPUT / QASE_TESTOPS_RUN_ID to $GITHUB_ENV, and a block to $GITHUB_STEP_SUMMARY.
 

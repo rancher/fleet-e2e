@@ -19,10 +19,6 @@ on:
         required: false
         type: string
         default: ''
-      qase_release_run:
-        description: Check to make this the release test run in QASE (title starts with 'Fleet Automation E2E'). Leave unchecked for a normal run.
-        default: false
-        type: boolean
       qase_complete_run:
         description: "`Uncheck` when appending test runs. `Check` on final run to close QASE. For daily runs, keep it checked."
         default: true
@@ -110,7 +106,6 @@ jobs:
       qase_run_id: ${{ inputs.qase_run_id || '' }}
       qase_milestone: ${{ inputs.qase_milestone }}
       qase_milestone_auto: ${{ github.event_name == 'schedule' }}
-      qase_release_run: ${{ inputs.qase_release_run == true }}
       qase_complete_run: ${{ inputs.qase_complete_run != false }}
       grep_test_by_tag: ${{ inputs.grep_test_by_tag }}
       hardening: ${{ inputs.hardening }}
