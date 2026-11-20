@@ -110,7 +110,7 @@ on:
         default: stgregistry.suse.com
         type: string
       rancher_image_tag:
-        description: Exact head Rancher image tag (empty = v2.XX-head on stgregistry, latest rancher/rancher branch build on docker.io)
+        description: Exact head Rancher image tag (empty = v2.XX-head on stgregistry, rancher/rancher-server for 2.16+; latest rancher/rancher branch build on docker.io)
         default: ""
         type: string
       rancher_upgrade:
@@ -127,8 +127,8 @@ on:
         type: boolean
         default: false
       hardening_cluster_version:
-        description: Upstream cluster version for HARDENING where to install Rancher
-        default: 'v1.32.8+rke2r1'
+        description: Upstream RKE2 version for HARDENING where to install Rancher ('auto' picks the newest K8s accepted by rancher_version)
+        default: 'v1.37.2+rke2r1'
         type: string
         required: false
       runner_template:
@@ -371,9 +371,15 @@ jobs:
             fi
           fi
           # Empty TAG lets the install test default to the floating v2.XX-head tag
-          echo "Rancher image: ${RANCHER_IMAGE_REGISTRY}/rancher/rancher:${TAG:-v${VER}-head}"
+          # stgregistry publishes 2.16+ as rancher/rancher-server (picked by rancherExtraFlags in suite_test.go)
+          REPO=rancher/rancher
+          if [[ "${RANCHER_IMAGE_REGISTRY}" == "stgregistry.suse.com" && "$(cut -d. -f2 <<< "${VER}")" -ge 16 ]]; then
+            REPO=rancher/rancher-server
+          fi
+          echo "Rancher image: ${RANCHER_IMAGE_REGISTRY}/${REPO}:${TAG:-v${VER}-head}"
           echo "RANCHER_IMAGE_TAG=${TAG}" >> ${GITHUB_ENV}
       - name: Install prerequisite components
+        id: install_prerequisites
         env:
           PUBLIC_DNS: ${{ needs.create-runner.outputs.public_dns }}
           PUBLIC_DOMAIN: bc.googleusercontent.com
@@ -385,6 +391,32 @@ jobs:
           else
             cd tests && make e2e-install-rancher
           fi
+      - name: Install diagnostics
+        if: ${{ failure() && steps.install_prerequisites.outcome == 'failure' }}
+        run: |
+          # Don't stop at the first failing command, so all the output below is still printed
+          set +e
+          # Hardened RKE2: the provisioning script's KUBECONFIG is not kept between steps,
+          # and ~/.kube/config only exists once the install test has copied it
+          if [[ -r /etc/rancher/rke2/rke2.yaml ]]; then
+            export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
+          fi
+          kubectl version
+          kubectl get nodes -o wide
+          # Helm releases (Fleet chart missing/failed/pending?)
+          helm list -A
+          # Rancher system chart operations (helm-operation pods and their status)
+          kubectl get operations.catalog.cattle.io -A
+          kubectl -n cattle-system get pods -o wide
+          kubectl -n cattle-system logs -l app=helm-operation --tail=200 --all-containers
+          # Chart catalog state
+          kubectl get clusterrepo rancher-charts -o jsonpath='{.status.commit}{"\n"}{.status.conditions}{"\n"}'
+          kubectl get setting fleet-version -o jsonpath='{.value}{"\n"}'
+          # Fleet namespace state
+          kubectl -n cattle-fleet-system get all,events
+          # Rancher logs mentioning Fleet or the chart manager
+          kubectl -n cattle-system logs -l app=rancher --tail=1000 | grep -i "fleet\|helm\|chart\|catalog"
+          exit 0
       - name: Extract component versions/informations
         id: component
         run: |

@@ -196,7 +196,11 @@ declare global {
         region?: string,
       ): Chainable<Element>;
       createCloudCluster(cloudInstanceType: string, clusterName: string, subnetId: string): Chainable<Element>;
-      deleteDownstreamCluster(clusterName: string, deleteOption?: boolean): Chainable<Element>;
+      deleteDownstreamCluster(
+        clusterName: string,
+        deleteOption?: boolean,
+        textCheckTimeout?: number,
+      ): Chainable<Element>;
       addHelmOp(
         fleetNamespace?: string,
         repoName: string,

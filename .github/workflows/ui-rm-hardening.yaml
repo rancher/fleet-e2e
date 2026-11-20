@@ -30,27 +30,42 @@ on:
         default: true
         type: boolean
       rancher_version:
-        description: Rancher version channel/version/head_version latest/latest, latest/2.11.x[-rc1], prime/2.11.x, prime/devel/2.11, alpha/2.11.0-alpha1
-        default: head/2.12
-        type: string
-        required: true
+        description: Rancher version. Sets the RKE2 and k3s versions when they are left on 'auto'
+        default: head/2.16
+        type: choice
+        options:
+          - head/2.16
+          - head/2.15
+          - head/2.14
+          - head/2.13
+          - head/2.12
       upstream_cluster_version:
-        description: Cluster version where to install Rancher (here for Downstream clusters)
-        default: 'v1.32.4+k3s1'
-        type: string
-        required: true
+        description: "k3s version for Downstream clusters. 'auto' = same K8s minor as the hardened RKE2 for the chosen Rancher version"
+        default: 'auto'
+        type: choice
+        options:
+          - 'auto'
+          - 'v1.37.1+k3s1'
+          - 'v1.36.1+k3s1'
+          - 'v1.35.2+k3s1'
+          - 'v1.34.3+k3s1'
+          - 'v1.33.7+k3s1'
       hardening:
         description: Select if desired hardened cluster (if 'true' use only @login @hardening-tests)
         required: false
         type: boolean
         default: true
       hardening_cluster_version:
-        description: 'RKE2 version for hardened upstream cluster (Rancher 2.11 requires K8s < 1.33, use v1.32.8+rke2r1)'
-        default: 'v1.33.0+rke2r1'
+        description: "RKE2 version for hardened upstream cluster. 'auto' picks the newest K8s accepted by the Rancher version (2.12=1.33, 2.13=1.34, 2.14=1.35, 2.15=1.36, 2.16=1.37)"
+        default: 'auto'
         type: choice
         options:
-          - 'v1.33.0+rke2r1'
-          - 'v1.32.8+rke2r1'
+          - 'auto'
+          - 'v1.37.2+rke2r1'
+          - 'v1.36.6+rke2r1'
+          - 'v1.35.10+rke2r1'
+          - 'v1.34.13+rke2r1'
+          - 'v1.33.13+rke2r2'
       grep_test_by_tag:
         description: Grep tags. For hardened tests, use @hardening-tests Keep always @login
         required: false
@@ -80,12 +95,12 @@ jobs:
       cluster_name: hardened-rke2-cluster
       # WARNING, VALUES BELOW ARE HARDCODED FOR RUNS SCHEDULED BY CRON
       destroy_runner: ${{ inputs.destroy_runner }}
-      upstream_cluster_version: ${{ inputs.upstream_cluster_version }}
+      upstream_cluster_version: ${{ inputs.upstream_cluster_version != 'auto' && inputs.upstream_cluster_version || fromJSON('{"head/2.12":"v1.33.7+k3s1","head/2.13":"v1.34.3+k3s1","head/2.14":"v1.35.2+k3s1","head/2.15":"v1.36.1+k3s1","head/2.16":"v1.37.1+k3s1"}')[inputs.rancher_version] }}
       rancher_version: ${{ inputs.rancher_version }}
       qase_report: ${{ inputs.qase_report == true || (github.event_name == 'schedule' && true) }}
       qase_run_id: ${{ inputs.qase_run_id || '' }}
       qase_complete_run: ${{ inputs.qase_complete_run != false }}
       grep_test_by_tag: ${{ inputs.grep_test_by_tag }}
       hardening: ${{ inputs.hardening }}
-      hardening_cluster_version: ${{ inputs.hardening_cluster_version }}
+      hardening_cluster_version: ${{ inputs.hardening_cluster_version != 'auto' && inputs.hardening_cluster_version || fromJSON('{"head/2.12":"v1.33.13+rke2r2","head/2.13":"v1.34.13+rke2r1","head/2.14":"v1.35.10+rke2r1","head/2.15":"v1.36.6+rke2r1","head/2.16":"v1.37.2+rke2r1"}')[inputs.rancher_version] }}
       runner_template: ${{ inputs.runner_template || 'fleet-e2e-ci-runner-spot-x86-64-template-v3' }}

@@ -939,8 +939,10 @@ describe('Test GitRepo creation from a Git revision instead of a branch', { tags
     qase(122, 'Fleet-122: Test GitRepo can be created from a specific Git revision (tag) instead of a branch'),
     { tags: '@fleet-122' },
     () => {
+      const repoUrl = 'https://github.com/fleetqa/fleet-qa-examples-public.git';
       const repoName = 'local-cluster-revision-122';
       const revision = 'v1.0.0';
+      const path = 'nginx-tag';
 
       // Create a GitRepo pinned to a Git revision (tag) instead of the master branch.
       cy.addFleetGitRepo({ repoName, repoUrl, revision, path, local: true });
@@ -948,7 +950,7 @@ describe('Test GitRepo creation from a Git revision instead of a branch', { tags
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
 
       // Application should be deployed from the pinned revision.
-      cy.checkApplicationStatus(appName);
+      cy.checkApplicationStatus('nginx-tag');
     },
   );
 });
