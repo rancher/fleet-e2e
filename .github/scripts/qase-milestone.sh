@@ -16,7 +16,6 @@
 set -euo pipefail
 shopt -s inherit_errexit
 
-: "${QASE_API_TOKEN:?QASE_API_TOKEN is required}"
 QASE_PROJECT_CODE="${QASE_PROJECT_CODE:-FLEET}"
 API="https://api.qase.io/v1"
 
@@ -26,6 +25,8 @@ skip() { # skip <reason>: report and carry on without milestone
   summary "\n### QASE Milestone\nNot set: $*"
   exit 0
 }
+
+[[ -n "${QASE_API_TOKEN:-}" ]] || skip "QASE_API_TOKEN is not set"
 
 qase() { # qase <path> [curl args...]
   local path=$1; shift
@@ -41,9 +42,11 @@ elif [[ "${MILESTONE_AUTO:-false}" == "true" ]]; then
   [[ -n "$minor" ]] || skip "cannot derive the Rancher minor from '${RANCHER_VERSION:-}'"
   # Alpha/RC channels have no "released + 1" meaning
   [[ "${RANCHER_VERSION}" =~ (alpha|rc) ]] && skip "'${RANCHER_VERSION}' is a pre-release channel"
-  last=$(gh api --paginate "repos/rancher/rancher/releases?per_page=100" \
-    --jq '.[] | select(.prerelease == false and .draft == false) | .tag_name' \
-    | grep -E "^v${minor//./\\.}\.[0-9]+$" | sed -E 's/.*\.//' | sort -n | tail -n1 || true)
+  # A failed lookup (auth, rate limit, network) must not look like "no release yet", or a wrong v<minor>.0 would be created
+  releases=$(gh api --paginate "repos/rancher/rancher/releases?per_page=100" \
+    --jq '.[] | select(.prerelease == false and .draft == false) | .tag_name') \
+    || skip "cannot list rancher/rancher releases (GitHub API failed)"
+  last=$(grep -E "^v${minor//./\\.}\.[0-9]+$" <<<"$releases" | sed -E 's/.*\.//' | sort -n | tail -n1 || true)
   if [[ -n "$last" ]]; then
     title="v${minor}.$((last + 1))"
     source_note="auto: latest released is v${minor}.${last}"
@@ -81,7 +84,8 @@ if [[ -z "$milestone_id" ]]; then
 fi
 [[ -n "$milestone_id" ]] || skip "milestone '${title}' (${source_note}) could not be found or created in QASE project ${QASE_PROJECT_CODE}"
 
-body=$(jq -n --arg title "${RUN_TITLE:?RUN_TITLE is required}" --arg desc "${RUN_DESCRIPTION:-}" \
+[[ -n "${RUN_TITLE:-}" ]] || skip "RUN_TITLE is empty"
+body=$(jq -n --arg title "${RUN_TITLE:-}" --arg desc "${RUN_DESCRIPTION:-}" \
   --argjson milestone_id "$milestone_id" \
   '{title: $title, description: $desc, milestone_id: $milestone_id, is_autotest: true, include_all_cases: false}')
 run_id=$(qase "run/${QASE_PROJECT_CODE}" -X POST -H "Content-Type: application/json" --data "$body" \
