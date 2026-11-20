@@ -21,6 +21,7 @@ export const path = 'qa-test-apps/nginx-app';
 export const repoUrl = 'https://github.com/rancher/fleet-test-data/';
 export const dsAllClusterList = ['imported-0', 'imported-1', 'imported-2'];
 export const dsFirstClusterName = dsAllClusterList[0];
+export const dsSecondClusterName = dsAllClusterList[1];
 
 beforeEach(() => {
   cy.login();
@@ -1004,3 +1005,62 @@ describe('Test correctDrift does not create excessive secrets after multiple mod
     },
   );
 });
+
+if (isRancherVersionAtLeast(16)) {
+  describe('Test deleteNamespace option on downstream cluster', { tags: ['@p1', '@fleet-508'] }, () => {
+    it(
+      qase(
+        508,
+        'Fleet-508: Test that target namespace shared by two HelmOps is deleted on downstream clusters only after last HelmOp is deleted',
+      ),
+      { tags: '@fleet-508' },
+      () => {
+        const sharedNs = 'test-shared-ns';
+
+        // After 'Create' Fleet returns to the HelmOps list of the same workspace, so navigate only once.
+        cy.accesMenuSelection('Continuous Delivery', 'Resources', 'Helm Ops');
+        cy.fleetNamespaceToggle('fleet-default');
+
+        // Two HelmOps with deleteNamespace: true deploying to the same target namespace.
+        cy.addHelmOpFromYaml('assets/helmop-shared-ns-1.yaml');
+        cy.addHelmOpFromYaml('assets/helmop-shared-ns-2.yaml');
+        cy.verifyTableRow(0, 'Active', 'test-shared');
+        cy.verifyTableRow(1, 'Active', 'test-shared');
+        cy.checkNamespaceInCluster(sharedNs, dsFirstClusterName, true);
+        cy.checkNamespaceInCluster(sharedNs, dsSecondClusterName, true);
+
+        // Deleting the first HelmOp must keep the namespace: the second release still uses it.
+        cy.deleteHelmOp('test-shared-1', 'fleet-default');
+        cy.wait(15000);
+        cy.checkNamespaceInCluster(sharedNs, dsFirstClusterName, true);
+        cy.checkNamespaceInCluster(sharedNs, dsSecondClusterName, true);
+
+        // Deleting the last HelmOp must remove the namespace.
+        cy.deleteHelmOp('test-shared-2', 'fleet-default');
+        cy.checkNamespaceInCluster(sharedNs, dsFirstClusterName, false);
+        cy.checkNamespaceInCluster(sharedNs, dsSecondClusterName, false);
+      },
+    );
+
+    it(
+      qase(
+        509,
+        'Fleet-509: Test that target namespace is deleted on downstream clusters after GitRepo with deleteNamespace=true is deleted',
+      ),
+      { tags: '@fleet-509' },
+      () => {
+        const repoName = 'test-delns-gitrepo';
+        const targetNs = 'test-delns-gitrepo';
+
+        cy.addFleetRepoFromYaml('assets/gitrepo-delete-namespace-true.yaml', 'fleet-default');
+        cy.checkGitRepoStatus(repoName, '1 / 1');
+        cy.checkNamespaceInCluster(targetNs, dsFirstClusterName, true);
+        cy.checkNamespaceInCluster(targetNs, dsSecondClusterName, true);
+
+        cy.deleteAllFleetRepos('fleet-default');
+        cy.checkNamespaceInCluster(targetNs, dsFirstClusterName, false);
+        cy.checkNamespaceInCluster(targetNs, dsSecondClusterName, false);
+      },
+    );
+  });
+}
