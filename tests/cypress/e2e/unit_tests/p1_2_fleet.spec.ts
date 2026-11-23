@@ -2387,9 +2387,7 @@ if (isRancherVersionAtLeast(16)) {
     beforeEach('Drop the namespace left by a previous run, if any, and wait until it is gone.', () => {
       cy.executeKubectlCommand(`kubectl delete ns ${namespaceName} --ignore-not-found {enter}`);
       // kubectl returns while the namespace is still Terminating; wait for it to leave the UI list.
-      cy.accesMenuSelection('local', 'Projects/Namespaces');
-      cy.filterInSearchBox(namespaceName);
-      cy.get('tr.main-row', { timeout: 300000 }).should('not.exist');
+      cy.checkNamespaceInCluster(namespaceName, 'local', false, 300000);
     });
 
     // Fleet reconciles asynchronously after a Force Update, so re-read the YAML until it shows Fleet's
