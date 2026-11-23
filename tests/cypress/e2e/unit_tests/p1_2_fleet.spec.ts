@@ -2379,15 +2379,19 @@ if (isRancherVersionAtLeast(16)) {
 // Fleet keeps namespace metadata it does not declare (e.g. Rancher projectId) on Rancher 2.16+.
 if (isRancherVersionAtLeast(16)) {
   describe('Test namespace moved into a Rancher Project stays there after Fleet redeploys.', { tags: '@p1_2' }, () => {
+    const repoName = 'test-ns-project-move';
+    const path = 'qa-test-apps/namespace-labels-annotations';
+    const namespaceName = 'my-labeled-namespace';
+
+    // The global beforeEach deletes the GitRepo first, so Fleet will not recreate this namespace.
+    beforeEach('Drop the namespace left by a previous run, if any.', () => {
+      cy.executeKubectlCommand(`kubectl delete ns ${namespaceName} --ignore-not-found {enter}`);
+    });
+
     it(
       qase(503, 'Fleet-503: Test namespace deployed by Fleet keeps its Project after GitRepo Force Update.'),
       { tags: '@fleet-503' },
       () => {
-        const repoName = 'test-ns-project-move';
-        const path = 'qa-test-apps/namespace-labels-annotations';
-        const namespaceName = 'my-labeled-namespace';
-        const projectAnnotation = 'field.cattle.io/projectId: local:p-';
-
         cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
         cy.clickButton('Create');
         cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
@@ -2400,10 +2404,25 @@ if (isRancherVersionAtLeast(16)) {
         cy.get('.move-modal-card .labeled-select').should('be.visible').click();
         cy.contains('.vs__dropdown-option', 'Default').click();
         cy.clickButton('Move');
-        cy.checkAnnotationInYaml(namespaceName, projectAnnotation);
+
+        // Capture the exact project ID the Move set. "local:p-" alone matches every project.
+        cy.filterInSearchBox(namespaceName);
+        cy.verifyTableRow(0, namespaceName);
+        cy.open3dotsMenu(namespaceName, 'Edit YAML');
+        cy.get('.CodeMirror, .cm-editor').should('contain', 'apiVersion');
+        cy.getYamlEditorValue()
+          .then((yamlText) => {
+            const projectId = yamlText.match(/field\.cattle\.io\/projectId: "?([^"\s]+)"?/)?.[1];
+            expect(projectId, 'Move set a projectId annotation').to.match(/^local:p-/);
+            return projectId;
+          })
+          .as('projectId');
+        cy.clickButton('Cancel');
 
         // Tamper with a key Fleet owns: restoring it later proves the redeploy re-applied namespace metadata.
         cy.executeKubectlCommand(`kubectl annotate ns ${namespaceName} pod=tampered --overwrite {enter}`);
+        cy.accesMenuSelection('local', 'Projects/Namespaces');
+        cy.checkAnnotationInYaml(namespaceName, 'pod: tampered');
 
         // Redeploy.
         cy.continuousDeliveryMenuSelection();
@@ -2418,14 +2437,18 @@ if (isRancherVersionAtLeast(16)) {
         cy.filterInSearchBox(namespaceName);
         cy.open3dotsMenu(namespaceName, 'Edit YAML');
         cy.get('.CodeMirror, .cm-editor').should('contain', 'apiVersion');
-        cy.getYamlEditorValue().then((yamlText) => {
-          expect(yamlText.includes('pod: deny'), 'Fleet re-applied its namespaceAnnotations').to.eq(true);
-          expect(yamlText.includes(projectAnnotation), 'Namespace is still in the Default project').to.eq(true);
+        cy.get('@projectId').then((projectId) => {
+          cy.getYamlEditorValue().then((yamlText) => {
+            expect(yamlText.match(/[ \t]+pod: deny$/m) !== null, 'Fleet re-applied its namespaceAnnotations').to.eq(
+              true,
+            );
+            expect(
+              yamlText.match(new RegExp(`[ \\t]+field\\.cattle\\.io/projectId: "?${projectId}"?$`, 'm')) !== null,
+              `Namespace is still in project ${projectId}`,
+            ).to.eq(true);
+          });
         });
         cy.clickButton('Cancel');
-
-        // The global beforeEach removes the GitRepo, but not its namespace: drop it so re-runs start clean.
-        cy.executeKubectlCommand(`kubectl delete ns ${namespaceName} --ignore-not-found {enter}`);
       },
     );
   });
