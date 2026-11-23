@@ -88,6 +88,6 @@ jobs:
       qase_run_id: ${{ inputs.qase_run_id || '' }}
       qase_milestone: ${{ inputs.qase_milestone }}
       qase_milestone_auto: ${{ github.event_name == 'schedule' }}
-      qase_complete_run: ${{ inputs.qase_complete_run != false }}
+      qase_complete_run: ${{ github.event_name == 'schedule' && true || inputs.qase_complete_run != false }}
       grep_test_by_tag: ${{ inputs.grep_test_by_tag || '@login @p0 @p1 @p1_2 @rbac @special_tests' }}
       runner_template: ${{ inputs.runner_template || 'fleet-e2e-ci-runner-spot-x86-64-template-v3' }}
