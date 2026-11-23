@@ -2375,3 +2375,86 @@ if (isRancherVersionAtLeast(16)) {
     );
   });
 }
+
+// Fleet keeps namespace metadata it does not declare (e.g. Rancher projectId) on Rancher 2.16+.
+if (isRancherVersionAtLeast(16)) {
+  describe('Test namespace moved into a Rancher Project stays there after Fleet redeploys.', { tags: '@p1_2' }, () => {
+    const repoName = 'test-ns-project-move';
+    const path = 'qa-test-apps/namespace-labels-annotations';
+    const namespaceName = 'my-labeled-namespace';
+
+    // The global beforeEach deletes the GitRepo first, so Fleet will not recreate this namespace.
+    beforeEach('Drop the namespace left by a previous run, if any, and wait until it is gone.', () => {
+      cy.executeKubectlCommand(`kubectl delete ns ${namespaceName} --ignore-not-found {enter}`);
+      // kubectl returns while the namespace is still Terminating; wait for it to leave the UI list.
+      cy.checkNamespaceInCluster(namespaceName, 'local', false, 300000);
+    });
+
+    // Fleet reconciles asynchronously after a Force Update, so re-read the YAML until it shows Fleet's
+    // restored key and Rancher's project annotation, or fail once the retries run out.
+    function waitForNamespaceReconcile(projectId: string, attemptsLeft: number) {
+      cy.accesMenuSelection('local', 'Projects/Namespaces');
+      cy.filterInSearchBox(namespaceName);
+      cy.open3dotsMenu(namespaceName, 'Edit YAML');
+      cy.get('.CodeMirror, .cm-editor').should('contain', 'apiVersion');
+      cy.getYamlEditorValue().then((yamlText) => {
+        cy.clickButton('Cancel');
+        const restored = /[ \t]+pod: deny$/m.test(yamlText);
+        const projectKept = new RegExp(`[ \\t]+field\\.cattle\\.io/projectId: "?${projectId}"?$`, 'm').test(yamlText);
+        if (restored && projectKept) return;
+        if (attemptsLeft <= 1) {
+          expect(restored, 'Fleet re-applied its namespaceAnnotations').to.eq(true);
+          expect(projectKept, `Namespace is still in project ${projectId}`).to.eq(true);
+        }
+        cy.wait(5000);
+        waitForNamespaceReconcile(projectId, attemptsLeft - 1);
+      });
+    }
+
+    it(
+      qase(503, 'Fleet-503: Test namespace deployed by Fleet keeps its Project after GitRepo Force Update.'),
+      { tags: '@fleet-503' },
+      () => {
+        cy.addFleetGitRepo({ repoName, repoUrl, branch, path, local: true });
+        cy.clickButton('Create');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+
+        // Move the namespace Fleet created into the Default project, as a user would.
+        cy.accesMenuSelection('local', 'Projects/Namespaces');
+        cy.filterInSearchBox(namespaceName);
+        cy.verifyTableRow(0, 'Active', namespaceName);
+        cy.open3dotsMenu(namespaceName, 'Move');
+        cy.get('.move-modal-card .labeled-select').should('be.visible').click();
+        cy.contains('.vs__dropdown-option', 'Default').click();
+        cy.clickButton('Move');
+
+        // Capture the exact project ID the Move set. "local:p-" alone matches every project.
+        cy.filterInSearchBox(namespaceName);
+        cy.verifyTableRow(0, namespaceName);
+        cy.open3dotsMenu(namespaceName, 'Edit YAML');
+        cy.get('.CodeMirror, .cm-editor').should('contain', 'apiVersion');
+        cy.getYamlEditorValue()
+          .then((yamlText) => {
+            const projectId = yamlText.match(/field\.cattle\.io\/projectId: "?([^"\s]+)"?/)?.[1];
+            expect(projectId, 'Move set a projectId annotation').to.match(/^local:p-/);
+            return projectId;
+          })
+          .as('projectId');
+        cy.clickButton('Cancel');
+
+        // Tamper with a key Fleet owns: restoring it later proves the redeploy re-applied namespace metadata.
+        cy.executeKubectlCommand(`kubectl annotate ns ${namespaceName} pod=tampered --overwrite {enter}`);
+        cy.accesMenuSelection('local', 'Projects/Namespaces');
+        cy.checkAnnotationInYaml(namespaceName, 'pod: tampered');
+
+        // Redeploy.
+        cy.continuousDeliveryMenuSelection();
+        cy.fleetNamespaceToggle('fleet-local');
+        cy.open3dotsMenu(repoName, 'Force Update');
+        cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+        // No UI signal for "agent re-applied namespace metadata", so poll the YAML until it shows up.
+        cy.get('@projectId').then((projectId) => waitForNamespaceReconcile(projectId, 12));
+      },
+    );
+  });
+}
