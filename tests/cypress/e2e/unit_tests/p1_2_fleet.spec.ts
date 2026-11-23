@@ -2389,7 +2389,7 @@ if (isRancherVersionAtLeast(16)) {
       // kubectl returns while the namespace is still Terminating; wait for it to leave the UI list.
       cy.accesMenuSelection('local', 'Projects/Namespaces');
       cy.filterInSearchBox(namespaceName);
-      cy.get('body', { timeout: 300000 }).should('not.contain', namespaceName);
+      cy.get('tr.main-row', { timeout: 300000 }).should('not.exist');
     });
 
     // Fleet reconciles asynchronously after a Force Update, so re-read the YAML until it shows Fleet's
