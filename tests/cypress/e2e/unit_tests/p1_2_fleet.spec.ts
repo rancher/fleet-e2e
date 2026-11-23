@@ -2384,9 +2384,34 @@ if (isRancherVersionAtLeast(16)) {
     const namespaceName = 'my-labeled-namespace';
 
     // The global beforeEach deletes the GitRepo first, so Fleet will not recreate this namespace.
-    beforeEach('Drop the namespace left by a previous run, if any.', () => {
+    beforeEach('Drop the namespace left by a previous run, if any, and wait until it is gone.', () => {
       cy.executeKubectlCommand(`kubectl delete ns ${namespaceName} --ignore-not-found {enter}`);
+      // kubectl returns while the namespace is still Terminating; wait for it to leave the UI list.
+      cy.accesMenuSelection('local', 'Projects/Namespaces');
+      cy.filterInSearchBox(namespaceName);
+      cy.get('body', { timeout: 300000 }).should('not.contain', namespaceName);
     });
+
+    // Fleet reconciles asynchronously after a Force Update, so re-read the YAML until it shows Fleet's
+    // restored key and Rancher's project annotation, or fail once the retries run out.
+    function waitForNamespaceReconcile(projectId: string, attemptsLeft: number) {
+      cy.accesMenuSelection('local', 'Projects/Namespaces');
+      cy.filterInSearchBox(namespaceName);
+      cy.open3dotsMenu(namespaceName, 'Edit YAML');
+      cy.get('.CodeMirror, .cm-editor').should('contain', 'apiVersion');
+      cy.getYamlEditorValue().then((yamlText) => {
+        cy.clickButton('Cancel');
+        const restored = /[ \t]+pod: deny$/m.test(yamlText);
+        const projectKept = new RegExp(`[ \\t]+field\\.cattle\\.io/projectId: "?${projectId}"?$`, 'm').test(yamlText);
+        if (restored && projectKept) return;
+        if (attemptsLeft <= 1) {
+          expect(restored, 'Fleet re-applied its namespaceAnnotations').to.eq(true);
+          expect(projectKept, `Namespace is still in project ${projectId}`).to.eq(true);
+        }
+        cy.wait(5000);
+        waitForNamespaceReconcile(projectId, attemptsLeft - 1);
+      });
+    }
 
     it(
       qase(503, 'Fleet-503: Test namespace deployed by Fleet keeps its Project after GitRepo Force Update.'),
@@ -2429,26 +2454,8 @@ if (isRancherVersionAtLeast(16)) {
         cy.fleetNamespaceToggle('fleet-local');
         cy.open3dotsMenu(repoName, 'Force Update');
         cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-        // No UI signal for "agent re-applied namespace metadata"; give the agent time to reconcile.
-        cy.wait(15000);
-
-        // Fleet restored its own key and left Rancher's project annotation alone.
-        cy.accesMenuSelection('local', 'Projects/Namespaces');
-        cy.filterInSearchBox(namespaceName);
-        cy.open3dotsMenu(namespaceName, 'Edit YAML');
-        cy.get('.CodeMirror, .cm-editor').should('contain', 'apiVersion');
-        cy.get('@projectId').then((projectId) => {
-          cy.getYamlEditorValue().then((yamlText) => {
-            expect(yamlText.match(/[ \t]+pod: deny$/m) !== null, 'Fleet re-applied its namespaceAnnotations').to.eq(
-              true,
-            );
-            expect(
-              yamlText.match(new RegExp(`[ \\t]+field\\.cattle\\.io/projectId: "?${projectId}"?$`, 'm')) !== null,
-              `Namespace is still in project ${projectId}`,
-            ).to.eq(true);
-          });
-        });
-        cy.clickButton('Cancel');
+        // No UI signal for "agent re-applied namespace metadata", so poll the YAML until it shows up.
+        cy.get('@projectId').then((projectId) => waitForNamespaceReconcile(projectId, 12));
       },
     );
   });
