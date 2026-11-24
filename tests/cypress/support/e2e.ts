@@ -29,6 +29,7 @@ declare global {
     interface Chainable {
       // Functions declared in commands.ts
       open3dotsMenu(name: string, selection?: string, checkNotInMenu?: boolean): Chainable<Element>;
+      selectBranchOrRevision(options: { branch?: string; revision?: string }): Chainable<Element>;
       addPathOnGitRepoCreate(path: string, index?: number): Chainable<Element>;
       gitRepoAuth(
         AuthType: string,

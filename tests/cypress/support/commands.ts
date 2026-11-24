@@ -43,6 +43,20 @@ export const isRancherVersionAtLeast = (minor: number): boolean => {
 
 // Fleet commands
 
+// Select whether the GitRepo watches a branch or a revision (tag or commit), and type its value.
+Cypress.Commands.add('selectBranchOrRevision', ({ branch, revision }) => {
+  // The branch/revision dropdown sits inside an InputWithSelect (.input-container) on Rancher 2.10+.
+  cy.get('.input-container .labeled-select').first().click({ force: true });
+  if (branch) {
+    cy.get('ul.vs__dropdown-menu > li').contains('A Branch').should('exist').click();
+    cy.typeValue('Branch Name', branch);
+  }
+  if (revision) {
+    cy.get('ul.vs__dropdown-menu > li').contains('A Revision').should('exist').click();
+    cy.typeValue('Tag or Commit Hash', revision);
+  }
+});
+
 // Add path on "Git Repo:Create"
 Cypress.Commands.add('addPathOnGitRepoCreate', (path, index = 0) => {
   //Index defaulting to 0, for first input box.
@@ -233,6 +247,9 @@ Cypress.Commands.add(
       cy.open3dotsMenu(repoName, 'Edit Config');
       cy.contains(/App Bundle|Git Repo/).should('be.visible');
       cy.clickButton('Next');
+      if (branch || revision) {
+        cy.selectBranchOrRevision({ branch, revision });
+      }
     } else {
       cy.clickCreateGitRepo(local);
       cy.typeValue('Name', repoName);
