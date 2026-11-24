@@ -976,6 +976,12 @@ describe('Test GitRepo revision and branch switching', { tags: '@p1' }, () => {
       cy.clickButton('Save');
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
       cy.contains('Invalid Commit Id').should('not.exist');
+
+      // Switch back from the branch to the pinned revision (edit-mode revision path).
+      cy.addFleetGitRepo({ repoName, revision, editConfig: true });
+      cy.clickButton('Save');
+      cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      cy.checkApplicationStatus(appName);
     },
   );
 });
