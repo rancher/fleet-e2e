@@ -949,6 +949,7 @@ describe('Test GitRepo revision and branch switching', { tags: '@p1' }, () => {
       // Create a GitRepo pinned to a Git revision (tag) instead of the master branch.
       cy.addFleetGitRepo({ repoName, repoUrl, revision, path, local: true });
       cy.clickButton('Create');
+      cy.verifyTableRow(0, repoName, revision);
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
 
       // Application should be deployed from the pinned revision.
@@ -964,29 +965,35 @@ describe('Test GitRepo revision and branch switching', { tags: '@p1' }, () => {
     { tags: '@fleet-510' },
     () => {
       const repoName = 'local-cluster-revision-to-branch-510';
+      const branch = 'main';
 
-      // Create a GitRepo pinned to a Git revision (tag) instead of the master branch.
+      // Create a GitRepo from a revision and not from branch 'main'
       cy.addFleetGitRepo({ repoName, repoUrl, revision, path, local: true });
       cy.clickButton('Create');
+      cy.verifyTableRow(0, repoName, revision);
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
 
       // Switch the GitRepo from the pinned revision to watching a branch (used to fail with "Invalid Commit Id").
       // Ref: https://github.com/rancher/fleet/issues/1779
-      cy.addFleetGitRepo({ repoName, branch: 'main', editConfig: true });
+      cy.addFleetGitRepo({ repoName, branch, editConfig: true });
       cy.clickButton('Save');
       cy.contains('Save').should('not.exist');
       // Let Fleet re-sync after the edit so the status check doesn't read the pre-edit state.
       cy.wait(5000);
+      // The row must show the new branch, so a no-op edit would fail here.
+      cy.verifyTableRow(0, repoName, branch);
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
       cy.contains('Invalid Commit Id').should('not.exist');
+
+      cy.checkApplicationStatus(appName);
 
       // Switch back from the branch to the pinned revision (edit-mode revision path).
       cy.addFleetGitRepo({ repoName, revision, editConfig: true });
       cy.clickButton('Save');
       cy.contains('Save').should('not.exist');
       cy.wait(5000);
+      cy.verifyTableRow(0, repoName, revision);
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
-      cy.checkApplicationStatus(appName);
     },
   );
 });
