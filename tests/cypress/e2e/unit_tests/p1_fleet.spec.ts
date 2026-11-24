@@ -974,12 +974,17 @@ describe('Test GitRepo revision and branch switching', { tags: '@p1' }, () => {
       // Ref: https://github.com/rancher/fleet/issues/1779
       cy.addFleetGitRepo({ repoName, branch: 'main', editConfig: true });
       cy.clickButton('Save');
+      cy.contains('Save').should('not.exist');
+      // Let Fleet re-sync after the edit so the status check doesn't read the pre-edit state.
+      cy.wait(5000);
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
       cy.contains('Invalid Commit Id').should('not.exist');
 
       // Switch back from the branch to the pinned revision (edit-mode revision path).
       cy.addFleetGitRepo({ repoName, revision, editConfig: true });
       cy.clickButton('Save');
+      cy.contains('Save').should('not.exist');
+      cy.wait(5000);
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
       cy.checkApplicationStatus(appName);
     },
