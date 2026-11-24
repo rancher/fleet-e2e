@@ -1006,8 +1006,9 @@ describe('Test correctDrift does not create excessive secrets after multiple mod
   );
 });
 
+// Skipping tests until fix in 2.16.2 for https://github.com/rancher/fleet/issues/6073
 if (isRancherVersionAtLeast(16)) {
-  describe('Test deleteNamespace option on downstream cluster', { tags: ['@p1', '@fleet-508'] }, () => {
+  describe.skip('Test deleteNamespace option on downstream cluster', { tags: ['@p1', '@fleet-508'] }, () => {
     it(
       qase(
         508,
