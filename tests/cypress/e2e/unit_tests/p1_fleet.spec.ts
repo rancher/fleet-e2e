@@ -994,6 +994,7 @@ describe('Test GitRepo revision and branch switching', { tags: '@p1' }, () => {
       cy.wait(5000);
       cy.verifyTableRow(0, repoName, revision);
       cy.checkGitRepoStatus(repoName, '1 / 1', '1 / 1');
+      cy.checkApplicationStatus(appName);
     },
   );
 });
